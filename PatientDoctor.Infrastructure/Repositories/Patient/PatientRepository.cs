@@ -63,7 +63,7 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
 
             return existingAppointment != null;
         }
-        public async Task<IResponse> ActiveInActive(ActiveInActive model)
+        public async Task<IResponse> ActiveInActive(ActiveInActivePatients model)
         {
             using var transaction = _context.Database.BeginTransaction();
             try

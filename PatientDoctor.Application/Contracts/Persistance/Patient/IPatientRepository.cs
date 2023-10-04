@@ -15,7 +15,7 @@ namespace PatientDoctor.Application.Contracts.Persistance.Patient
     {
         Task<IResponse> GetPatientById(GetPatientById Id);
         Task<IResponse> AddEditPatient(AddEditPatientCommand model);
-        Task<IResponse> ActiveInActive(ActiveInActive model);
+        Task<IResponse> ActiveInActive(ActiveInActivePatients model);
         Task<IResponse> GetAllByProc(GetPatientListWithDocterId model);
     }
 }

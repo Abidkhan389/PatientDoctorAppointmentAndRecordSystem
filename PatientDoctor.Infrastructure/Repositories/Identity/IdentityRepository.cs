@@ -54,7 +54,7 @@ namespace PatientDoctor.Infrastructure.Repositories.Identity
             this._crypto = crypto;
 
         }
-        public async Task<IResponse> ActiveInActiveUser(ActiveInActive model)
+        public async Task<IResponse> ActiveInActiveUser(ActiveInActiveIdentity model)
         {
             var user = await _userManager.FindByIdAsync(model.Id.ToString());
             if (user == null )

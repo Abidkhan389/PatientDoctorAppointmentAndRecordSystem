@@ -26,7 +26,7 @@ namespace PatientDoctor.API.Controllers
         }
         [HttpGet]
         [Route("ActiveInActive")]
-        public async Task<object> ActiveInActive(ActiveInActive model)
+        public async Task<object> ActiveInActive(ActiveInActivePatients model)
         {
             if (!ModelState.IsValid)
             {

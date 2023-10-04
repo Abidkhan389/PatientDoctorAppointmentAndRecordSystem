@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace PatientDoctor.Application.Features.Identity.Commands.ActiveInActive
 {
-    public class ActiveInActive : IRequest<IResponse>
+    public class ActiveInActiveIdentity : IRequest<IResponse>
     {
         public Guid Id { get; set; }
         public int Status { get; set; }

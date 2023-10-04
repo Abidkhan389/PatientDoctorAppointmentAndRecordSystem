@@ -16,7 +16,7 @@ namespace PatientDoctor.Application.Contracts.Persistance.IIdentityRepository
         // Task<IResponse> GetAllProducts(GetProductList model);
         Task<IResponse> GetUserById(GetUserById Id);
         Task<IResponse> LoginUserAsync(LoginUserCommand model);
-        Task<IResponse> ActiveInActiveUser(ActiveInActive model);
+        Task<IResponse> ActiveInActiveUser(ActiveInActiveIdentity model);
         Task<IResponse> GetAllByProc(GetUserList model);
         Task<IResponse> RegisterUser(RegisterUserCommands model);
     }

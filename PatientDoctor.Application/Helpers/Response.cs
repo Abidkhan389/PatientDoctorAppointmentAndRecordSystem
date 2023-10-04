@@ -12,4 +12,9 @@ namespace PatientDoctor.Application.Helpers
         public string Message { get; set; }
         public object Data { get; set; }
     }
+    public class CountResponse : ICountResponse
+    {
+        public int TotalCount { get; set; }
+        public object DataList { get; set; }
+    }
 }

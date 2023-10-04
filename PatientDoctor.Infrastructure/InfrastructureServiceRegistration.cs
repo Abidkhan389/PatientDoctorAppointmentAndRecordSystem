@@ -13,6 +13,8 @@ using PatientDoctor.Infrastructure.Repositories.Identity;
 using PatientDoctor.Application.Contracts.Persistance.Patient;
 using PatientDoctor.Infrastructure.Repositories.Patient;
 using PatientDoctor.Application.Helpers;
+using PatientDoctor.Application.Contracts.Security;
+using PatientDoctor.Infrastructure.Repositories.CryptoService;
 
 namespace PatientDoctor.Infrastructure
 {
@@ -27,26 +29,27 @@ namespace PatientDoctor.Infrastructure
                     sqlOptions => sqlOptions.MigrationsAssembly("PatientDoctor.Migrations")
                 );
             });
-            //services.AddIdentity<ApplicationUser, IdentityRole>(Options =>
-            //{
-            //    Options.Password.RequiredLength = 4;
-            //    Options.Password.RequireNonAlphanumeric = false;
-            //    Options.Password.RequiredUniqueChars = 3;
-            //    Options.Password.RequireDigit = false;
-            //    Options.Password.RequireLowercase = false;
-            //    Options.Password.RequireUppercase = false;
+            services.AddIdentity<ApplicationUser, IdentityRole>(options =>
+            {
+                options.Password.RequiredLength = 4;
+                options.Password.RequireNonAlphanumeric = false;
+                options.Password.RequiredUniqueChars = 3;
+                options.Password.RequireDigit = false;
+                options.Password.RequireLowercase = false;
+                options.Password.RequireUppercase = false;
 
-            //    //Options.SignIn.RequireConfirmedEmail = true;
-            //}).AddEntityFrameworkStores<DocterPatiendDbContext>()
-            //.AddDefaultTokenProviders();
-            // services.AddCors(options => options.AddPolicy("CorsPolicy",
-            //builder =>
-            //{
-            //    builder.AllowAnyHeader()
-            //           .AllowAnyMethod()
-            //           .SetIsOriginAllowed((host) => true)
-            //           .AllowCredentials();
-            //}));
+                //Options.SignIn.RequireConfirmedEmail = true;
+            }).AddEntityFrameworkStores<DocterPatiendDbContext>()
+               .AddDefaultTokenProviders();
+
+            services.AddCors(options => options.AddPolicy("CorsPolicy",
+           builder =>
+           {
+               builder.AllowAnyHeader()
+                      .AllowAnyMethod()
+                      .SetIsOriginAllowed((host) => true)
+                      .AllowCredentials();
+           }));
             services.AddAuthentication(options =>
              {
                  options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -75,6 +78,8 @@ namespace PatientDoctor.Infrastructure
             services.AddScoped<IIdentityRepository, IdentityRepository>();
             services.AddScoped<IPatientRepository, PatientRepository>();
             services.AddScoped<IResponse, Response>();
+            services.AddScoped<ICountResponse, CountResponse>(); 
+            services.AddScoped<ICryptoService, CryptoHelper>();
             return services;
         }
 

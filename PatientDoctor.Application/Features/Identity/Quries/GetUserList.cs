@@ -11,8 +11,8 @@ namespace PatientDoctor.Application.Features.Identity.Quries
 {
     public class GetUserList : TableParam, IRequest<IResponse>
     {
-        public string? UserName { get; set; }
-        public int? ActiveStatus { get; set; }
+        public string UserName { get; set; }
+        public int? Status { get; set; }
         public string? Email { get; set; }
         public string? Cnic { get; set; }
         public string? MobileNumber { get; set; }

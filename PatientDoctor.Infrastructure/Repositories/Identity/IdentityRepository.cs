@@ -87,7 +87,7 @@ namespace PatientDoctor.Infrastructure.Repositories.Identity
 
             var userList = await(from user in _userManager.Users
                            join userdetails in _context.Userdetail on user.Id equals userdetails.UserId
-                           where (user.Status == model.ActiveStatus || model.ActiveStatus == null)
+                           where (user.Status == model.Status || model.Status == null)
                            &&(EF.Functions.ILike(user.UserName,$"%{model.UserName}%") || string.IsNullOrEmpty(model.UserName))
                            &&(EF.Functions.ILike(user.Email,$"%{model.Email}%") || string.IsNullOrEmpty(model.Email))
                            &&(EF.Functions.ILike(userdetails.City,$"%{model.City}%") || string.IsNullOrEmpty(model.City))

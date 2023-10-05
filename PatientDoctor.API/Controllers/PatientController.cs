@@ -24,9 +24,9 @@ namespace PatientDoctor.API.Controllers
             this._mediator = mediator;
             this._response = response;
         }
-        [HttpGet]
+        [HttpPost]
         [Route("ActiveInActive")]
-        public async Task<object> ActiveInActive(ActiveInActivePatients model)
+        public async Task<object> ActiveInActive([FromBody] ActiveInActivePatients model)
         {
             if (!ModelState.IsValid)
             {

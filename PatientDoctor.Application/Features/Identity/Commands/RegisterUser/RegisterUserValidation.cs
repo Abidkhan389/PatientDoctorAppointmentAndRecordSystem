@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace PatientDoctor.Application.Features.Identity.Commands.RegisterUser
 {
-    public class RegisterUserValidation : AbstractValidator<RegisterUserCommands>
+    public class RegisterUserValidation : AbstractValidator<AddEditUserCommands>
     {
         public RegisterUserValidation()
         {

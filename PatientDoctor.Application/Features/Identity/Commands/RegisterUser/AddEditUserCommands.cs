@@ -8,8 +8,9 @@ using System.Threading.Tasks;
 
 namespace PatientDoctor.Application.Features.Identity.Commands.RegisterUser
 {
-    public class RegisterUserCommands : IRequest<IResponse>
+    public class AddEditUserCommands : IRequest<IResponse>
     {
+        public string? Id {  get; set; }
         public string Email { get; set; }
         public string FirstName { get; set; }
         public string LastName { get; set; }

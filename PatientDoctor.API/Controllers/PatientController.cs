@@ -60,7 +60,6 @@ namespace PatientDoctor.API.Controllers
                 return Ok(_response);
             }
             var DocterId = HelperStatic.GetUserIdFromClaims((ClaimsIdentity)User.Identity);
-
             return await _mediator.Send(new GetPatientListWithDocterId(model, DocterId));
         }
         [HttpGet]

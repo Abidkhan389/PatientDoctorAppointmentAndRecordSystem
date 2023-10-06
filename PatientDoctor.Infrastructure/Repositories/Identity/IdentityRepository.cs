@@ -92,7 +92,7 @@ namespace PatientDoctor.Infrastructure.Repositories.Identity
                            &&(EF.Functions.ILike(user.Email,$"%{model.Email}%") || string.IsNullOrEmpty(model.Email))
                            &&(EF.Functions.ILike(userdetails.City,$"%{model.City}%") || string.IsNullOrEmpty(model.City))
                            &&(EF.Functions.ILike(userdetails.Cnic,$"%{model.Cnic}%") || string.IsNullOrEmpty(model.Cnic))
-                           &&(EF.Functions.ILike(user.MobileNumber,$"%{model.MobileNumber}%") || string.IsNullOrEmpty(model.MobileNumber))
+                           &&(EF.Functions.ILike(user.PhoneNumber,$"%{model.MobileNumber}%") || string.IsNullOrEmpty(model.MobileNumber))
                            select new
                            {
                                User=user,
@@ -102,7 +102,7 @@ namespace PatientDoctor.Infrastructure.Repositories.Identity
             var tasks = userList.Select(async item => new VM_Users
             {
                 UserId=item.User.Id,
-                MobileNumber=item.User.MobileNumber,
+                MobileNumber=item.User.PhoneNumber,
                 FullName=item.User.UserName,
                 Status=item.User.Status,
                 Email=item.User.Email,
@@ -132,7 +132,7 @@ namespace PatientDoctor.Infrastructure.Repositories.Identity
                              select new VM_Users
                              {
                                  UserId = main.Id,
-                                 MobileNumber = main.MobileNumber,
+                                 MobileNumber = main.PhoneNumber,
                                  Status = main.Status,
                                  Email = main.Email,
                                  FullName = main.UserName,
@@ -197,76 +197,150 @@ namespace PatientDoctor.Infrastructure.Repositories.Identity
             return _response;
         }
 
-        public async Task<IResponse> RegisterUser(RegisterUserCommands model)
+        public async Task<IResponse> AddEditUser(AddEditUserWithCreatedOrUpdatedById model)
         {
             using var transaction = _context.Database.BeginTransaction();
             try
             {
-                var existUser = await _userManager.FindByEmailAsync(model.Email);
-                if(existUser != null)
+                if (model.addEditUsermodel.Id == null)
                 {
-                    _response.Message = Constants.Exists.Replace("{data}", "{User}");
-                    _response.Success = Constants.ResponseFailure;
-                    return _response;
-                }
-                var UserRoles = new List<IdentityRole>();
-                foreach(var roleid in model.RoleIds)
-                {
-                    var role=await _roleManager.FindByIdAsync(roleid);
-                    if(role != null)
+                    var existUser = await _userManager.FindByEmailAsync(model.addEditUsermodel.Email);
+                    if (existUser != null)
                     {
-                        UserRoles.Add(role);
-                    }
-                    else
-                    {
-                        // Handle the case where the role does not exist.
-                        _response.Message = Constants.NotFound.Replace("{data}", "{role}");
+                        _response.Message = Constants.Exists.Replace("{data}", "{User}");
                         _response.Success = Constants.ResponseFailure;
                         return _response;
                     }
-                }
-                // Create a new ApplicationUser
-                var user = new ApplicationUser
-                {
-                    IsSuperAdmin = false,
-                    MobileNumber = model.MobileNumber,
-                    Email = model.Email,
-                    UserName = model.FirstName + model.LastName,
-                    Status=1,
-                };
-                // salt and hast the password
-                var salt = _crypto.CreateSalt();
-                user.PasswordSalt = salt;
-                user.PasswordHash = _crypto.CreateKey(salt,model.Password);
-                var result= await _userManager.CreateAsync(user);
-                if (!result.Succeeded)
-                {
-                    _response.Message = Constants.NotFound.Replace("{data}", "{userObj}");
-                    _response.Success = Constants.ResponseFailure;
-                    return _response;
-                }
-                Userdetail userdetail = new Userdetail(model.Cnic, model.City);
-                userdetail.Initialize(user);
-                await _context.Userdetail.AddAsync(userdetail);
-                await _context.SaveChangesAsync();
-                //get the user roles for handle the duplicate roles
-                var userRoles = await _userManager.GetRolesAsync(user);
-                
-                // Determine roles to be added or updated
-                var rolesToAddOrUpdate = model.RoleIds.Except(userRoles).ToList();
+                    var UserRoles = new List<IdentityRole>();
+                    foreach (var roleid in model.addEditUsermodel.RoleIds)
+                    {
+                        var role = await _roleManager.FindByIdAsync(roleid);
+                        if (role != null)
+                        {
+                            UserRoles.Add(role);
+                        }
+                        else
+                        {
+                            // Handle the case where the role does not exist.
+                            _response.Message = Constants.NotFound.Replace("{data}", "{role}");
+                            _response.Success = Constants.ResponseFailure;
+                            return _response;
+                        }
+                    }
+                    // Create a new ApplicationUser
+                    var user = new ApplicationUser
+                    {
+                        IsSuperAdmin = false,
+                        PhoneNumber = model.addEditUsermodel.MobileNumber,
+                        Email = model.addEditUsermodel.Email,
+                        UserName = model.addEditUsermodel.FirstName + model.addEditUsermodel.LastName,
+                        Status = 1,
+                    };
+                    // salt and hast the password
+                    var salt = _crypto.CreateSalt();
+                    user.PasswordSalt = salt;
+                    user.PasswordHash = _crypto.CreateKey(salt, model.addEditUsermodel.Password);
+                    var result = await _userManager.CreateAsync(user);
+                    if (!result.Succeeded)
+                    {
+                        _response.Message = Constants.NotFound.Replace("{data}", "{userObj}");
+                        _response.Success = Constants.ResponseFailure;
+                        return _response;
+                    }
+                    Userdetail userdetail = new Userdetail(model);
+                    userdetail.Initialize(user);
+                    await _context.Userdetail.AddAsync(userdetail);
+                    await _context.SaveChangesAsync();
+                    //get the user roles for handle the duplicate roles
+                    var userRoles = await _userManager.GetRolesAsync(user);
 
-                var rolesResult = await _userManager.AddToRolesAsync(user, rolesToAddOrUpdate);
-                if (!rolesResult.Succeeded)
-                {
-                    // Handle the case where role assignment failed
-                    _response.Success = Constants.ResponseFailure;
-                    _response.Message = "Role assignment failed.";
+                    // Determine roles to be added or updated
+                    var rolesToAddOrUpdate = model.addEditUsermodel.RoleIds.Except(userRoles).ToList();
+
+                    var rolesResult = await _userManager.AddToRolesAsync(user, rolesToAddOrUpdate);
+                    if (!rolesResult.Succeeded)
+                    {
+                        // Handle the case where role assignment failed
+                        _response.Success = Constants.ResponseFailure;
+                        _response.Message = "Role assignment failed.";
+                        return _response;
+                    }
+                    await transaction.CommitAsync();
+                    _response.Success = Constants.ResponseSuccess;
+                    _response.Message = Constants.DataSaved;
                     return _response;
                 }
-                await transaction.CommitAsync();
-                _response.Success = Constants.ResponseSuccess;
-                _response.Message = Constants.DataSaved;
-                return _response;
+                else
+                {
+                    var existUser = await _userManager.FindByIdAsync(model.addEditUsermodel.Id);
+                    if (existUser != null)
+                    {
+                        _response.Message = Constants.NotFound.Replace("{data}", "{User}");
+                        _response.Success = Constants.ResponseFailure;
+                        return _response;
+                    }
+                    var UserRoles = new List<IdentityRole>();
+                    foreach (var roleid in model.addEditUsermodel.RoleIds)
+                    {
+                        var role = await _roleManager.FindByIdAsync(roleid);
+                        if (role != null)
+                        {
+                            UserRoles.Add(role);
+                        }
+                        else
+                        {
+                            // Handle the case where the role does not exist.
+                            _response.Message = Constants.NotFound.Replace("{data}", "{role}");
+                            _response.Success = Constants.ResponseFailure;
+                            return _response;
+                        }
+                    }
+                    //update existing user
+                    existUser.PhoneNumber= model.addEditUsermodel.MobileNumber;
+                    existUser.Email = model.addEditUsermodel.Email;
+                    existUser.UserName = model.addEditUsermodel.FirstName + model.addEditUsermodel.LastName;
+                    var existinguserdetails= await _context.Userdetail.FindAsync(existUser.Id);
+                    if (existinguserdetails != null)
+                    {
+                        _response.Message = Constants.NotFound.Replace("{data}", "{UserDetails}");
+                        _response.Success = Constants.ResponseFailure;
+                        return _response;
+                    }
+                    // update existing user details
+                    existinguserdetails.Cnic=model.addEditUsermodel.Cnic;
+                    existinguserdetails.City=model.addEditUsermodel.City;
+                    existinguserdetails.UpdatedBy = model.UserId;
+                    existinguserdetails.UpdatedOn= DateTime.UtcNow;
+                    //update user
+                    var result = await _userManager.UpdateAsync(existUser);
+                    if (!result.Succeeded)
+                    {
+                        _response.Message = Constants.NotFound.Replace("{data}", "{userObj}");
+                        _response.Success = Constants.ResponseFailure;
+                        return _response;
+                    }
+                    //get the user roles for handle the duplicate roles
+                    var userRoles = await _userManager.GetRolesAsync(existUser);
+
+                    // Determine roles to be added or updated
+                    var rolesToAddOrUpdate = model.addEditUsermodel.RoleIds.Except(userRoles).ToList();
+
+                    var rolesResult = await _userManager.AddToRolesAsync(existUser, rolesToAddOrUpdate);
+                    if (!rolesResult.Succeeded)
+                    {
+                        // Handle the case where role assignment failed
+                        _response.Success = Constants.ResponseFailure;
+                        _response.Message = "Role assignment failed.";
+                        return _response;
+                    }
+                    await _userManager.UpdateAsync(existUser);
+                          _context.Userdetail.Update(existinguserdetails);
+                    await _context.SaveChangesAsync();
+                    await transaction.CommitAsync();
+                    _response.Success = Constants.ResponseSuccess;
+                    _response.Message = Constants.DataUpdate;
+                    return _response;
+                }
             }
             catch (Exception ex)
             {

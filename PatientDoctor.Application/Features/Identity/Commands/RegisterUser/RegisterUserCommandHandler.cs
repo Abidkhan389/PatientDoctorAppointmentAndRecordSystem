@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace PatientDoctor.Application.Features.Identity.Commands.RegisterUser
 {
-    public class RegisterUserCommandHandler : IRequestHandler<RegisterUserCommands, IResponse>
+    public class RegisterUserCommandHandler : IRequestHandler<AddEditUserWithCreatedOrUpdatedById, IResponse>
     {
         private readonly IIdentityRepository _identityRepository;
 
@@ -17,7 +17,7 @@ namespace PatientDoctor.Application.Features.Identity.Commands.RegisterUser
         {
             this._identityRepository = identityRepository?? throw new ArgumentNullException(nameof(identityRepository));
         }
-        public Task<IResponse> Handle(RegisterUserCommands request, CancellationToken cancellationToken)
+        public Task<IResponse> Handle(AddEditUserWithCreatedOrUpdatedById request, CancellationToken cancellationToken)
         {
             var register= _identityRepository.RegisterUser(request);
             return register;

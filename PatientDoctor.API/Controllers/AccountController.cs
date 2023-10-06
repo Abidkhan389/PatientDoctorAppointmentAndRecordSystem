@@ -5,7 +5,10 @@ using PatientDoctor.Application.Features.Identity.Commands.ActiveInActive;
 using PatientDoctor.Application.Features.Identity.Commands.LoginUser;
 using PatientDoctor.Application.Features.Identity.Commands.RegisterUser;
 using PatientDoctor.Application.Features.Identity.Quries;
+using PatientDoctor.Application.Features.Patient.Quries;
 using PatientDoctor.Application.Helpers;
+using PatientDoctor.Infrastructure.Repositories.GeneralServices;
+using System.Security.Claims;
 
 namespace PatientDoctor.API.Controllers
 {
@@ -22,7 +25,7 @@ namespace PatientDoctor.API.Controllers
             this._response = response;
         }
         [HttpPost]
-        [Route("ActiveInActive")]
+        [Route("ActiveInactive")]
         public async Task<object> ActiveInActive([FromBody] ActiveInActiveIdentity model)
         {
             if (!ModelState.IsValid)
@@ -35,8 +38,8 @@ namespace PatientDoctor.API.Controllers
 
         }
         [HttpPost]
-        [Route("RegisterUser")]
-        public async Task<object> RegisterUser(RegisterUserCommands model)
+        [Route("AddEditUser")]
+        public async Task<object> AddEditUser(AddEditUserCommands model)
         {
             if (!ModelState.IsValid)
             {
@@ -44,7 +47,9 @@ namespace PatientDoctor.API.Controllers
                 _response.Message = Constants.ModelStateStateIsInvalid;
                 return Ok(_response);
             }
-            return await _mediator.Send(model);
+            var UserId = HelperStatic.GetUserIdFromClaims((ClaimsIdentity)User.Identity);
+
+            return await _mediator.Send(new AddEditUserWithCreatedOrUpdatedById(model, UserId));
         }
         [HttpPost]
         [Route("LoginUser")]
@@ -71,7 +76,7 @@ namespace PatientDoctor.API.Controllers
             return await _mediator.Send(model);
         }
         [HttpGet]
-        [Route("GetUserById")]
+        [Route("getUserById")]
         public async Task<object> GetUserById(GetUserById UserId)
         {
             if (UserId == null)

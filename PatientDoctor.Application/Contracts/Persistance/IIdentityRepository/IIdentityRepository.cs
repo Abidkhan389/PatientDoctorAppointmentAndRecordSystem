@@ -18,6 +18,6 @@ namespace PatientDoctor.Application.Contracts.Persistance.IIdentityRepository
         Task<IResponse> LoginUserAsync(LoginUserCommand model);
         Task<IResponse> ActiveInActiveUser(ActiveInActiveIdentity model);
         Task<IResponse> GetAllByProc(GetUserList model);
-        Task<IResponse> RegisterUser(RegisterUserCommands model);
+        Task<IResponse> AddEditUser(AddEditUserWithCreatedOrUpdatedById model);
     }
 }

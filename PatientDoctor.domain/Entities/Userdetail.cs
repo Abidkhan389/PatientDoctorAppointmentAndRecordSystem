@@ -1,4 +1,5 @@
-﻿using PatientDoctor.domain.Entities.Public;
+﻿using PatientDoctor.Application.Features.Identity.Commands.RegisterUser;
+using PatientDoctor.domain.Entities.Public;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -15,13 +16,13 @@ namespace PatientDoctor.domain.Entities
         public string UserId { get; set; }
         public string Cnic { get; set; }
         public string City { get; set; }
-        public Userdetail(string Cnic,string City)
+        public Userdetail(AddEditUserWithCreatedOrUpdatedById model)
         {
             // Initialize properties here if needed
             this.CreatedOn = DateTime.UtcNow;
-            this.Cnic = Cnic;
-            this.City = City;
-
+            this.Cnic = model.addEditUsermodel.Cnic;
+            this.City =model.addEditUsermodel.City;
+            this.CreatedBy = model.UserId;
         }
         public void Initialize(ApplicationUser model)
         {

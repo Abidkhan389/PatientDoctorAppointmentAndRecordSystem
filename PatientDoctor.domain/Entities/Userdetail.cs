@@ -16,19 +16,27 @@ namespace PatientDoctor.domain.Entities
         public string UserId { get; set; }
         public string Cnic { get; set; }
         public string City { get; set; }
-        public Userdetail(AddEditUserWithCreatedOrUpdatedById model)
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+        public Userdetail()
+#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+        {
+                
+        }
+        public Userdetail(AddEditUserWithCreatedOrUpdatedById model, ApplicationUser user)
         {
             // Initialize properties here if needed
+            this.UserId = user.Id;
+            this.UserDetailId = Guid.NewGuid();
             this.CreatedOn = DateTime.UtcNow;
             this.Cnic = model.addEditUsermodel.Cnic;
             this.City =model.addEditUsermodel.City;
             this.CreatedBy = model.UserId;
         }
-        public void Initialize(ApplicationUser model)
-        {
-            //this.UserId = Guid.TryParse(model.Id, out var userIdGuid) ? userIdGuid : Guid.Empty;
-            this.UserId = model.Id;
-            this.UserDetailId = Guid.NewGuid();
-        }
+        //public void Initialize(ApplicationUser model)
+        //{
+        //    //this.UserId = Guid.TryParse(model.Id, out var userIdGuid) ? userIdGuid : Guid.Empty;
+        //    this.UserId = model.Id;
+        //    this.UserDetailId = Guid.NewGuid();
+        //}
     }
 }

@@ -19,7 +19,7 @@ namespace PatientDoctor.Application.Features.Identity.Commands.RegisterUser
         }
         public Task<IResponse> Handle(AddEditUserWithCreatedOrUpdatedById request, CancellationToken cancellationToken)
         {
-            var register= _identityRepository.RegisterUser(request);
+            var register= _identityRepository.AddEditUser(request);
             return register;
         }
     }

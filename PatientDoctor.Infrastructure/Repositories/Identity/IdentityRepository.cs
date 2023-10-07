@@ -22,6 +22,7 @@ using PatientDoctor.Infrastructure.Utalities;
 using PatientDoctor.Application.Features.Identity.Quries;
 using Microsoft.EntityFrameworkCore;
 using PatientDoctor.Infrastructure.Repositories.GeneralServices;
+using System.Data;
 
 namespace PatientDoctor.Infrastructure.Repositories.Identity
 {
@@ -106,7 +107,8 @@ namespace PatientDoctor.Infrastructure.Repositories.Identity
                 FullName=item.User.UserName,
                 Status=item.User.Status,
                 Email=item.User.Email,
-                City=item.Userdetail.City,
+                Cnic=item.Userdetail.Cnic,
+                City =item.Userdetail.City,
                 Roles = (List<string>)await _userManager.GetRolesAsync(item.User) // fetching user roles using _usermanager.getrolesasync for each user
             }).ToList();
             var vmUserList = (await Task.WhenAll(tasks)).AsQueryable();
@@ -199,33 +201,17 @@ namespace PatientDoctor.Infrastructure.Repositories.Identity
 
         public async Task<IResponse> AddEditUser(AddEditUserWithCreatedOrUpdatedById model)
         {
-            using var transaction = _context.Database.BeginTransaction();
+            //using var transaction = _context.Database.BeginTransaction();
             try
             {
-                if (model.addEditUsermodel.Id == null)
+                if (string.IsNullOrEmpty(model.addEditUsermodel.Id))
                 {
                     var existUser = await _userManager.FindByEmailAsync(model.addEditUsermodel.Email);
                     if (existUser != null)
                     {
-                        _response.Message = Constants.Exists.Replace("{data}", "{User}");
+                        _response.Message = Constants.Exists.Replace("{data}", "{existUser.email");
                         _response.Success = Constants.ResponseFailure;
                         return _response;
-                    }
-                    var UserRoles = new List<IdentityRole>();
-                    foreach (var roleid in model.addEditUsermodel.RoleIds)
-                    {
-                        var role = await _roleManager.FindByIdAsync(roleid);
-                        if (role != null)
-                        {
-                            UserRoles.Add(role);
-                        }
-                        else
-                        {
-                            // Handle the case where the role does not exist.
-                            _response.Message = Constants.NotFound.Replace("{data}", "{role}");
-                            _response.Success = Constants.ResponseFailure;
-                            return _response;
-                        }
                     }
                     // Create a new ApplicationUser
                     var user = new ApplicationUser
@@ -243,29 +229,33 @@ namespace PatientDoctor.Infrastructure.Repositories.Identity
                     var result = await _userManager.CreateAsync(user);
                     if (!result.Succeeded)
                     {
-                        _response.Message = Constants.NotFound.Replace("{data}", "{userObj}");
+                        _response.Message ="User Creation is failed";
                         _response.Success = Constants.ResponseFailure;
                         return _response;
                     }
-                    Userdetail userdetail = new Userdetail(model);
-                    userdetail.Initialize(user);
+                    Userdetail userdetail = new Userdetail(model,user);
+
                     await _context.Userdetail.AddAsync(userdetail);
-                    await _context.SaveChangesAsync();
-                    //get the user roles for handle the duplicate roles
-                    var userRoles = await _userManager.GetRolesAsync(user);
+                    var exitrole = await _roleManager.FindByIdAsync(model.addEditUsermodel.RoleId);
+                    if(exitrole == null)
+                    {
+                        //Handle the case where the role does not exist.
+                            _response.Message = Constants.NotFound.Replace("{data}", "{role}");
+                            _response.Success = Constants.ResponseFailure;
+                            return _response;
+                    }
 
-                    // Determine roles to be added or updated
-                    var rolesToAddOrUpdate = model.addEditUsermodel.RoleIds.Except(userRoles).ToList();
-
-                    var rolesResult = await _userManager.AddToRolesAsync(user, rolesToAddOrUpdate);
-                    if (!rolesResult.Succeeded)
+                    var resultrole = await _userManager.AddToRoleAsync(user, exitrole.Name);
+                    if (!resultrole.Succeeded)
                     {
                         // Handle the case where role assignment failed
                         _response.Success = Constants.ResponseFailure;
                         _response.Message = "Role assignment failed.";
                         return _response;
                     }
-                    await transaction.CommitAsync();
+                    await _context.SaveChangesAsync();
+
+                    //await transaction.CommitAsync();
                     _response.Success = Constants.ResponseSuccess;
                     _response.Message = Constants.DataSaved;
                     return _response;
@@ -273,34 +263,18 @@ namespace PatientDoctor.Infrastructure.Repositories.Identity
                 else
                 {
                     var existUser = await _userManager.FindByIdAsync(model.addEditUsermodel.Id);
-                    if (existUser != null)
+                    if (existUser == null)
                     {
                         _response.Message = Constants.NotFound.Replace("{data}", "{User}");
                         _response.Success = Constants.ResponseFailure;
                         return _response;
                     }
-                    var UserRoles = new List<IdentityRole>();
-                    foreach (var roleid in model.addEditUsermodel.RoleIds)
-                    {
-                        var role = await _roleManager.FindByIdAsync(roleid);
-                        if (role != null)
-                        {
-                            UserRoles.Add(role);
-                        }
-                        else
-                        {
-                            // Handle the case where the role does not exist.
-                            _response.Message = Constants.NotFound.Replace("{data}", "{role}");
-                            _response.Success = Constants.ResponseFailure;
-                            return _response;
-                        }
-                    }
                     //update existing user
                     existUser.PhoneNumber= model.addEditUsermodel.MobileNumber;
                     existUser.Email = model.addEditUsermodel.Email;
                     existUser.UserName = model.addEditUsermodel.FirstName + model.addEditUsermodel.LastName;
-                    var existinguserdetails= await _context.Userdetail.FindAsync(existUser.Id);
-                    if (existinguserdetails != null)
+                    var existinguserdetails = await _context.Userdetail.Where(x => x.UserId == existUser.Id).FirstOrDefaultAsync();
+                    if (existinguserdetails == null)
                     {
                         _response.Message = Constants.NotFound.Replace("{data}", "{UserDetails}");
                         _response.Success = Constants.ResponseFailure;
@@ -320,13 +294,26 @@ namespace PatientDoctor.Infrastructure.Repositories.Identity
                         return _response;
                     }
                     //get the user roles for handle the duplicate roles
-                    var userRoles = await _userManager.GetRolesAsync(existUser);
+                    var userRole = await _userManager.GetRolesAsync(existUser);
+                    if(userRole.Count != 0)
+                    {
+                        // Remove user from all roles
+                        var removeRolesResult = await _userManager.RemoveFromRolesAsync(existUser, userRole);
 
-                    // Determine roles to be added or updated
-                    var rolesToAddOrUpdate = model.addEditUsermodel.RoleIds.Except(userRoles).ToList();
+                        if (!removeRolesResult.Succeeded)
+                        {
+                            // Handle the case where role removal failed
+                            _response.Success = Constants.ResponseFailure;
+                            _response.Message = "Role removal failed.";
+                            return _response;
+                        }
+                    }
+                    var exitrole = await _roleManager.FindByIdAsync(model.addEditUsermodel.RoleId);
 
-                    var rolesResult = await _userManager.AddToRolesAsync(existUser, rolesToAddOrUpdate);
-                    if (!rolesResult.Succeeded)
+                    // Add the user to the new role
+                    var addToRoleResult = await _userManager.AddToRoleAsync(existUser, exitrole.Name);
+
+                    if (!addToRoleResult.Succeeded)
                     {
                         // Handle the case where role assignment failed
                         _response.Success = Constants.ResponseFailure;
@@ -336,7 +323,7 @@ namespace PatientDoctor.Infrastructure.Repositories.Identity
                     await _userManager.UpdateAsync(existUser);
                           _context.Userdetail.Update(existinguserdetails);
                     await _context.SaveChangesAsync();
-                    await transaction.CommitAsync();
+                   // await transaction.CommitAsync();
                     _response.Success = Constants.ResponseSuccess;
                     _response.Message = Constants.DataUpdate;
                     return _response;

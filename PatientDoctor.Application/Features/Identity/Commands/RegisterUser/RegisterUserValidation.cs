@@ -32,10 +32,9 @@ namespace PatientDoctor.Application.Features.Identity.Commands.RegisterUser
                 .Matches(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*\W).+$")
                 .WithMessage("{Password} must contain at least one lowercase letter, one uppercase letter, one digit, and one special character.");
 
-            RuleFor(c => c.RoleIds)
+            RuleFor(c => c.RoleId)
                 .NotEmpty().WithMessage("{RoleId} is Required")
                 .NotNull()
-                .Must(roles => roles != null && roles.Count > 0)
                 .WithMessage("{RoleId} must contain at least one role.");
 
             RuleFor(c => c.Email)

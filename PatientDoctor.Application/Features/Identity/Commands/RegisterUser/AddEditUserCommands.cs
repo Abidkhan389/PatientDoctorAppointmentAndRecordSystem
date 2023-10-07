@@ -18,7 +18,7 @@ namespace PatientDoctor.Application.Features.Identity.Commands.RegisterUser
         public string MobileNumber { get; set; }
         public string Cnic { get; set; }
         public string City { get; set; }
-        public List<string> RoleIds { get; set; }
+        public string RoleId { get; set; }
 
     }
 }

@@ -52,8 +52,8 @@ namespace PatientDoctor.API.Controllers
             return await _mediator.Send(new AddEditUserWithCreatedOrUpdatedById(model, UserId));
         }
         [HttpPost]
-        [Route("LoginUser")]
-        public async Task<object> LoginUser(LoginUserCommand model)
+        [Route("Login")]
+        public async Task<object> Login(LoginUserCommand model)
         {
             if (!ModelState.IsValid)
             {
@@ -75,7 +75,7 @@ namespace PatientDoctor.API.Controllers
             }
             return await _mediator.Send(model);
         }
-        [HttpGet]
+        [HttpPost]
         [Route("getUserById")]
         public async Task<object> GetUserById(GetUserById UserId)
         {

@@ -295,6 +295,7 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
                         BloodType = model.BloodType,
                         Status = 1,
                         MaritalStatus = model.MaritalStatus,
+                        CheckUpStatus=0 // 0 for bydefault waiting, means patient is in waiting list
                     };
                     await _context.PatientDetails.AddAsync(patientDetails);
 

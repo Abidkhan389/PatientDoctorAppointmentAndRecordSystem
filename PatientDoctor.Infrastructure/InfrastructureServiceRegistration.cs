@@ -15,6 +15,7 @@ using PatientDoctor.Infrastructure.Repositories.Patient;
 using PatientDoctor.Application.Helpers;
 using PatientDoctor.Application.Contracts.Security;
 using PatientDoctor.Infrastructure.Repositories.CryptoService;
+using System.Security.Cryptography;
 
 namespace PatientDoctor.Infrastructure
 {
@@ -50,6 +51,8 @@ namespace PatientDoctor.Infrastructure
                       .SetIsOriginAllowed((host) => true)
                       .AllowCredentials();
            }));
+            var jwtSecretKey = GenerateJwtSecretKey();
+            configuration["JWT:Secret"] = jwtSecretKey;
             services.AddAuthentication(options =>
              {
                  options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -81,6 +84,15 @@ namespace PatientDoctor.Infrastructure
             services.AddScoped<ICountResponse, CountResponse>(); 
             services.AddScoped<ICryptoService, CryptoHelper>();
             return services;
+        }
+        private static string GenerateJwtSecretKey()
+        {
+            var keyBytes = new byte[32]; // 256 bits
+            using (var rng = RandomNumberGenerator.Create())
+            {
+                rng.GetBytes(keyBytes);
+            }
+            return Convert.ToBase64String(keyBytes);
         }
 
     }

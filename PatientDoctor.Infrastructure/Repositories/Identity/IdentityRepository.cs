@@ -128,9 +128,10 @@ namespace PatientDoctor.Infrastructure.Repositories.Identity
 
         public async Task<IResponse> GetUserById(GetUserById Id)
         {
+            var userid=Id.id.ToString();
             var user = await(from main in _userManager.Users
                              join userdetail in _context.Userdetail on main.Id equals userdetail.UserId
-                             where (main.Status == 1 && main.Id == Id.ToString())
+                             where (main.Status == 1 && main.Id == Id.id.ToString())
                              select new VM_Users
                              {
                                  UserId = main.Id,
@@ -139,6 +140,7 @@ namespace PatientDoctor.Infrastructure.Repositories.Identity
                                  Email = main.Email,
                                  FullName = main.UserName,
                                  City=userdetail.City,
+                                 Cnic=userdetail.Cnic,
                              }).FirstOrDefaultAsync();
             //var user = await _userManager.FindByIdAsync(UserId.ToString());
             if (user == null)
@@ -156,7 +158,6 @@ namespace PatientDoctor.Infrastructure.Repositories.Identity
             _response.Message = Constants.DataSaved;
             return _response;
         }
-
         public async Task<IResponse> LoginUserAsync(LoginUserCommand model)
         {
             var user = await _userManager.FindByEmailAsync(model.Email);
@@ -167,6 +168,7 @@ namespace PatientDoctor.Infrastructure.Repositories.Identity
                 var authClaims = new List<Claim>
                 {
                     new Claim(ClaimTypes.Name, user.UserName),
+                    new Claim(ClaimTypes.Email, user.Email),
                     new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                 };
 
@@ -184,7 +186,7 @@ namespace PatientDoctor.Infrastructure.Repositories.Identity
                 var authenticatedUser = new AuthenticatedUser
                 {
                     Token = new JwtSecurityTokenHandler().WriteToken(token),
-                    User = user
+                    User = user,
                 };
 
                 _response.Data = authenticatedUser;

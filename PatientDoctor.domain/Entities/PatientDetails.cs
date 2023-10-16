@@ -20,5 +20,6 @@ namespace PatientDoctor.domain.Entities
         public string BloodType { get; set; }
         public int Status {  get; set; }
         public string MaritalStatus { get; set; }
+        public int CheckUpStatus { get; set; }
     }
 }

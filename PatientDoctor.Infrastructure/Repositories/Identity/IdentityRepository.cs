@@ -86,7 +86,7 @@ namespace PatientDoctor.Infrastructure.Repositories.Identity
         {
             model.Sort = model.Sort == null || model.Sort == "" ? "UserName" : model.Sort;
 
-            var userList = await(from user in _userManager.Users
+            var userList = (from user in _userManager.Users
                            join userdetails in _context.Userdetail on user.Id equals userdetails.UserId
                            where (user.Status == model.Status || model.Status == null)
                            &&(EF.Functions.ILike(user.UserName,$"%{model.UserName}%") || string.IsNullOrEmpty(model.UserName))
@@ -94,26 +94,32 @@ namespace PatientDoctor.Infrastructure.Repositories.Identity
                            &&(EF.Functions.ILike(userdetails.City,$"%{model.City}%") || string.IsNullOrEmpty(model.City))
                            &&(EF.Functions.ILike(userdetails.Cnic,$"%{model.Cnic}%") || string.IsNullOrEmpty(model.Cnic))
                            &&(EF.Functions.ILike(user.PhoneNumber,$"%{model.MobileNumber}%") || string.IsNullOrEmpty(model.MobileNumber))
-                           select new
+                           select new VM_Users
                            {
-                               User=user,
-                               Userdetail=userdetails
-                           }).ToListAsync();
+                               Email=user.Email,
+                               UserId=user.Id,
+                               MobileNumber=user.PhoneNumber,
+                               UserName = user.UserName,
+                               Cnic=userdetails.Cnic,
+                               City=userdetails.City,
+                               RoleName=user.RoleName,
+                               Status=user.Status,
+                           }).AsQueryable();
 
-            var tasks = userList.Select(async item => new VM_Users
-            {
-                UserId=item.User.Id,
-                MobileNumber=item.User.PhoneNumber,
-                FullName=item.User.UserName,
-                Status=item.User.Status,
-                Email=item.User.Email,
-                Cnic=item.Userdetail.Cnic,
-                City =item.Userdetail.City,
-                Roles = (List<string>)await _userManager.GetRolesAsync(item.User) // fetching user roles using _usermanager.getrolesasync for each user
-            }).ToList();
-            var vmUserList = (await Task.WhenAll(tasks)).AsQueryable();
-            var count= vmUserList.Count();
-            var sorted= await HelperStatic.OrderBy(vmUserList,model.SortEx,model.OrderEx=="desc").Skip(model.Start).Take(model.LimitEx).ToListAsync();
+            //var tasks = userList.Select(async item => new VM_Users
+            //{
+            //    UserId=item.User.Id,
+            //    MobileNumber=item.User.PhoneNumber,
+            //    FullName=item.User.UserName,
+            //    Status=item.User.Status,
+            //    Email=item.User.Email,
+            //    Cnic=item.Userdetail.Cnic,
+            //    City =item.Userdetail.City,
+            //    Roles = (List<string>)await _userManager.GetRolesAsync(item.User) // fetching user roles using _usermanager.getrolesasync for each user
+            //}).ToList();
+            //var vmUserList = (await Task.WhenAll(tasks)).AsQueryable();
+            var count= userList.Count();
+            var sorted= await HelperStatic.OrderBy(userList, model.SortEx,model.OrderEx=="desc").Skip(model.Start).Take(model.LimitEx).ToListAsync();
             foreach (var item in sorted)
             {
                 item.TotalCount = count;
@@ -138,9 +144,10 @@ namespace PatientDoctor.Infrastructure.Repositories.Identity
                                  MobileNumber = main.PhoneNumber,
                                  Status = main.Status,
                                  Email = main.Email,
-                                 FullName = main.UserName,
+                                 UserName = main.UserName,
                                  City=userdetail.City,
                                  Cnic=userdetail.Cnic,
+                                 RoleName=main.RoleName,
                              }).FirstOrDefaultAsync();
             //var user = await _userManager.FindByIdAsync(UserId.ToString());
             if (user == null)
@@ -150,9 +157,9 @@ namespace PatientDoctor.Infrastructure.Repositories.Identity
                 return _response;
             }
             // Get user roles
-            var roles = await _userManager.GetRolesAsync(new ApplicationUser { Id = user.UserId });
+           // var roles = await _userManager.GetRolesAsync(new ApplicationUser { Id = user.UserId });
             // Assign roles to the user object
-            user.Roles = roles.ToList();
+            //user.Roles = roles.ToList();
             _response.Data = user;
             _response.Success = Constants.ResponseSuccess;
             _response.Message = Constants.DataSaved;

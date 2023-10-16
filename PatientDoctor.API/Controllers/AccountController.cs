@@ -65,7 +65,7 @@ namespace PatientDoctor.API.Controllers
         }
         [HttpPost]
         [Route("GetAllByProc")]
-        public async Task<object> GetAllByProc(GetUserList model)
+        public async Task<object> GetAllByProc([FromBody] GetUserList model)
         {
             if (!ModelState.IsValid)
             {

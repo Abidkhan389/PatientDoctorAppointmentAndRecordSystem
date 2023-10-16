@@ -12,6 +12,7 @@ namespace PatientDoctor.domain.Entities
         public string PasswordSalt { get; set; }
         public bool IsSuperAdmin { get; set; }
         public int Status { get; set; }
+        public string RoleName { get; set; }
         //public string Photo { get; set; }
         public ApplicationUser()
         {

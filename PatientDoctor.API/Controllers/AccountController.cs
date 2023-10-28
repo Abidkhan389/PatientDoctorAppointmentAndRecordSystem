@@ -73,10 +73,10 @@ namespace PatientDoctor.API.Controllers
                 _response.Message = Constants.ModelStateStateIsInvalid;
                 return Ok(_response);
             }
-            return await _mediator.Send(model);
+            return await _mediator.Send(model); 
         }
         [HttpPost]
-        [Route("getUserById")]
+        [Route("GetUserById")]
         public async Task<object> GetUserById(GetUserById UserId)
         {
             if (UserId == null)

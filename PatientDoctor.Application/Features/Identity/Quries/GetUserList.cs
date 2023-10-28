@@ -17,6 +17,5 @@ namespace PatientDoctor.Application.Features.Identity.Quries
         public string? Cnic { get; set; }
         public string? MobileNumber { get; set; }
         public string? City { get; set; }
-
     }
 }

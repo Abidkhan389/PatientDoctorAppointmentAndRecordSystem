@@ -57,7 +57,7 @@ namespace PatientDoctor.Infrastructure.Repositories.Identity
         }
         public async Task<IResponse> ActiveInActiveUser(ActiveInActiveIdentity model)
         {
-            var user = await _userManager.FindByIdAsync(model.Id.ToString());
+            var user = await _userManager.FindByIdAsync(model.Id);
             if (user == null )
             {
                 _response.Success = Constants.ResponseFailure;
@@ -128,27 +128,31 @@ namespace PatientDoctor.Infrastructure.Repositories.Identity
             _countResp.DataList = sorted;
             _countResp.TotalCount = sorted.Count > 0 ? sorted.First().TotalCount : 0;
             _response.Success = Constants.ResponseSuccess;
+            _response.Message = Constants.GetData;
             _response.Data = _countResp;
             return _response;
         }
 
-        public async Task<IResponse> GetUserById(GetUserById Id)
+        public async Task<IResponse> GetUserById(GetUserById model)
         {
-            var userid=Id.id.ToString();
-            var user = await(from main in _userManager.Users
-                             join userdetail in _context.Userdetail on main.Id equals userdetail.UserId
-                             where (main.Status == 1 && main.Id == Id.id.ToString())
-                             select new VM_Users
-                             {
-                                 UserId = main.Id,
-                                 MobileNumber = main.PhoneNumber,
-                                 Status = main.Status,
-                                 Email = main.Email,
-                                 UserName = main.UserName,
-                                 City=userdetail.City,
-                                 Cnic=userdetail.Cnic,
-                                 RoleName=main.RoleName,
-                             }).FirstOrDefaultAsync();
+            var user = await (from main in _userManager.Users
+                              join userdetail in _context.Userdetail on main.Id equals userdetail.UserId
+                              join roles in _context.UserRoles on main.Id equals roles.UserId
+                              where (main.Status == 1 && main.Id == model.id)
+                              select new VM_User
+                              {
+                                  UserId = main.Id,
+                                  MobileNumber = main.PhoneNumber,
+                                  Status = main.Status,
+                                  Email = main.Email,
+                                  FirstName = userdetail.FirstName,
+                                  LastName = userdetail.LastName,
+                                  City = userdetail.City,
+                                  Cnic = userdetail.Cnic,
+                                  RoleId=roles.RoleId,
+                              }).FirstOrDefaultAsync();
+           
+              
             //var user = await _userManager.FindByIdAsync(UserId.ToString());
             if (user == null)
             {
@@ -176,6 +180,7 @@ namespace PatientDoctor.Infrastructure.Repositories.Identity
                 {
                     new Claim(ClaimTypes.Name, user.UserName),
                     new Claim(ClaimTypes.Email, user.Email),
+                    new Claim(ClaimTypes.NameIdentifier, user.Id), // Use ClaimTypes.NameIdentifier for user Id
                     new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                 };
 
@@ -197,11 +202,12 @@ namespace PatientDoctor.Infrastructure.Repositories.Identity
                 };
 
                 _response.Data = authenticatedUser;
+                _response.Message = Constants.Login;
                 _response.Success = Constants.ResponseSuccess;
             }
             else
             {
-                _response.Message = Constants.NotFound.Replace("{data}", "{user}");
+                _response.Message = Constants.IncorrectUsernamePassword;
                 _response.Success = Constants.ResponseFailure;
             }
 
@@ -235,16 +241,7 @@ namespace PatientDoctor.Infrastructure.Repositories.Identity
                     var salt = _crypto.CreateSalt();
                     user.PasswordSalt = salt;
                     user.PasswordHash = _crypto.CreateKey(salt, model.addEditUsermodel.Password);
-                    var result = await _userManager.CreateAsync(user);
-                    if (!result.Succeeded)
-                    {
-                        _response.Message ="User Creation is failed";
-                        _response.Success = Constants.ResponseFailure;
-                        return _response;
-                    }
-                    Userdetail userdetail = new Userdetail(model,user);
-
-                    await _context.Userdetail.AddAsync(userdetail);
+                   
                     var exitrole = await _roleManager.FindByIdAsync(model.addEditUsermodel.RoleId);
                     if(exitrole == null)
                     {
@@ -253,7 +250,17 @@ namespace PatientDoctor.Infrastructure.Repositories.Identity
                             _response.Success = Constants.ResponseFailure;
                             return _response;
                     }
+                    user.RoleName = exitrole.Name;
+                    var result = await _userManager.CreateAsync(user);
+                    if (!result.Succeeded)
+                    {
+                        _response.Message = "User Creation is failed";
+                        _response.Success = Constants.ResponseFailure;
+                        return _response;
+                    }
+                    Userdetail userdetail = new Userdetail(model, user);
 
+                    await _context.Userdetail.AddAsync(userdetail);
                     var resultrole = await _userManager.AddToRoleAsync(user, exitrole.Name);
                     if (!resultrole.Succeeded)
                     {
@@ -278,6 +285,16 @@ namespace PatientDoctor.Infrastructure.Repositories.Identity
                         _response.Success = Constants.ResponseFailure;
                         return _response;
                     }
+                    if (existUser.Email != model.addEditUsermodel.Email)
+                    {
+                        var CheckEmail = await _userManager.FindByEmailAsync(model.addEditUsermodel.Email);
+                        if (existUser != null)
+                        {
+                            _response.Message = Constants.UniqueEmail;
+                            _response.Success = Constants.ResponseFailure;
+                            return _response;
+                        }
+                    }
                     //update existing user
                     existUser.PhoneNumber= model.addEditUsermodel.MobileNumber;
                     existUser.Email = model.addEditUsermodel.Email;
@@ -293,6 +310,8 @@ namespace PatientDoctor.Infrastructure.Repositories.Identity
                     existinguserdetails.Cnic=model.addEditUsermodel.Cnic;
                     existinguserdetails.City=model.addEditUsermodel.City;
                     existinguserdetails.UpdatedBy = model.UserId;
+                    existinguserdetails.FirstName=model.addEditUsermodel.FirstName;
+                    existinguserdetails.LastName = model.addEditUsermodel.LastName;
                     existinguserdetails.UpdatedOn= DateTime.UtcNow;
                     //update user
                     var result = await _userManager.UpdateAsync(existUser);
@@ -344,6 +363,29 @@ namespace PatientDoctor.Infrastructure.Repositories.Identity
                 _response.Success = Constants.ResponseFailure;
                 return _response;
             }
+        }
+
+        public async Task<IResponse> GetAllRoles()
+        {
+            List<GetAllRoles> getAllRoles = new List<GetAllRoles>();
+            var roles = _roleManager.Roles;
+            if (roles == null)
+            {
+                _response.Success = Constants.ResponseFailure;
+                _response.Message = Constants.NotFound.Replace("{data}", "{roles}");
+            }
+            foreach(var role in roles)
+            {
+                GetAllRoles obj = new GetAllRoles();
+                obj.Name = role.Name;
+                obj.Id = role.Id;   
+                getAllRoles.Add(obj);
+            }
+            _response.Data = getAllRoles;
+            _response.Success = Constants.ResponseSuccess;
+            _response.Message = Constants.GetData;
+            return _response;
+
         }
     }
 }

@@ -12,6 +12,8 @@ namespace PatientDoctor.Application.Helpers
         public const string ExpiredNonce = "login.nonce.expired";
         public const string FailedToVerifyUser = "validation.login.FailedToVerifyUser";
         public const string InvalidNonce = "login.nonce.invalid";
+        public const string Login = "login successfully";
+        public const string InvalidLogin = "User Name or Passowrd is invalid";
         public const string InvalidUsernameOrPassword = "validation.login.InvalidUsernameOrPassword";
         public const string InProgressNonce = "login.nonce.inProgress";
         public const string InvalidAccessToken = "validation.login.InvalidAccessToken";
@@ -39,6 +41,7 @@ namespace PatientDoctor.Application.Helpers
         public const string IdRequired = "Id is required";
         public const string TimeZone = "Time-zone";
         public const string Origin = "Origin";
+        public const string GetData = "Your data get successfully";
         public const string Referer = "Referer";
         public static partial class ActionMethods
         {

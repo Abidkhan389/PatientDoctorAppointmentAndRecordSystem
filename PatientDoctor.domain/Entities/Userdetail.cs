@@ -15,6 +15,8 @@ namespace PatientDoctor.domain.Entities
         public Guid UserDetailId { get; set; }
         public string UserId { get; set; }
         public string Cnic { get; set; }
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
         public string City { get; set; }
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
         public Userdetail()
@@ -31,6 +33,8 @@ namespace PatientDoctor.domain.Entities
             this.Cnic = model.addEditUsermodel.Cnic;
             this.City =model.addEditUsermodel.City;
             this.CreatedBy = model.UserId;
+            this.FirstName = model.addEditUsermodel.FirstName;
+            this.LastName = model.addEditUsermodel.LastName;
         }
         //public void Initialize(ApplicationUser model)
         //{

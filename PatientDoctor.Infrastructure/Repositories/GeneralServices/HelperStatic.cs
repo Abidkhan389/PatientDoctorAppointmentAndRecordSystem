@@ -26,7 +26,7 @@ namespace PatientDoctor.Infrastructure.Repositories.GeneralServices
         {
             Guid sessionID = Guid.Empty;
             IEnumerable<Claim> claims = identity.Claims;
-            var auditSession = claims.FirstOrDefault(e => e.Type == "UserId");
+            var auditSession = claims.FirstOrDefault(e => e.Type == ClaimTypes.NameIdentifier);
             if (auditSession != null)
             {
                 sessionID = new Guid(auditSession.Value);

@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using PatientDoctor.Application.Contracts.Persistance.IIdentityRepository;
 using PatientDoctor.Application.Features.Identity.Commands.ActiveInActive;
 using PatientDoctor.Application.Features.Identity.Commands.LoginUser;
 using PatientDoctor.Application.Features.Identity.Commands.RegisterUser;
@@ -18,11 +19,13 @@ namespace PatientDoctor.API.Controllers
     {
         private readonly IMediator _mediator;
         private readonly IResponse _response;
+        private readonly IIdentityRepository identityRepository;
 
-        public AccountController(IMediator mediator, IResponse response)
+        public AccountController(IMediator mediator, IResponse response, IIdentityRepository identityRepository)
         {
             this._mediator = mediator;
             this._response = response;
+            this.identityRepository = identityRepository;
         }
         [HttpPost]
         [Route("ActiveInactive")]
@@ -75,9 +78,9 @@ namespace PatientDoctor.API.Controllers
             }
             return await _mediator.Send(model); 
         }
-        [HttpPost]
+        [HttpGet]
         [Route("GetUserById")]
-        public async Task<object> GetUserById(GetUserById UserId)
+        public async Task<object> GetUserById(string UserId)
         {
             if (UserId == null)
             {
@@ -85,7 +88,22 @@ namespace PatientDoctor.API.Controllers
                 _response.Message = Constants.ModelStateStateIsInvalid;
                 return Ok(_response);
             }
-            return await _mediator.Send(UserId);
+            GetUserById userobj= new GetUserById();
+            userobj.id = UserId;
+            return await _mediator.Send(userobj);
+
+        }
+        [HttpGet]
+        [Route("GetAllRoles")]
+        public async Task<object> GetAllRoles()
+        {
+            if (!ModelState.IsValid )
+            {
+                _response.Success = Constants.ResponseFailure;
+                _response.Message = Constants.ModelStateStateIsInvalid;
+                return Ok(_response);
+            }
+            return await identityRepository.GetAllRoles();
 
         }
     }

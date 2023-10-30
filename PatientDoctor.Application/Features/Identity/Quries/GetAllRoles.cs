@@ -8,12 +8,9 @@ using System.Threading.Tasks;
 
 namespace PatientDoctor.Application.Features.Identity.Quries
 {
-    public class GetUserById : IRequest<IResponse>
+    public class GetAllRoles : IRequest<IResponse>
     {
-        public string id { get; set; }
-        //public GetUserById(Guid ProductId)
-        //{
-        //    this.id = ProductId;
-        //}
+        public string Name { get; set; }
+        public string Id { get; set; }
     }
 }

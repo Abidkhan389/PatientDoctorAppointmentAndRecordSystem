@@ -387,5 +387,15 @@ namespace PatientDoctor.Infrastructure.Repositories.Identity
             return _response;
 
         }
+
+        public async Task<IResponse> GetAllDoctors()
+        {
+            var users= await _context.Users.Where(x=> x.RoleName=="Doctor" && x.Status==1).Select (y=> new {y.Id,y.UserName}).ToListAsync();
+
+            _response.Data=users;
+            _response.Success = Constants.ResponseSuccess;
+            _response.Message = Constants.GetData;
+            return _response;
+        }
     }
 }

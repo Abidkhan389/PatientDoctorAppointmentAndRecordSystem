@@ -66,7 +66,7 @@ namespace PatientDoctor.API.Controllers
         }
         [HttpGet]
         [Route("GetPatientById")]
-        public async Task<object> GetUserById(GetPatientById PatientId)
+        public async Task<object> GetUserById(Guid PatientId)
         {
             if (PatientId == null)
             {
@@ -74,7 +74,9 @@ namespace PatientDoctor.API.Controllers
                 _response.Message = Constants.ModelStateStateIsInvalid;
                 return Ok(_response);
             }
-            return await _mediator.Send(PatientId);
+            GetPatientById patientobj = new GetPatientById();
+            patientobj.Id = PatientId;
+            return await _mediator.Send(patientobj);
 
         }
     }

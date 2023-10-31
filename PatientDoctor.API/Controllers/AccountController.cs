@@ -106,5 +106,18 @@ namespace PatientDoctor.API.Controllers
             return await identityRepository.GetAllRoles();
 
         }
+        [HttpGet]
+        [Route("GetAllDoctors")]
+        public async Task<object> GetAllDoctors()
+        {
+            if (!ModelState.IsValid)
+            {
+                _response.Success = Constants.ResponseFailure;
+                _response.Message = Constants.ModelStateStateIsInvalid;
+                return Ok(_response);
+            }
+            return await identityRepository.GetAllDoctors();
+
+        }
     }
 }

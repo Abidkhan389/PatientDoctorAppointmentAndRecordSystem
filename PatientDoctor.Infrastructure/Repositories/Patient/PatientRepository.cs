@@ -388,7 +388,7 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
 
         public async Task<IResponse> GetAllByProc(GetPatientListWithDocterId model)
         {
-            model.Sort = model.Sort == null || model.Sort == "" ? "FirstName" : model.Sort;
+            model.Sort = model.Sort == null || model.Sort == "" ? "FullName" : model.Sort;
             var data=(from main in _userManager.Users
                              join patient in _context.Patient on main.Id equals model.DocterId
                              join p_details in _context.PatientDetails on patient.PatientId equals p_details.PatientId
@@ -426,6 +426,7 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
             _countResp.DataList = sorted;
             _countResp.TotalCount = sorted.Count > 0 ? sorted.First().TotalCount : 0;
             _response.Success = Constants.ResponseSuccess;
+            _response.Message = Constants.GetData;
             _response.Data = _countResp;
             return _response;
         }

@@ -19,6 +19,7 @@ namespace PatientDoctor.Application.Contracts.Persistance.IIdentityRepository
         Task<IResponse> ActiveInActiveUser(ActiveInActiveIdentity model);
         Task<IResponse> GetAllByProc(GetUserList model);
         Task<IResponse> GetAllRoles();
+        Task<IResponse> GetAllDoctors();
         Task<IResponse> AddEditUser(AddEditUserWithCreatedOrUpdatedById model);
     }
 }

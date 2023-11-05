@@ -49,6 +49,7 @@ namespace PatientDoctor.API.Controllers
                 _response.Message = Constants.ModelStateStateIsInvalid;
                 return Ok(_response);
             }
+
             return await _mediator.Send(model);
         }
         [HttpPost]

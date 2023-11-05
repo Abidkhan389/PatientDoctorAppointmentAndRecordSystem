@@ -13,7 +13,7 @@ namespace PatientDoctor.Application.Features.Patient.Quries
         public string FullName { get; set; }
         public string Gender { get; set; }
         public string DoctorName { get; set; }
-        public DateTime DateofBirth { get; set; }
+        public DateTime AppointmentTime { get; set; }
         public string PatientPhoneNumber { get; set; }
         public string DoctorPhoneNumber { get; set; }
         public string City { get; set; }

@@ -24,7 +24,8 @@ namespace PatientDoctor.Application.Features.Patient.Commands.AddEditPatient
 
             RuleFor(c => c.Gender)
                 .NotEmpty().WithMessage("{Gender} is required.")
-                .Length(4).WithMessage("{Gender} must be exactly 4 characters long.");
+                .MaximumLength(6).WithMessage("{FirstName} must not exceed 30 characters.")
+                .MinimumLength(6).WithMessage("{FirstName} must be at least 3 characters long.");
 
             RuleFor(c => c.DoctoerId)
                 .NotEmpty().WithMessage("{DoctoerId} is required.");
@@ -38,7 +39,8 @@ namespace PatientDoctor.Application.Features.Patient.Commands.AddEditPatient
 
             RuleFor(c => c.City)
                 .NotEmpty().WithMessage("{City} is required.")
-                .Length(4).WithMessage("{City} must be exactly 4 characters long.");
+                 .MaximumLength(50).WithMessage("{FirstName} must not exceed 30 characters.")
+                .MinimumLength(3).WithMessage("{FirstName} must be at least 3 characters long.");
 
             RuleFor(c => c.BloodType)
                 .NotEmpty().WithMessage("{BloodType} is required.");

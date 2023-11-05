@@ -28,17 +28,19 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
         private readonly IResponse _response;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly ICountResponse _countResp;
+        private readonly IConfiguration _configuration;
         private readonly ICryptoService _crypto;
 
         public PatientRepository(DocterPatiendDbContext context,
             IResponse response, UserManager<ApplicationUser> userManager, 
-            RoleManager<IdentityRole> roleManager, ICountResponse countResp
-            , ICryptoService crypto)
+            RoleManager<IdentityRole> roleManager, ICountResponse countResp,
+            IConfiguration configurations, ICryptoService crypto)
         {
             this._context = context;
             this._response = response;
             this._userManager = userManager;
             this._countResp = countResp;
+            this._configuration = configurations;
             this._crypto = crypto;
         }
         private IResponse CreateSuccessResponse(string message)
@@ -53,7 +55,7 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
 
         private async Task<bool> IsAppointmentTimeConflictAsync(string doctorId, DateTime appointmentTime)
         {
-            var minimumAllowedTime = appointmentTime.AddMinutes(30);
+            var minimumAllowedTime = appointmentTime.AddMinutes(Convert.ToInt32(_configuration["PatientSettings:PatientAllowedTime"]));
             var existingAppointment = await _context.Appointment
                 .Where(x => x.DoctorId == doctorId &&
                             x.AppointmentDate.Date == appointmentTime.Date &&
@@ -91,7 +93,7 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
         }
         public async Task<IResponse> AddEditPatient(AddEditPatientCommand model)
         {
-            using var transaction = _context.Database.BeginTransaction();
+            //using var transaction = _context.Database.BeginTransaction();
             //try
             //{
             //    if(model.PatientId == null)
@@ -298,7 +300,6 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
                         CheckUpStatus=0 // 0 for bydefault waiting, means patient is in waiting list
                     };
                     await _context.PatientDetails.AddAsync(patientDetails);
-
                     var patientAppointment = new Appointment
                     {
                         AppointmentId = Guid.NewGuid(),
@@ -310,7 +311,7 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
                     await _context.Appointment.AddAsync(patientAppointment);
 
                     await _context.SaveChangesAsync();
-                    await transaction.CommitAsync();
+                    //await transaction.CommitAsync();
 
                     return CreateSuccessResponse(Constants.DataSaved);
                 }
@@ -373,7 +374,7 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
                     _context.Appointment.Update(existingAppointment);
 
                     await _context.SaveChangesAsync();
-                    await transaction.CommitAsync();
+                    //await transaction.CommitAsync();
 
                     return CreateSuccessResponse(Constants.DataUpdate);
 
@@ -381,7 +382,7 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
             }
             catch (Exception ex)
             {
-                await transaction.RollbackAsync(); // Rollback the transaction in case of an exception
+                //await transaction.RollbackAsync(); // Rollback the transaction in case of an exception
                 return CreateErrorResponse(ex.Message);
             }
         }
@@ -389,23 +390,18 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
         public async Task<IResponse> GetAllByProc(GetPatientListWithDocterId model)
         {
             model.Sort = model.Sort == null || model.Sort == "" ? "FullName" : model.Sort;
-            var data=(from main in _userManager.Users
-                             join patient in _context.Patient on main.Id equals model.DocterId
+            var data=(from patient in _context.Patient 
+                             join main in _context.Users on patient.DoctoerId equals main.Id
                              join p_details in _context.PatientDetails on patient.PatientId equals p_details.PatientId
-                             where (patient.Status == model.GetPatientListObj.ActiveStatus || model.GetPatientListObj.ActiveStatus == null)
-                           &&(EF.Functions.ILike(patient.FirstName,$"%{model.GetPatientListObj.PatientName}%") || string.IsNullOrEmpty(model.GetPatientListObj.PatientName))
-                           &&(EF.Functions.ILike(patient.LastName,$"%{model.GetPatientListObj.PatientName}%") || string.IsNullOrEmpty(model.GetPatientListObj.PatientName))
-                           &&(EF.Functions.ILike(patient.Cnic,$"%{model.GetPatientListObj.Cnic}%") || string.IsNullOrEmpty(model.GetPatientListObj.Cnic))
-                           &&(EF.Functions.ILike(p_details.City,$"%{model.GetPatientListObj.City}%") || string.IsNullOrEmpty(model.GetPatientListObj.City))
-                           &&(EF.Functions.ILike(p_details.PhoneNumber,$"%{model.GetPatientListObj.MobileNumber}%") || string.IsNullOrEmpty(model.GetPatientListObj.MobileNumber))
-                           && (p_details.BloodType == model.GetPatientListObj.BloodType || model.GetPatientListObj.BloodType == null)
+                             join App in _context.Appointment on patient.PatientId equals App.PatientId
+                            where (EF.Functions.ILike(patient.FirstName, $"%{model.GetPatientListObj.PatientName}%") || string.IsNullOrEmpty(model.GetPatientListObj.PatientName))
                            select new VM_Patient
                            {
                                PatientId = patient.PatientId,
                                FullName=patient.FirstName+patient.LastName,
                                Gender=patient.Gender,
                                DoctorName=main.UserName,
-                               DateofBirth=patient.DateofBirth,
+                               AppointmentTime = App.AppointmentDate,
                                PatientPhoneNumber=p_details.PhoneNumber,
                                DoctorPhoneNumber=main.PhoneNumber,
                                City=p_details.City,
@@ -448,7 +444,6 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
                                      MaritalStatus = p_Details.MaritalStatus,
                                      Status = patient.Status,
                                      Gender = patient.Gender,
-                                     DateofBirth = patient.DateofBirth,
                                      FullName = patient.FirstName + patient.LastName,
                                  }).FirstOrDefaultAsync();
             if(patientobj != null)

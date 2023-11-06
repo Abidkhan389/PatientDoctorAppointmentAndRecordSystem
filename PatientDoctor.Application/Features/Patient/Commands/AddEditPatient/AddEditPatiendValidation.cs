@@ -27,7 +27,7 @@ namespace PatientDoctor.Application.Features.Patient.Commands.AddEditPatient
                 .MaximumLength(6).WithMessage("{FirstName} must not exceed 30 characters.")
                 .MinimumLength(6).WithMessage("{FirstName} must be at least 3 characters long.");
 
-            RuleFor(c => c.DoctoerId)
+            RuleFor(c => c.DoctorId)
                 .NotEmpty().WithMessage("{DoctoerId} is required.");
 
             RuleFor(c => c.DateofBirth)

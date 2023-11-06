@@ -9,11 +9,11 @@ using System.Threading.Tasks;
 
 namespace PatientDoctor.Application.Features.Patient.Quries
 {
-    public class GetPatientList 
+    public class GetPatientList : TableParam, IRequest<IResponse>
     {
         public string? PatientName { get; set; }
-        public int? ActiveStatus { get; set; }
-        public string? BloodType { get; set; }
+       // public DateTime? PatientAppoitmentTime { get; set; }
+        public string? DoctorId { get; set; }
         public string? Cnic { get; set; }
         public string? MobileNumber { get; set; }
         public string? City { get; set; }

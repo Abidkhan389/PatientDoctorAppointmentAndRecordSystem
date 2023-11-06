@@ -258,7 +258,7 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
                     {
                         var appointmentCount = await _context.Appointment
                             .Where(a => a.PatientId == patient.PatientId &&
-                                        a.DoctorId == model.DoctoerId &&
+                                        a.DoctorId == model.DoctorId &&
                                         a.AppointmentDate.Date == model.AppoitmentTime.Date)
                             .CountAsync();
 
@@ -269,7 +269,7 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
                     }
 
                     // Check for an existing appointment within 30 minutes of the selected time
-                    if (await IsAppointmentTimeConflictAsync(model.DoctoerId, model.AppoitmentTime))
+                    if (await IsAppointmentTimeConflictAsync(model.DoctorId, model.AppoitmentTime))
                     {
                         return CreateErrorResponse("Please choose an appointment time that is at least 30 minutes after the existing appointment from the same doctor.");
                     }
@@ -283,7 +283,7 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
                         Status = 1,
                         Cnic = model.Cnic,
                         Gender = model.Gender,
-                        DoctoerId = model.DoctoerId,
+                        DoctoerId = model.DoctorId,
                         DateofBirth = model.DateofBirth,
                     };
                     await _context.Patient.AddAsync(patientObj);
@@ -303,7 +303,7 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
                     var patientAppointment = new Appointment
                     {
                         AppointmentId = Guid.NewGuid(),
-                        DoctorId = model.DoctoerId,
+                        DoctorId = model.DoctorId,
                         PatientId = patientObj.PatientId,
                         AppointmentDate = model.AppoitmentTime,
                         PatientDetailsId=patientDetails.PatiendDetailsId
@@ -333,7 +333,7 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
                         return CreateErrorResponse("You can't take more than two appointments in a day from the same doctor.");
                     }
                     // Check for an existing appointment within 30 minutes of the selected time
-                    if (await IsAppointmentTimeConflictAsync(model.DoctoerId, model.AppoitmentTime))
+                    if (await IsAppointmentTimeConflictAsync(model.DoctorId, model.AppoitmentTime))
                     {
                         return CreateErrorResponse("Please choose an appointment time that is at least 30 minutes after the existing appointment from the same doctor.");
                     }
@@ -342,7 +342,7 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
                     patient.LastName = model.LastName;
                     patient.Cnic = model.Cnic;
                     patient.Gender = model.Gender;
-                    patient.DoctoerId = model.DoctoerId;
+                    patient.DoctoerId = model.DoctorId;
                     patient.DateofBirth = model.DateofBirth;
 
                     var patientDetails = await _context.PatientDetails.FindAsync(patient.PatientId);
@@ -365,7 +365,7 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
                         return CreateErrorResponse(Constants.NotFound.Replace("{data}", "Appointment"));
                     }
 
-                    existingAppointment.DoctorId = model.DoctoerId;
+                    existingAppointment.DoctorId = model.DoctorId;
                     existingAppointment.AppointmentDate = model.AppoitmentTime;
 
                     // Update tables
@@ -387,15 +387,21 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
             }
         }
 
-        public async Task<IResponse> GetAllByProc(GetPatientListWithDocterId model)
+        public async Task<IResponse> GetAllByProc(GetPatientList model)
         {
             model.Sort = model.Sort == null || model.Sort == "" ? "FullName" : model.Sort;
-            var data=(from patient in _context.Patient 
-                             join main in _context.Users on patient.DoctoerId equals main.Id
-                             join p_details in _context.PatientDetails on patient.PatientId equals p_details.PatientId
-                             join App in _context.Appointment on patient.PatientId equals App.PatientId
-                            where (EF.Functions.ILike(patient.FirstName, $"%{model.GetPatientListObj.PatientName}%") || string.IsNullOrEmpty(model.GetPatientListObj.PatientName))
-                           select new VM_Patient
+            var data=(from patient in _context.Patient
+                      join main in _context.Users on patient.DoctoerId equals main.Id
+                      join p_details in _context.PatientDetails on patient.PatientId equals p_details.PatientId
+                      join App in _context.Appointment on patient.PatientId equals App.PatientId
+                      where (
+                                (EF.Functions.ILike(patient.FirstName, $"%{model.PatientName}%") || string.IsNullOrEmpty(model.PatientName)) 
+                              && (EF.Functions.ILike(p_details.City, $"%{model.City}%") || string.IsNullOrEmpty(model.City))
+                              && (EF.Functions.ILike(patient.Cnic, $"%{model.Cnic}%") || string.IsNullOrEmpty(model.Cnic))
+                              && (EF.Functions.ILike(p_details.PhoneNumber, $"%{model.MobileNumber}%") || string.IsNullOrEmpty(model.MobileNumber))
+                            //(model.DoctorId == null || patient.DoctoerId == model.DoctorId)
+                            )
+                      select new VM_Patient
                            {
                                PatientId = patient.PatientId,
                                FullName=patient.FirstName+patient.LastName,
@@ -429,26 +435,32 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
         public async Task<IResponse> GetPatientById(GetPatientById model)
         {
             var patientobj = await (from main in _userManager.Users
-                                 join patient in _context.Patient on main.Id equals patient.DoctoerId
-                                 join p_Details in _context.PatientDetails on patient.PatientId equals p_Details.PatientId
-                                 where (patient.Status == 1 && main.Id == patient.DoctoerId && patient.PatientId == model.Id)
-                                 select new VM_Patient
-                                 {
-                                     PatientId = patient.PatientId,
-                                     DoctorName = main.UserName,
-                                     DoctorPhoneNumber = main.PhoneNumber,
-                                     PatientPhoneNumber = p_Details.PhoneNumber,
-                                     City = p_Details.City,
-                                     Cnic = patient.Cnic,
-                                     BloodType = p_Details.BloodType,
-                                     MaritalStatus = p_Details.MaritalStatus,
-                                     Status = patient.Status,
-                                     Gender = patient.Gender,
-                                     FullName = patient.FirstName + patient.LastName,
-                                 }).FirstOrDefaultAsync();
-            if(patientobj != null)
+                                    join patient in _context.Patient on main.Id equals patient.DoctoerId
+                                    join p_Details in _context.PatientDetails on patient.PatientId equals p_Details.PatientId
+                                    join app in _context.Appointment on patient.PatientId equals app.PatientId
+                                    where (patient.Status == 1
+                                        && main.Id == patient.DoctoerId
+                                        && patient.PatientId == model.Id
+                                        && (app.PatientId == patient.PatientId && app.PatientDetailsId == p_Details.PatiendDetailsId))
+                                    select new VM_PatientById
+                                    {
+                                        PatientId = patient.PatientId,
+                                        DoctorId = main.Id,
+                                        PhoneNumber = p_Details.PhoneNumber,
+                                        FirstName = patient.FirstName,
+                                        LastName = patient.LastName,
+                                        City = p_Details.City,
+                                        Cnic = patient.Cnic,
+                                        BloodType = p_Details.BloodType,
+                                        MaritalStatus = p_Details.MaritalStatus,
+                                        Gender = patient.Gender,
+                                        DateofBirth = patient.DateofBirth,
+                                        AppoitmentTime = app.AppointmentDate
+                                    }).FirstOrDefaultAsync();
+            if (patientobj != null)
             {
                 _response.Data = patientobj;
+                _response.Message = Constants.GetData;
                 _response.Success = Constants.ResponseSuccess;
             }
             else

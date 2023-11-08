@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace PatientDoctor.Application.Features.Patient.Commands.AddEditPatient
 {
-    public class AddEditPatiendCommandHandler : IRequestHandler<AddEditPatientCommand, IResponse>
+    public class AddEditPatiendCommandHandler : IRequestHandler<AddEditPatientWithUserId, IResponse>
     {
         private readonly IPatientRepository _patientRepository;
 
@@ -18,7 +18,7 @@ namespace PatientDoctor.Application.Features.Patient.Commands.AddEditPatient
         {
             this._patientRepository = patientRepository ?? throw new ArgumentNullException(nameof(patientRepository));
         }
-        public async Task<IResponse> Handle(AddEditPatientCommand request, CancellationToken cancellationToken)
+        public async Task<IResponse> Handle(AddEditPatientWithUserId request, CancellationToken cancellationToken)
         {
             var patient = await _patientRepository.AddEditPatient(request);
             return patient;

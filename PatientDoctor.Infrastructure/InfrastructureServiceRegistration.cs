@@ -16,6 +16,8 @@ using PatientDoctor.Application.Helpers;
 using PatientDoctor.Application.Contracts.Security;
 using PatientDoctor.Infrastructure.Repositories.CryptoService;
 using System.Security.Cryptography;
+using PatientDoctor.Application.Contracts.Persistance.Dashboard;
+using PatientDoctor.Infrastructure.Repositories.Dashboard;
 
 namespace PatientDoctor.Infrastructure
 {
@@ -83,6 +85,7 @@ namespace PatientDoctor.Infrastructure
             services.AddScoped<IResponse, Response>();
             services.AddScoped<ICountResponse, CountResponse>(); 
             services.AddScoped<ICryptoService, CryptoHelper>();
+            services.AddScoped<IDashboardRepository, DashboardRepository>();
             return services;
         }
         private static string GenerateJwtSecretKey()

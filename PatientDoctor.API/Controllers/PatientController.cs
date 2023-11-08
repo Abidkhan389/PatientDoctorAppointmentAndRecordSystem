@@ -49,8 +49,8 @@ namespace PatientDoctor.API.Controllers
                 _response.Message = Constants.ModelStateStateIsInvalid;
                 return Ok(_response);
             }
-
-            return await _mediator.Send(model);
+            var UserId = HelperStatic.GetUserIdFromClaims((ClaimsIdentity)User.Identity);
+            return await _mediator.Send(new AddEditPatientWithUserId(model, UserId));
         }
         [HttpPost]
         [Route("GetAllByProc")]

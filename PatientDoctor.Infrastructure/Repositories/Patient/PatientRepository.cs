@@ -91,7 +91,7 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
             }
             return _response;
         }
-        public async Task<IResponse> AddEditPatient(AddEditPatientCommand model)
+        public async Task<IResponse> AddEditPatient(AddEditPatientWithUserId model)
         {
             //using var transaction = _context.Database.BeginTransaction();
             //try
@@ -250,16 +250,16 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
             //}
             try
             {
-                if (model.PatientId == null)
+                if (model.AddEditPatientObj.PatientId == null)
                 {
-                    var patient = await _context.Patient.SingleOrDefaultAsync(x => x.Cnic == model.Cnic);
+                    var patient = await _context.Patient.SingleOrDefaultAsync(x => x.Cnic == model.AddEditPatientObj.Cnic);
 
                     if (patient != null)
                     {
                         var appointmentCount = await _context.Appointment
                             .Where(a => a.PatientId == patient.PatientId &&
-                                        a.DoctorId == model.DoctorId &&
-                                        a.AppointmentDate.Date == model.AppoitmentTime.Date)
+                                        a.DoctorId == model.AddEditPatientObj.DoctorId &&
+                                        a.AppointmentDate.Date == model.AddEditPatientObj.AppoitmentTime.Date)
                             .CountAsync();
 
                         if (appointmentCount > 2)
@@ -269,7 +269,7 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
                     }
 
                     // Check for an existing appointment within 30 minutes of the selected time
-                    if (await IsAppointmentTimeConflictAsync(model.DoctorId, model.AppoitmentTime))
+                    if (await IsAppointmentTimeConflictAsync(model.AddEditPatientObj.DoctorId, model.AddEditPatientObj.AppoitmentTime))
                     {
                         return CreateErrorResponse("Please choose an appointment time that is at least 30 minutes after the existing appointment from the same doctor.");
                     }
@@ -278,13 +278,13 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
                     var patientObj = new PatientDoctor.domain.Entities.Patient
                     {
                         PatientId = Guid.NewGuid(),
-                        FirstName = model.FirstName,
-                        LastName = model.LastName,
+                        FirstName = model.AddEditPatientObj.FirstName,
+                        LastName = model.AddEditPatientObj.LastName,
                         Status = 1,
-                        Cnic = model.Cnic,
-                        Gender = model.Gender,
-                        DoctoerId = model.DoctorId,
-                        DateofBirth = model.DateofBirth,
+                        Cnic = model.AddEditPatientObj.Cnic,
+                        Gender = model.AddEditPatientObj.Gender,
+                        DoctoerId = model.AddEditPatientObj.DoctorId,
+                        DateofBirth = model.AddEditPatientObj.DateofBirth,
                     };
                     await _context.Patient.AddAsync(patientObj);
 
@@ -292,20 +292,22 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
                     {
                         PatiendDetailsId = Guid.NewGuid(),
                         PatientId = patientObj.PatientId,
-                        PhoneNumber = model.PhoneNumber,
-                        City = model.City,
-                        BloodType = model.BloodType,
+                        PhoneNumber = model.AddEditPatientObj.PhoneNumber,
+                        City = model.AddEditPatientObj.City,
+                        BloodType = model.AddEditPatientObj.BloodType,
                         Status = 1,
-                        MaritalStatus = model.MaritalStatus,
-                        CheckUpStatus=0 // 0 for bydefault waiting, means patient is in waiting list
+                        MaritalStatus = model.AddEditPatientObj.MaritalStatus,
+                        CheckUpStatus = 0, // 0 for bydefault waiting, means patient is in waiting list
+                        CreatedBy=model.UserId,
+                        CreatedOn=DateTime.Now,
                     };
                     await _context.PatientDetails.AddAsync(patientDetails);
                     var patientAppointment = new Appointment
                     {
                         AppointmentId = Guid.NewGuid(),
-                        DoctorId = model.DoctorId,
+                        DoctorId = model.AddEditPatientObj.DoctorId,
                         PatientId = patientObj.PatientId,
-                        AppointmentDate = model.AppoitmentTime,
+                        AppointmentDate = model.AddEditPatientObj.AppoitmentTime,
                         PatientDetailsId=patientDetails.PatiendDetailsId
                     };
                     await _context.Appointment.AddAsync(patientAppointment);
@@ -318,14 +320,14 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
                 else
                 {
                     // Handle editing an existing patient's appointment (similar logic as above)
-                    var patient = await _context.Patient.FindAsync(model.PatientId);
+                    var patient = await _context.Patient.FindAsync(model.AddEditPatientObj.PatientId);
 
                     if (patient == null)
                     {
                         return CreateErrorResponse(Constants.NotFound.Replace("{data}", "Patient"));
                     }
                     var appointmentCount = await _context.Appointment
-                       .Where(a => a.PatientId == patient.PatientId && a.DoctorId == patient.DoctoerId && a.AppointmentDate.Date == model.AppoitmentTime.Date)
+                       .Where(a => a.PatientId == patient.PatientId && a.DoctorId == patient.DoctoerId && a.AppointmentDate.Date == model.AddEditPatientObj.AppoitmentTime.Date)
                        .CountAsync();
                     if (appointmentCount > 2)
                     {
@@ -333,17 +335,17 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
                         return CreateErrorResponse("You can't take more than two appointments in a day from the same doctor.");
                     }
                     // Check for an existing appointment within 30 minutes of the selected time
-                    if (await IsAppointmentTimeConflictAsync(model.DoctorId, model.AppoitmentTime))
+                    if (await IsAppointmentTimeConflictAsync(model.AddEditPatientObj.DoctorId, model.AddEditPatientObj.AppoitmentTime))
                     {
                         return CreateErrorResponse("Please choose an appointment time that is at least 30 minutes after the existing appointment from the same doctor.");
                     }
                     // Update existing patient and appointment records
-                    patient.FirstName = model.FirstName;
-                    patient.LastName = model.LastName;
-                    patient.Cnic = model.Cnic;
-                    patient.Gender = model.Gender;
-                    patient.DoctoerId = model.DoctorId;
-                    patient.DateofBirth = model.DateofBirth;
+                    patient.FirstName = model.AddEditPatientObj.FirstName;
+                    patient.LastName = model.AddEditPatientObj.LastName;
+                    patient.Cnic = model.AddEditPatientObj.Cnic;
+                    patient.Gender = model.AddEditPatientObj.Gender;
+                    patient.DoctoerId = model.AddEditPatientObj.DoctorId;
+                    patient.DateofBirth = model.AddEditPatientObj.DateofBirth;
 
                     var patientDetails = await _context.PatientDetails.FindAsync(patient.PatientId);
                     if (patientDetails == null)
@@ -351,11 +353,12 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
                         return CreateErrorResponse(Constants.NotFound.Replace("{data}", "Patient Details"));
                     }
 
-                    patientDetails.PhoneNumber = model.PhoneNumber;
-                    patientDetails.City = model.City;
-                    patientDetails.BloodType = model.BloodType;
-                    patientDetails.MaritalStatus = model.MaritalStatus;
-
+                    patientDetails.PhoneNumber = model.AddEditPatientObj.PhoneNumber;
+                    patientDetails.City = model.AddEditPatientObj.City;
+                    patientDetails.BloodType = model.AddEditPatientObj.BloodType;
+                    patientDetails.MaritalStatus = model.AddEditPatientObj.MaritalStatus;
+                    patientDetails.UpdatedBy = model.UserId;
+                    patientDetails.UpdatedOn=DateTime.Now;
                     var existingAppointment = await _context.Appointment
                         .Where(x => x.PatientId == patient.PatientId && x.PatientDetailsId == patientDetails.PatiendDetailsId)
                         .FirstOrDefaultAsync();
@@ -365,8 +368,8 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
                         return CreateErrorResponse(Constants.NotFound.Replace("{data}", "Appointment"));
                     }
 
-                    existingAppointment.DoctorId = model.DoctorId;
-                    existingAppointment.AppointmentDate = model.AppoitmentTime;
+                    existingAppointment.DoctorId = model.AddEditPatientObj.DoctorId;
+                    existingAppointment.AppointmentDate = model.AddEditPatientObj.AppoitmentTime;
 
                     // Update tables
                     _context.Patient.Update(patient);

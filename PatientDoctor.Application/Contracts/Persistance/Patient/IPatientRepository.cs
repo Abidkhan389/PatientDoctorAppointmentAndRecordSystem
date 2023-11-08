@@ -14,7 +14,7 @@ namespace PatientDoctor.Application.Contracts.Persistance.Patient
     public interface IPatientRepository
     {
         Task<IResponse> GetPatientById(GetPatientById Id);
-        Task<IResponse> AddEditPatient(AddEditPatientCommand model);
+        Task<IResponse> AddEditPatient(AddEditPatientWithUserId model);
         Task<IResponse> ActiveInActive(ActiveInActivePatients model);
         Task<IResponse> GetAllByProc(GetPatientList model);
     }

@@ -15,7 +15,7 @@ namespace PatientDoctor.Application.Features.Patient.Quries
 
         public GetPatientListQueryHandler(IPatientRepository patientRepository)
         {
-            this._patientRepository = patientRepository;
+            this._patientRepository = patientRepository ?? throw new ArgumentNullException(nameof(patientRepository));
         }
         public async Task<IResponse> Handle(GetPatientList request, CancellationToken cancellationToken)
         {

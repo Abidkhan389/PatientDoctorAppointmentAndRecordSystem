@@ -172,7 +172,6 @@ namespace PatientDoctor.Infrastructure.Repositories.Identity
         public async Task<IResponse> LoginUserAsync(LoginUserCommand model)
         {
             var user = await _userManager.FindByEmailAsync(model.Email);
-
             if (user != null && this._crypto.CheckKey(user.PasswordHash, user.PasswordSalt, model.Password))
             {
                 var userRoles = await _userManager.GetRolesAsync(user);
@@ -312,7 +311,7 @@ namespace PatientDoctor.Infrastructure.Repositories.Identity
                     existinguserdetails.UpdatedBy = model.UserId;
                     existinguserdetails.FirstName=model.addEditUsermodel.FirstName;
                     existinguserdetails.LastName = model.addEditUsermodel.LastName;
-                    existinguserdetails.UpdatedOn= DateTime.UtcNow;
+                    existinguserdetails.UpdatedOn= DateTime.Now;
                     //update user
                     var result = await _userManager.UpdateAsync(existUser);
                     if (!result.Succeeded)

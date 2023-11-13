@@ -11,7 +11,7 @@ namespace PatientDoctor.Infrastructure.Repositories.GeneralServices
 {
     public static class HelperStatic
     {
-        private static DateTime currentDate = DateTime.UtcNow;
+        private static DateTime currentDate = DateTime.Now;
         private static DateTime twoMonthsAgo = currentDate.AddMonths(-2);
         public static IQueryable<TEntity> OrderBy<TEntity>(this IQueryable<TEntity> source, string orderByProperty, bool desc)
         {

@@ -18,6 +18,10 @@ using PatientDoctor.Infrastructure.Repositories.CryptoService;
 using System.Security.Cryptography;
 using PatientDoctor.Application.Contracts.Persistance.Dashboard;
 using PatientDoctor.Infrastructure.Repositories.Dashboard;
+using PatientDoctor.Application.Contracts.Persistance.ISecurity;
+using PatientDoctor.Infrastructure.Repositories.SecurityRepository;
+using PatientDoctor.Application.Contracts.Persistance.IAdministratorRepository;
+using PatientDoctor.Infrastructure.Repositories.Administrator;
 
 namespace PatientDoctor.Infrastructure
 {
@@ -86,6 +90,8 @@ namespace PatientDoctor.Infrastructure
             services.AddScoped<ICountResponse, CountResponse>(); 
             services.AddScoped<ICryptoService, CryptoHelper>();
             services.AddScoped<IDashboardRepository, DashboardRepository>();
+            services.AddScoped<ILocalAuthenticationRepository, UserRepository>();
+            services.AddScoped<IAdministratorRepository, AdministratorRepository>();
             return services;
         }
         private static string GenerateJwtSecretKey()

@@ -68,9 +68,9 @@ namespace PatientDoctor.API.Controllers
         }
         [HttpGet]
         [Route("GetPatientById")]
-        public async Task<object> GetUserById(Guid PatientId)
+        public async Task<object> GetPatientById(Guid PatientId)
         {
-            if (PatientId == null)
+            if (PatientId == Guid.Empty)
             {
                 _response.Success = Constants.ResponseFailure;
                 _response.Message = Constants.ModelStateStateIsInvalid;

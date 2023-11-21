@@ -20,6 +20,7 @@ namespace PatientDoctor.Application.Features.Patient.Quries
         public string BloodType { get; set; }
         public string Cnic { get; set; }
         public int Status { get; set; }
+        public int CheckUpStatus { get; set; }
         public string MaritalStatus { get; set; }
     }
 }

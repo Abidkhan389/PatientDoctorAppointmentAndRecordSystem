@@ -22,5 +22,6 @@ namespace PatientDoctor.domain.Entities
         public string Gender { get; set; }
         public string DoctoerId { get; set; }
         public DateTime DateofBirth { get; set; }
+        public string Description { get; set; }
     }
 }

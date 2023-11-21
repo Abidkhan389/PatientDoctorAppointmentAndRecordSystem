@@ -6,6 +6,7 @@ using PatientDoctor.Application.Features.Identity.Commands.RegisterUser;
 using PatientDoctor.Application.Features.Identity.Quries;
 using PatientDoctor.Application.Features.Patient.Commands.ActiveInActive;
 using PatientDoctor.Application.Features.Patient.Commands.AddEditPatient;
+using PatientDoctor.Application.Features.Patient.Commands.AddPatientDescription;
 using PatientDoctor.Application.Features.Patient.Quries;
 using PatientDoctor.Application.Helpers;
 using PatientDoctor.Infrastructure.Repositories.GeneralServices;
@@ -40,6 +41,18 @@ namespace PatientDoctor.API.Controllers
 
         }
         [HttpPost]
+        [Route("AddPatientDescription")]
+        public async Task<object> AddPatientDescription(AddPatientDescriptionCommand model)
+        {
+            if (!ModelState.IsValid)
+            {
+                _response.Success = Constants.ResponseFailure;
+                _response.Message = Constants.ModelStateStateIsInvalid;
+                return Ok(_response);
+            }
+            return await _mediator.Send(model);
+        }
+        [HttpPost]
         [Route("AddEditPatient")]
         public async Task<object> AddEditPatient(AddEditPatientCommand model)
         {
@@ -66,6 +79,20 @@ namespace PatientDoctor.API.Controllers
             //return await _mediator.Send(new GetPatientListWithDocterId(model, DocterId));
             return await _mediator.Send(model);
         }
+        [HttpPost]
+        [Route("GetAllTodeyPatientAppoitments")]
+        public async Task<object> GetAllTodeyPatientAppoitments(GetPatientAppoitmentsList model)
+        {
+            if (!ModelState.IsValid)
+            {
+                _response.Success = Constants.ResponseFailure;
+                _response.Message = Constants.ModelStateStateIsInvalid;
+                return Ok(_response);
+            }
+            var DocterId = HelperStatic.GetUserIdFromClaims((ClaimsIdentity)User.Identity);
+            return await _mediator.Send(new GetPatientAppoitmentListWithDocter(model, DocterId));
+            //return await _mediator.Send(model);
+        }
         [HttpGet]
         [Route("GetPatientById")]
         public async Task<object> GetPatientById(Guid PatientId)
@@ -78,6 +105,21 @@ namespace PatientDoctor.API.Controllers
             }
             GetPatientById patientobj = new GetPatientById();
             patientobj.Id = PatientId;
+            return await _mediator.Send(patientobj);
+
+        }
+        [HttpGet]
+        [Route("GetPatientDescriptionById")]
+        public async Task<object> GetPatientDescriptionById(Guid PatientId)
+        {
+            if (PatientId == Guid.Empty)
+            {
+                _response.Success = Constants.ResponseFailure;
+                _response.Message = Constants.ModelStateStateIsInvalid;
+                return Ok(_response);
+            }
+            GetPatientDescription patientobj = new GetPatientDescription();
+            patientobj.PatientId = PatientId;
             return await _mediator.Send(patientobj);
 
         }

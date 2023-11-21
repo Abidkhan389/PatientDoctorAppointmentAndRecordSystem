@@ -1,6 +1,7 @@
 ﻿using PatientDoctor.Application.Features.Identity.Quries;
 using PatientDoctor.Application.Features.Patient.Commands.ActiveInActive;
 using PatientDoctor.Application.Features.Patient.Commands.AddEditPatient;
+using PatientDoctor.Application.Features.Patient.Commands.AddPatientDescription;
 using PatientDoctor.Application.Features.Patient.Quries;
 using PatientDoctor.Application.Helpers;
 using System;
@@ -17,5 +18,8 @@ namespace PatientDoctor.Application.Contracts.Persistance.Patient
         Task<IResponse> AddEditPatient(AddEditPatientWithUserId model);
         Task<IResponse> ActiveInActive(ActiveInActivePatients model);
         Task<IResponse> GetAllByProc(GetPatientList model);
+        Task<IResponse> GetAllPatientAppoitmentWithDoctorProc(GetPatientAppoitmentListWithDocter model);
+        Task<IResponse> AddPatientDescription(AddPatientDescriptionCommand model);
+        Task<IResponse> GetPatientDescriptionById(GetPatientDescription model);
     }
 }

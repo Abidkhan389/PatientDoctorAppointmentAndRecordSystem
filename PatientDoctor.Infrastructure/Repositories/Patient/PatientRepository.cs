@@ -19,6 +19,9 @@ using PatientDoctor.Infrastructure.Repositories.GeneralServices;
 using PatientDoctor.Application.Features.Patient.Commands.ActiveInActive;
 using PatientDoctor.Application.Features.Patient.Commands.AddEditPatient;
 using System.Diagnostics.Eventing.Reader;
+using PatientDoctor.Application.Features.Patient.Commands.AddPatientDescription;
+using System.Xml;
+using System.Text.Json;
 
 namespace PatientDoctor.Infrastructure.Repositories.Patient
 {
@@ -78,11 +81,12 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
                 }
                 patient.Status = model.Status;
                 _context.Patient.Update(patient);
-                var patiendetial= await _context.PatientDetails.FindAsync(model.Id);
+                var patiendetial= await _context.PatientDetails.Where(x=> x.PatientId==model.Id).FirstOrDefaultAsync();
                 patiendetial.Status= model.Status;
                 _context.PatientDetails.Update(patiendetial);
                 await transaction.CommitAsync();
                 _response.Success = Constants.ResponseSuccess;
+                _response.Message = Constants.DataUpdate;
             }
             catch (Exception ex)
             {
@@ -252,21 +256,21 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
             {
                 if (model.AddEditPatientObj.PatientId == null)
                 {
-                    var patient = await _context.Patient.SingleOrDefaultAsync(x => x.Cnic == model.AddEditPatientObj.Cnic);
+                    //var patient = await _context.Patient.SingleOrDefaultAsync(x => x.Cnic == model.AddEditPatientObj.Cnic);
 
-                    if (patient != null)
-                    {
-                        var appointmentCount = await _context.Appointment
-                            .Where(a => a.PatientId == patient.PatientId &&
-                                        a.DoctorId == model.AddEditPatientObj.DoctorId &&
-                                        a.AppointmentDate.Date == model.AddEditPatientObj.AppoitmentTime.Date)
-                            .CountAsync();
+                    //if (patient != null)
+                    //{
+                    //    var appointmentCount = await _context.Appointment
+                    //        .Where(a => a.PatientId == patient.PatientId &&
+                    //                    a.DoctorId == model.AddEditPatientObj.DoctorId &&
+                    //                    a.AppointmentDate.Date == model.AddEditPatientObj.AppoitmentTime.Date)
+                    //        .CountAsync();
 
-                        if (appointmentCount > 2)
-                        {
-                            return CreateErrorResponse("You can't take more than two appointments in a day from the same doctor.");
-                        }
-                    }
+                    //    if (appointmentCount > 2)
+                    //    {
+                    //        return CreateErrorResponse("You can't take more than two appointments in a day from the same doctor.");
+                    //    }
+                    //}
 
                     // Check for an existing appointment within 30 minutes of the selected time
                     if (await IsAppointmentTimeConflictAsync(model.AddEditPatientObj.DoctorId, model.AddEditPatientObj.AppoitmentTime))
@@ -285,6 +289,7 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
                         Gender = model.AddEditPatientObj.Gender,
                         DoctoerId = model.AddEditPatientObj.DoctorId,
                         DateofBirth = model.AddEditPatientObj.DateofBirth,
+                        Description="",
                     };
                     await _context.Patient.AddAsync(patientObj);
 
@@ -418,6 +423,7 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
                                Cnic=patient.Cnic,
                                Status=patient.Status,
                                MaritalStatus=p_details.MaritalStatus,
+                               CheckUpStatus = p_details.CheckUpStatus
                            }).AsQueryable();
 
 
@@ -473,6 +479,97 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
             }
             return _response;
 
+        }
+
+        public async Task<IResponse> AddPatientDescription(AddPatientDescriptionCommand model)
+        {
+            var patient = await _context.Patient
+            .Where(x => x.PatientId == model.PatientId)
+            .FirstOrDefaultAsync();
+            var patientDetails = await _context.PatientDetails
+                .FirstOrDefaultAsync(pd => pd.PatientId == model.PatientId);
+            if (patientDetails != null && patient != null)
+            {
+                patient.Description= JsonSerializer.Serialize(model);
+                patientDetails.CheckUpStatus = 1; // update check status to 1, its means patient is checked
+                _context.Patient.Update(patient);
+                _context.PatientDetails.Update(patientDetails);
+                await _context.SaveChangesAsync();
+                _response.Success= Constants.ResponseSuccess;
+                _response.Message = Constants.DataUpdate;
+            }
+            else
+            {
+                _response.Success= Constants.ResponseFailure;
+                _response.Message = Constants.NotFound;
+            }
+            return _response;
+        }
+
+        public async Task<IResponse> GetAllPatientAppoitmentWithDoctorProc(GetPatientAppoitmentListWithDocter model)
+        {
+            model.Sort = model.Sort == null || model.Sort == "" ? "FullName" : model.Sort;
+            var data = (from patient in _context.Patient
+                        join main in _context.Users on patient.DoctoerId equals main.Id
+                        join p_details in _context.PatientDetails on patient.PatientId equals p_details.PatientId
+                        join App in _context.Appointment on patient.PatientId equals App.PatientId
+                        where (
+                                  (EF.Functions.ILike(patient.FirstName, $"%{model.GetPatientAppoitmentsListObj.PatientName}%") || string.IsNullOrEmpty(model.GetPatientAppoitmentsListObj.PatientName))
+                                && (EF.Functions.ILike(p_details.City, $"%{model.GetPatientAppoitmentsListObj.City}%") || string.IsNullOrEmpty(model.GetPatientAppoitmentsListObj.City))
+                                && (EF.Functions.ILike(patient.Cnic, $"%{model.GetPatientAppoitmentsListObj.Cnic}%") || string.IsNullOrEmpty(model.GetPatientAppoitmentsListObj.Cnic))
+                                && (EF.Functions.ILike(p_details.PhoneNumber, $"%{model.GetPatientAppoitmentsListObj.MobileNumber}%") || string.IsNullOrEmpty(model.GetPatientAppoitmentsListObj.MobileNumber))
+                                &&(App.DoctorId == model.DocterId && App.PatientId==patient.PatientId&&p_details.PatiendDetailsId==App.PatientDetailsId
+                                && App.AppointmentDate.Date==model.GetPatientAppoitmentsListObj.Todeydatetime.Date)
+                              )
+                        select new VM_Patient
+                        {
+                            PatientId = patient.PatientId,
+                            FullName = patient.FirstName + patient.LastName,
+                            Gender = patient.Gender,
+                            DoctorName = main.UserName,
+                            AppointmentTime = App.AppointmentDate,
+                            PatientPhoneNumber = p_details.PhoneNumber,
+                            DoctorPhoneNumber = main.PhoneNumber,
+                            City = p_details.City,
+                            BloodType = p_details.BloodType,
+                            Cnic = patient.Cnic,
+                            Status = patient.Status,
+                            MaritalStatus = p_details.MaritalStatus,
+                            CheckUpStatus = p_details.CheckUpStatus
+                        }).AsQueryable();
+            var count = data.Count();
+            var sorted = await HelperStatic.OrderBy(data, model.SortEx, model.OrderEx == "desc").Skip(model.Start).Take(model.LimitEx).ToListAsync();
+            foreach (var item in sorted)
+            {
+                item.TotalCount = count;
+                item.SerialNo = ++model.Start;
+            }
+            _countResp.DataList = sorted;
+            _countResp.TotalCount = sorted.Count > 0 ? sorted.First().TotalCount : 0;
+            _response.Success = Constants.ResponseSuccess;
+            _response.Message = Constants.GetData;
+            _response.Data = _countResp;
+            return _response;
+        }
+
+        public async Task<IResponse> GetPatientDescriptionById(GetPatientDescription model)
+        {
+            var patientDescriptionEntity = await _context.Patient
+                                          .Where(x => x.PatientId == model.PatientId)
+                                          .FirstOrDefaultAsync();
+            if (patientDescriptionEntity != null && patientDescriptionEntity.Description != null)
+            { 
+                var patientDescription= JsonSerializer.Deserialize<AddPatientDescriptionCommand>(patientDescriptionEntity.Description);
+                _response.Data = patientDescription;
+                _response.Success = Constants.ResponseSuccess;
+                _response.Message = Constants.GetData;
+            }
+            else
+            {
+                _response.Success = Constants.ResponseFailure;
+                _response.Message = Constants.NotFound;
+            }
+            return _response;
         }
     }
 }

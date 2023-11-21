@@ -524,7 +524,7 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
                         select new VM_Patient
                         {
                             PatientId = patient.PatientId,
-                            FullName = patient.FirstName + patient.LastName,
+                            FullName = patient.FirstName + " " + patient.LastName,
                             Gender = patient.Gender,
                             DoctorName = main.UserName,
                             AppointmentTime = App.AppointmentDate,

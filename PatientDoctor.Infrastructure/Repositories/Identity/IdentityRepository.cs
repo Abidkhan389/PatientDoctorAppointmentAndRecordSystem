@@ -233,7 +233,7 @@ namespace PatientDoctor.Infrastructure.Repositories.Identity
                         IsSuperAdmin = false,
                         PhoneNumber = model.addEditUsermodel.MobileNumber,
                         Email = model.addEditUsermodel.Email,
-                        UserName = model.addEditUsermodel.FirstName + model.addEditUsermodel.LastName,
+                        UserName = model.addEditUsermodel.FirstName + " " + model.addEditUsermodel.LastName,
                         Status = 1,
                     };
                     // salt and hast the password

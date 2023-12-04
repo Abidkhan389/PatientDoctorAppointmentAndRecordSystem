@@ -215,7 +215,7 @@ namespace PatientDoctor.Infrastructure.Repositories.Identity
 
         public async Task<IResponse> AddEditUser(AddEditUserWithCreatedOrUpdatedById model)
         {
-            //using var transaction = _context.Database.BeginTransaction();
+            using var transaction = _context.Database.BeginTransaction();
             try
             {
                 if (string.IsNullOrEmpty(model.addEditUsermodel.Id))
@@ -233,7 +233,7 @@ namespace PatientDoctor.Infrastructure.Repositories.Identity
                         IsSuperAdmin = false,
                         PhoneNumber = model.addEditUsermodel.MobileNumber,
                         Email = model.addEditUsermodel.Email,
-                        UserName = model.addEditUsermodel.FirstName + " " + model.addEditUsermodel.LastName,
+                        UserName = model.addEditUsermodel.FirstName + "" + model.addEditUsermodel.LastName,
                         Status = 1,
                     };
                     // salt and hast the password
@@ -270,7 +270,7 @@ namespace PatientDoctor.Infrastructure.Repositories.Identity
                     }
                     await _context.SaveChangesAsync();
 
-                    //await transaction.CommitAsync();
+                    await transaction.CommitAsync();
                     _response.Success = Constants.ResponseSuccess;
                     _response.Message = Constants.DataSaved;
                     return _response;
@@ -350,7 +350,7 @@ namespace PatientDoctor.Infrastructure.Repositories.Identity
                     await _userManager.UpdateAsync(existUser);
                           _context.Userdetail.Update(existinguserdetails);
                     await _context.SaveChangesAsync();
-                   // await transaction.CommitAsync();
+                    await transaction.CommitAsync();
                     _response.Success = Constants.ResponseSuccess;
                     _response.Message = Constants.DataUpdate;
                     return _response;
@@ -358,9 +358,8 @@ namespace PatientDoctor.Infrastructure.Repositories.Identity
             }
             catch (Exception ex)
             {
-                _response.Message = ex.Message;
-                _response.Success = Constants.ResponseFailure;
-                return _response;
+                await transaction.RollbackAsync(); // Rollback the transaction in case of an exception
+                return CreateErrorResponse(ex.Message);
             }
         }
 
@@ -395,6 +394,11 @@ namespace PatientDoctor.Infrastructure.Repositories.Identity
             _response.Success = Constants.ResponseSuccess;
             _response.Message = Constants.GetData;
             return _response;
+        }
+
+        private IResponse CreateErrorResponse(string message)
+        {
+            return new Response { Success = Constants.ResponseFailure, Message = message };
         }
     }
 }

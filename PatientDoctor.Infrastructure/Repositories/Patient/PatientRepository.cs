@@ -97,161 +97,7 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
         }
         public async Task<IResponse> AddEditPatient(AddEditPatientWithUserId model)
         {
-            //using var transaction = _context.Database.BeginTransaction();
-            //try
-            //{
-            //    if(model.PatientId == null)
-            //    {
-            //        var patientobj = await _context.Patient.SingleOrDefaultAsync(x => x.Cnic == model.Cnic);
-            //        //var today = DateTime.Today;
-            //        var appointmentCount = await _context.Appointment
-            //        .Where(a => a.PatientId == patientobj.PatientId && a.DoctorId == patientobj.DoctoerId && a.AppointmentDate.Date == model.AppoitmentTime)
-            //        .CountAsync();
-            //        if (appointmentCount > 2)
-            //        {
-            //            // Handle the case where the patient has already taken two appointments.
-            //            _response.Success = Constants.ResponseFailure;
-            //            _response.Message = "You cant take two appoitment in a same day from a same doctor,Try with" +
-            //                "Different Cnic for get more Appoitments ";
-            //        }
-            //        else
-            //        {
-            //            // Calculate the minimum allowed appointment time (30 minutes from now).
-            //            var minimumAllowedTime = model.AppoitmentTime.AddMinutes(30);
-            //            var existingAppointment = await _context.Appointment
-            //                .Where(x => x.DoctorId == model.DoctoerId &&
-            //                            x.AppointmentDate.Date == model.AppoitmentTime.Date && // Same day check
-            //                            x.AppointmentDate == model.AppoitmentTime && // Existing appointment is before or at the same time
-            //                            x.AppointmentDate >= minimumAllowedTime) // Existing appointment is at least 30 minutes earlier
-            //                .FirstOrDefaultAsync();
-            //            if (existingAppointment != null)
-            //            {
-            //                _response.Success = Constants.ResponseFailure;
-            //                _response.Message = "Please choose an appointment time that" +
-            //                    " is at least 30 minutes after the existing appointment from Same Doctor.";
-            //            }
-            //            else
-            //            {
-            //                var patientObj = new PatientDoctor.domain.Entities.Patient
-            //                {
-            //                    PatientId = Guid.NewGuid(),
-            //                    FirstName = model.FirstName,
-            //                    LastName = model.LastName,
-            //                    Status = 1,
-            //                    Cnic = model.Cnic,
-            //                    Gender = model.Gender,
-            //                    DoctoerId = model.DoctoerId,
-            //                    DateofBirth = model.DateofBirth,
-            //                };
-            //                await _context.Patient.AddAsync(patientObj);
-            //                var patientdetails = new PatientDetails
-            //                {
-            //                    PatiendDetailsId = Guid.NewGuid(),
-            //                    PatientId = patientobj.PatientId,
-            //                    PhoneNumber = model.PhoneNumber,
-            //                    City = model.City,
-            //                    BloodType = model.BloodType,
-            //                    Status = 1,
-            //                    MaritalStatus = model.MaritalStatus,
-            //                };
-            //                await _context.PatientDetails.AddAsync(patientdetails);
-            //                var patientappoitment = new Appointment
-            //                {
-            //                    AppointmentId = Guid.NewGuid(),
-            //                    DoctorId = model.DoctoerId,
-            //                    PatientId = patientObj.PatientId,
-            //                    AppointmentDate = model.AppoitmentTime
-            //                };
-            //                await _context.Appointment.AddAsync(patientappoitment);
-            //                await _context.SaveChangesAsync();
-            //                await transaction.CommitAsync();
-            //                _response.Success = Constants.ResponseSuccess;
-            //                _response.Message = Constants.DataSaved;
-            //            }
-            //        }
-            //    }
-            //    else
-            //    {
-            //        var patient= await _context.Patient.FindAsync(model.PatientId);
-            //        if(patient == null)
-            //        {
-            //            _response.Success = Constants.ResponseFailure;
-            //            _response.Message = Constants.NotFound.Replace("{data}", "Patient");
-            //        }
-            //        else
-            //        {
-            //            var appointmentCount = await _context.Appointment
-            //           .Where(a => a.PatientId == patient.PatientId && a.DoctorId == patient.DoctoerId && a.AppointmentDate.Date == model.AppoitmentTime.Date)
-            //           .CountAsync();
-            //            if (appointmentCount > 2)
-            //            {
-            //                // Handle the case where the patient has already taken two appointments.
-            //                _response.Success = Constants.ResponseFailure;
-            //                _response.Message = "You cant take two appoitment in a day from a same doctor ";
-            //            }
-            //            else
-            //            {
-            //                var minimumAllowedTime = model.AppoitmentTime.AddMinutes(30);
-            //                var existingAppointment = await _context.Appointment
-            //                    .Where(x => x.DoctorId == model.DoctoerId &&
-            //                                x.AppointmentDate.Date == model.AppoitmentTime.Date && // Same day check
-            //                                x.AppointmentDate == model.AppoitmentTime && // Existing appointment is before or at the same time
-            //                                x.AppointmentDate >= minimumAllowedTime) // Existing appointment is at least 30 minutes earlier
-            //                    .FirstOrDefaultAsync();
-            //                if (existingAppointment != null)
-            //                {
-            //                    _response.Success = Constants.ResponseFailure;
-            //                    _response.Message = "Please choose an appointment time that" +
-            //                        " is at least 30 minutes after the existing appointment from Same Doctor.";
-            //                }
-            //                else 
-            //                {
-            //                    patient.FirstName = model.FirstName;
-            //                    patient.LastName = model.LastName;
-            //                    patient.Cnic = model.Cnic;
-            //                    patient.Gender = model.Gender;
-            //                    patient.DoctoerId = model.DoctoerId;
-            //                    patient.DateofBirth = model.DateofBirth;
-            //                    var patientdetails = await _context.PatientDetails.FindAsync(patient.PatientId);
-            //                    if (patientdetails == null)
-            //                    {
-            //                        _response.Success = Constants.ResponseFailure;
-            //                        _response.Message = Constants.NotFound.Replace("{data}", "Patient Details");
-            //                    }
-            //                    else
-            //                    {
-            //                        patientdetails.PatientId = patient.PatientId;
-            //                        patientdetails.PhoneNumber = model.PhoneNumber;
-            //                        patientdetails.City = model.City;
-            //                        patientdetails.BloodType = model.BloodType;
-            //                        patientdetails.MaritalStatus = model.MaritalStatus;
-            //                        var existingpatientappoitment = await _context.Appointment.
-            //                            Where(x=> x.PatientId== patient.PatientId && x.PatientDetailsId== patientdetails.PatiendDetailsId).FirstOrDefaultAsync();
-            //                        existingAppointment.DoctorId = model.DoctoerId;
-            //                        existingAppointment.AppointmentDate = model.AppoitmentTime;
-            //                        // Updating tables
-            //                        _context.Patient.Update(patient);
-            //                        _context.PatientDetails.Update(patientdetails);
-            //                        _context.Appointment.Update(existingAppointment);
-            //                        await _context.SaveChangesAsync();
-            //                        await transaction.CommitAsync();
-            //                        _response.Success = Constants.ResponseSuccess;
-            //                        _response.Message = Constants.DataUpdate;
-            //                    }
-            //                }
-
-            //            }
-
-            //        }
-            //    }
-            //    return _response;
-            //}
-            //catch(Exception ex)
-            //{
-            //    _response.Success = Constants.ResponseFailure;
-            //    _response.Message = ex.Message;
-            //    return _response;
-            //}
+            using var transaction = _context.Database.BeginTransaction();
             try
             {
                 if (model.AddEditPatientObj.PatientId == null)
@@ -318,7 +164,7 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
                     await _context.Appointment.AddAsync(patientAppointment);
 
                     await _context.SaveChangesAsync();
-                    //await transaction.CommitAsync();
+                    await transaction.CommitAsync();
 
                     return CreateSuccessResponse(Constants.DataSaved);
                 }
@@ -382,7 +228,7 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
                     _context.Appointment.Update(existingAppointment);
 
                     await _context.SaveChangesAsync();
-                    //await transaction.CommitAsync();
+                    await transaction.CommitAsync();
 
                     return CreateSuccessResponse(Constants.DataUpdate);
 
@@ -390,7 +236,7 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
             }
             catch (Exception ex)
             {
-                //await transaction.RollbackAsync(); // Rollback the transaction in case of an exception
+                await transaction.RollbackAsync(); // Rollback the transaction in case of an exception
                 return CreateErrorResponse(ex.Message);
             }
         }

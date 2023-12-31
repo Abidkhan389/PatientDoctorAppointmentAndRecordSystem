@@ -22,6 +22,8 @@ using PatientDoctor.Application.Contracts.Persistance.ISecurity;
 using PatientDoctor.Infrastructure.Repositories.SecurityRepository;
 using PatientDoctor.Application.Contracts.Persistance.IAdministratorRepository;
 using PatientDoctor.Infrastructure.Repositories.Administrator;
+using PatientDoctor.Application.Contracts.Persistance.IMedicineType;
+using PatientDoctor.Infrastructure.Repositories.MedicineType;
 
 namespace PatientDoctor.Infrastructure
 {
@@ -92,6 +94,7 @@ namespace PatientDoctor.Infrastructure
             services.AddScoped<IDashboardRepository, DashboardRepository>();
             services.AddScoped<ILocalAuthenticationRepository, UserRepository>();
             services.AddScoped<IAdministratorRepository, AdministratorRepository>();
+            services.AddScoped<IMedicinetypeRepository, MedicineTypeRepository>();
             return services;
         }
         private static string GenerateJwtSecretKey()

@@ -19,6 +19,8 @@ namespace PatientDoctor.Infrastructure.Persistance
         public virtual DbSet<Patient> Patient { get; set; } = null!;
         public virtual DbSet<PatientDetails> PatientDetails { get; set; } = null!;
         public virtual DbSet<Appointment> Appointment { get; set; } = null!;
+        public virtual DbSet<Medicine> Medicine { get; set; } = null!;
+        public virtual DbSet<MedicineType> MedicineType { get; set; } = null!;
 
 
     }

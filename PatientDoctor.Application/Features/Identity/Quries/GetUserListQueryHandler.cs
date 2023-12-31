@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace PatientDoctor.Application.Features.Identity.Quries
 {
-    internal class GetUserListQueryHandler : IRequestHandler<GetUserList, IResponse>
+    public class GetUserListQueryHandler : IRequestHandler<GetUserList, IResponse>
     {
         private readonly IIdentityRepository _identityRepository;
 

@@ -57,7 +57,7 @@ namespace PatientDoctor.Infrastructure.Repositories.MedicineType
         {
             try
             {
-                if(model.addEditMedicineTypeObj.MedicineTypeId == Guid.Empty)
+                if(model.addEditMedicineTypeObj.MedicineTypeId == null)
                 {
                     var medicineTypeObj= await _context.MedicineType.Where(x=> x.TypeName.ToLower()==
                         model.addEditMedicineTypeObj.TypeName.ToLower()).FirstOrDefaultAsync();
@@ -120,7 +120,9 @@ namespace PatientDoctor.Infrastructure.Repositories.MedicineType
                       )
                       select new VM_MedicineType
                       {
-                          typeName= medicinetype.TypeName,
+                          TypeName = medicinetype.TypeName,
+                          Id=medicinetype.Id,
+                          Status=medicinetype.Status,
                       }).AsQueryable();
             var count = data.Count();
             var sorted = await HelperStatic.OrderBy(data, model.SortEx, model.OrderEx == "desc").Skip(model.Start).Take(model.LimitEx).ToListAsync();

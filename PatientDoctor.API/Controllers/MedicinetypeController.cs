@@ -6,6 +6,7 @@ using PatientDoctor.Application.Features.Medicinetype.Commands.ActiveInActive;
 using PatientDoctor.Application.Features.Medicinetype.Commands.AddEditMedicineType;
 using PatientDoctor.Application.Features.Medicinetype.Quries;
 using PatientDoctor.Application.Features.Patient.Commands.AddEditPatient;
+using PatientDoctor.Application.Features.Patient.Quries;
 using PatientDoctor.Application.Helpers;
 using PatientDoctor.Infrastructure.Repositories.GeneralServices;
 using System.Security.Claims;
@@ -61,6 +62,21 @@ namespace PatientDoctor.API.Controllers
                 return Ok(_response);
             }
             return await _mediator.Send(model);
+        }
+        [HttpGet]
+        [Route("GetMedicineTypeById")]
+        public async Task<object> GetMedicineTypeById(Guid MedicineTypeId)
+        {
+            if (MedicineTypeId == Guid.Empty)
+            {
+                _response.Success = Constants.ResponseFailure;
+                _response.Message = Constants.ModelStateStateIsInvalid;
+                return Ok(_response);
+            }
+            GetMedicineTypeById patientobj = new GetMedicineTypeById();
+            patientobj.Id = MedicineTypeId;
+            return await _mediator.Send(patientobj);
+
         }
     }
 }

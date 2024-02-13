@@ -1,4 +1,7 @@
-﻿using PatientDoctor.Application.Features.Patient.Commands.ActiveInActive;
+﻿using PatientDoctor.Application.Features.Medicine.Commands.ActiveInActive;
+using PatientDoctor.Application.Features.Medicine.Commands.AddEditMedicine;
+using PatientDoctor.Application.Features.Medicine.Quries.GetAllByProc;
+using PatientDoctor.Application.Features.Patient.Commands.ActiveInActive;
 using PatientDoctor.Application.Features.Patient.Commands.AddEditPatient;
 using PatientDoctor.Application.Features.Patient.Quries;
 using PatientDoctor.Application.Helpers;
@@ -13,8 +16,8 @@ namespace PatientDoctor.Application.Contracts.Persistance.IMedicine
     public interface IMedicineRepository
     {
         Task<IResponse> GetMedicineById(Guid Id);
-        Task<IResponse> AddEditMedicine(object model);
-        Task<IResponse> ActiveInActive(object model);
-        Task<IResponse> GetAllByProc(object model);
+        Task<IResponse> AddEditMedicine(AddEditMedicineWithUserId model);
+        Task<IResponse> ActiveInActive(ActiveInActiveMedicine model);
+        Task<IResponse> GetAllByProc(GetMedicineList model);
     }
 }

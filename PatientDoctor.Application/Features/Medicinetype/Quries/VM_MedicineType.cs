@@ -11,6 +11,7 @@ namespace PatientDoctor.Application.Features.Medicinetype.Quries
     {
         public Guid Id { get; set; }
         public string TypeName { get; set; }
+        public string? TabletMg {  get; set; }
         public int Status { get; set; }
     }
 }

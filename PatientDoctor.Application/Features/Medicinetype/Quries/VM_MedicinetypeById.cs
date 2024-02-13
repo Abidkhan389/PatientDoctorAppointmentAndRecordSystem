@@ -8,6 +8,7 @@ namespace PatientDoctor.Application.Features.Medicinetype.Quries
 {
     public class VM_MedicinetypeById
     {
-        public string Typename { get; set; }
+        public string TypeName { get; set; }
+        public string? tabletMg {  get; set; }
     }
 }

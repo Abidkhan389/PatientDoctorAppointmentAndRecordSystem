@@ -12,5 +12,6 @@ namespace PatientDoctor.Application.Features.Medicinetype.Commands.AddEditMedici
     {
         public Guid? MedicineTypeId { get; set; }
         public string TypeName { get; set; }
+        public string? TabletMg { get; set; }
     }
 }

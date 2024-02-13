@@ -117,7 +117,6 @@ namespace PatientDoctor.API.Controllers
                 return Ok(_response);
             }
             return await identityRepository.GetAllDoctors();
-
         }
     }
 }

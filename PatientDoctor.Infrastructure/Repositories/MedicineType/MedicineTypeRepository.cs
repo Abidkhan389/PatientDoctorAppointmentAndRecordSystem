@@ -4,14 +4,10 @@ using PatientDoctor.Application.Contracts.Security;
 using PatientDoctor.Application.Features.Medicinetype.Commands.ActiveInActive;
 using PatientDoctor.Application.Features.Medicinetype.Commands.AddEditMedicineType;
 using PatientDoctor.Application.Features.Medicinetype.Quries;
+using PatientDoctor.Application.Features.Medicinetype.Quries.GetAllMedicineTypesWithIdandName;
 using PatientDoctor.Application.Helpers;
 using PatientDoctor.Infrastructure.Persistance;
 using PatientDoctor.Infrastructure.Repositories.GeneralServices;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace PatientDoctor.Infrastructure.Repositories.MedicineType
 {
@@ -37,7 +33,7 @@ namespace PatientDoctor.Infrastructure.Repositories.MedicineType
                 var medicinetype = await _context.MedicineType.FindAsync(model.Id);
                 if (medicinetype == null)
                 {
-                    _response.Message = Constants.NotFound.Replace("{data}", "patient");
+                    _response.Message = Constants.NotFound.Replace("{data}", "MedicineType");
                     _response.Success = Constants.ResponseFailure;
                 }
                 medicinetype.Status = model.Status;
@@ -59,8 +55,8 @@ namespace PatientDoctor.Infrastructure.Repositories.MedicineType
             {
                 if(model.addEditMedicineTypeObj.MedicineTypeId == null)
                 {
-                    var medicineTypeObj= await _context.MedicineType.Where(x=> x.TypeName.ToLower()==
-                        model.addEditMedicineTypeObj.TypeName.ToLower()).FirstOrDefaultAsync();
+                    var medicineTypeObj= await _context.MedicineType.Where(x=> x.Status != 0 && x.TypeName.ToLower()==
+                        model.addEditMedicineTypeObj.TypeName.ToLower() && x.TabletMg==model.addEditMedicineTypeObj.TabletMg).FirstOrDefaultAsync();
                     if(medicineTypeObj != null)
                     {
                         _response.Message = Constants.Exists.Replace("{data}", "{medicineTypeObj.TypeName");
@@ -85,15 +81,22 @@ namespace PatientDoctor.Infrastructure.Repositories.MedicineType
                         _response.Success = Constants.ResponseFailure;
                         return _response;
                     }
-                    else if(existMedicineTypeObj.TypeName.ToLower()== model.addEditMedicineTypeObj.TypeName.ToLower())
+                    else if (await _context.MedicineType
+                             .Where(x => x.Id != model.addEditMedicineTypeObj.MedicineTypeId &&
+                                    x.TypeName == model.addEditMedicineTypeObj.TypeName &&
+                                    x.TabletMg == model.addEditMedicineTypeObj.TabletMg)
+                             .FirstOrDefaultAsync() != null)
                     {
-                        _response.Message = Constants.Exists.Replace("{data}", "MedicineName");
+                        _response.Message = Constants.Exists.Replace("{data}", "MedicineTypeName");
                         _response.Success = Constants.ResponseFailure;
                     }
                     else
                     {
                         //updating Existing Medicine type
                         existMedicineTypeObj.TypeName = model.addEditMedicineTypeObj.TypeName;
+                        existMedicineTypeObj.TabletMg = model.addEditMedicineTypeObj.TabletMg;
+                        existMedicineTypeObj.UpdatedBy = model.UserId;
+                        existMedicineTypeObj.UpdatedOn = DateTime.UtcNow;
                         _context.MedicineType.Update(existMedicineTypeObj);
                         await _context.SaveChangesAsync();
                         _response.Success = Constants.ResponseSuccess;
@@ -121,6 +124,7 @@ namespace PatientDoctor.Infrastructure.Repositories.MedicineType
                       select new VM_MedicineType
                       {
                           TypeName = medicinetype.TypeName,
+                          TabletMg= medicinetype.TabletMg,
                           Id=medicinetype.Id,
                           Status=medicinetype.Status,
                       }).AsQueryable();
@@ -145,7 +149,8 @@ namespace PatientDoctor.Infrastructure.Repositories.MedicineType
                                          where (medicinetype.Id == Id)
                                          select new VM_MedicinetypeById
                                          {
-                                             Typename= medicinetype.TypeName,
+                                             TypeName= medicinetype.TypeName,
+                                             tabletMg=medicinetype.TabletMg,
                                          }).FirstOrDefaultAsync();
 
             if (medicineTypeObj != null)
@@ -159,6 +164,19 @@ namespace PatientDoctor.Infrastructure.Repositories.MedicineType
                 _response.Success = Constants.ResponseFailure;
                 _response.Message = Constants.NotFound.Replace("{data}", "MedicineType");
             }
+            return _response;
+        }
+        public async Task<IResponse> GetAllMedicineTypeWithIdAndName()
+        {
+            var medicineTypeList= await _context.MedicineType.Where(x => x.Status != 0)
+                .Select(x => new VM_MedicineTypeWithIdAndName
+                {
+                    Id= x.Id,
+                    TypeName= x.TypeName,
+                }).ToListAsync();
+            _response.Data = medicineTypeList;
+            _response.Message = Constants.GetData;
+            _response.Success = Constants.ResponseSuccess;
             return _response;
         }
     }

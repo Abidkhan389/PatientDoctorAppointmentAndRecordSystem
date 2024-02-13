@@ -15,16 +15,17 @@ namespace PatientDoctor.domain.Entities
         public Guid Id { get; set; }
         public string TypeName { get; set; }
         public int Status { get; set; }
+        public string? TabletMg { get; set; }
         public MedicineType() { }
         public MedicineType(AddEditMedicineTypeCommand model, Guid UserId)
         {
             this.Id= Guid.NewGuid();
             this.Status = 1;
             this.TypeName = model.TypeName;
+            this.TabletMg = model.TabletMg;
             this.CreatedBy = UserId;
             this.CreatedOn = DateTime.UtcNow;
             this.CreatedBy = UserId;
-            this.CreatedOn=DateTime.UtcNow;
         }
 
     }

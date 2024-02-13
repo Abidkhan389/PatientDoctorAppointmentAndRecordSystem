@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using PatientDoctor.Application.Contracts.Persistance.IMedicineType;
 using PatientDoctor.Application.Features.Medicinetype.Commands.ActiveInActive;
 using PatientDoctor.Application.Features.Medicinetype.Commands.AddEditMedicineType;
 using PatientDoctor.Application.Features.Medicinetype.Quries;
@@ -20,34 +21,24 @@ namespace PatientDoctor.API.Controllers
     {
         private readonly IMediator _mediator;
         private readonly IResponse _response;
+        private readonly IMedicinetypeRepository _medicinetypeRepository;
 
-        public MedicinetypeController(IMediator mediator, IResponse response)
+        public MedicinetypeController(IMediator mediator, IResponse response, IMedicinetypeRepository medicinetypeRepository)
         {
-            this._mediator = mediator;
-            this._response = response;
+            _mediator = mediator;
+            _response = response;
+            _medicinetypeRepository = medicinetypeRepository;
         }
         [HttpPost]
         [Route("ActiveInActive")]
         public async Task<object> ActiveInActive([FromBody] ActiveInActiveMedicinetype model)
         {
-            if (!ModelState.IsValid)
-            {
-                _response.Success = Constants.ResponseFailure;
-                _response.Message = Constants.ModelStateStateIsInvalid;
-                return Ok(_response);
-            }
             return await _mediator.Send(model);
         }
         [HttpPost]
         [Route("AddEditmedicineType")]
         public async Task<object> AddEditmedicineType(AddEditMedicineTypeCommand model)
         {
-            if (!ModelState.IsValid)
-            {
-                _response.Success = Constants.ResponseFailure;
-                _response.Message = Constants.ModelStateStateIsInvalid;
-                return Ok(_response);
-            }
             var UserId = HelperStatic.GetUserIdFromClaims((ClaimsIdentity)User.Identity);
             return await _mediator.Send(new AddEditMedicineTypeWithUserId(model, UserId));
         }
@@ -55,28 +46,19 @@ namespace PatientDoctor.API.Controllers
         [Route("GetAllByProc")]
         public async Task<Object> GetAllByProc (GetMedicineTypeList model)
         {
-            if (!ModelState.IsValid)
-            {
-                _response.Success = Constants.ResponseFailure;
-                _response.Message = Constants.ModelStateStateIsInvalid;
-                return Ok(_response);
-            }
             return await _mediator.Send(model);
         }
-        [HttpGet]
+        [HttpPost]
         [Route("GetMedicineTypeById")]
-        public async Task<object> GetMedicineTypeById(Guid MedicineTypeId)
+        public async Task<object> GetMedicineTypeById(GetMedicineTypeById MedicineTypeId)
         {
-            if (MedicineTypeId == Guid.Empty)
-            {
-                _response.Success = Constants.ResponseFailure;
-                _response.Message = Constants.ModelStateStateIsInvalid;
-                return Ok(_response);
-            }
-            GetMedicineTypeById patientobj = new GetMedicineTypeById();
-            patientobj.Id = MedicineTypeId;
-            return await _mediator.Send(patientobj);
-
+            return await _mediator.Send(MedicineTypeId);
+        }
+        [HttpPost]
+        [Route("GetAllMeDicineType")]
+        public async Task<Object> GetAllMeDicineType()
+        {
+            return await _medicinetypeRepository.GetAllMedicineTypeWithIdAndName();
         }
     }
 }

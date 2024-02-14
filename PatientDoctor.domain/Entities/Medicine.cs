@@ -13,6 +13,10 @@ namespace PatientDoctor.domain.Entities
     [Table("Medicine", Schema = "Admin")]
     public class Medicine : LogFields
     {
+        public Medicine()
+        {
+            
+        }
         public Medicine(AddEditMedicineCommand model,Guid UserId)
         {
             this.Id= Guid.NewGuid();

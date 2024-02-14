@@ -65,7 +65,7 @@ namespace PatientDoctor.Infrastructure.Repositories.Medicine
                                     model.addEditMedicineObj.MedicineName.ToLower()).FirstOrDefaultAsync();
                     if (medicineObj != null)
                     {
-                        _response.Message = Constants.Exists.Replace("{data}", "{medicineTypeObj.TypeName");
+                        _response.Message = Constants.Exists.Replace("{data}", "medicine Name");
                         _response.Success = Constants.ResponseFailure;
                     }
                     else
@@ -129,7 +129,7 @@ namespace PatientDoctor.Infrastructure.Repositories.Medicine
                         join m_type in _context.MedicineType on medicine.MedicineTypeId equals m_type.Id
                         where (
                                   (EF.Functions.ILike(medicine.MedicineName, $"%{model.MedicineName}%") || string.IsNullOrEmpty(model.MedicineName))
-                                  && (model.DoctorId == null || medicine.DoctorId == model.DoctorId)
+                                  && (medicine.DoctorId == model.DoctorId || string.IsNullOrEmpty(model.DoctorId))
                                   && (model.MedicineTypeId == null || medicine.MedicineTypeId == model.MedicineTypeId)
                               )
                         select new VM_Medicine

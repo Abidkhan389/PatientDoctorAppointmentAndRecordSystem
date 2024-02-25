@@ -26,6 +26,8 @@ using PatientDoctor.Application.Contracts.Persistance.IMedicineType;
 using PatientDoctor.Infrastructure.Repositories.MedicineType;
 using PatientDoctor.Application.Contracts.Persistance.IMedicine;
 using PatientDoctor.Infrastructure.Repositories.Medicine;
+using PatientDoctor.Application.Contracts.Persistance.IDoctorCheckUpFeeRepository;
+using PatientDoctor.Infrastructure.Repositories.DoctorFeeCheckUpFee;
 
 namespace PatientDoctor.Infrastructure
 {
@@ -98,6 +100,7 @@ namespace PatientDoctor.Infrastructure
             services.AddScoped<IAdministratorRepository, AdministratorRepository>();
             services.AddScoped<IMedicinetypeRepository, MedicineTypeRepository>();
             services.AddScoped<IMedicineRepository, MedicineRepository>();
+            services.AddScoped<IDoctorCheckUpFeeRepository, DoctorCheckUpFeeRepository>();
             return services;
         }
         private static string GenerateJwtSecretKey()

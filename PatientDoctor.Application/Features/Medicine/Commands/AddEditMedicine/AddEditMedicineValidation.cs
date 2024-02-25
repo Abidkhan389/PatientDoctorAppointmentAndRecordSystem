@@ -8,7 +8,7 @@ namespace PatientDoctor.Application.Features.Medicine.Commands.AddEditMedicine
         {
             RuleFor(x=> x.Id)
             .Must(id => id == null || id != Guid.Empty)
-            .WithMessage("Statement is required and white space is not allowed");
+            .WithMessage("Id is required and white space is not allowed");
 
             RuleFor(x => x.MedicineTypeId).NotEmpty().WithMessage("Medicine type ID is required.");
             RuleFor(x => x.DoctorId).NotEmpty().WithMessage("Doctor ID is required.");

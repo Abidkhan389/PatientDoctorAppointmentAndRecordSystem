@@ -14,4 +14,24 @@
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="7.0.1" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Remove="Features\DoctorCheckUpFee\" />
+    <None Remove="Features\DoctorCheckUpFee\Command\" />
+    <None Remove="Features\DoctorCheckUpFee\Quries\" />
+    <None Remove="Features\DoctorCheckUpFee\Command\ActiveInActive\" />
+    <None Remove="Features\DoctorCheckUpFee\Command\AddEditDoctorCheckFees\" />
+    <None Remove="Features\DoctorCheckUpFee\Quries\GetById\" />
+    <None Remove="Features\DoctorCheckUpFee\Quries\GetAllByProc\" />
+    <None Remove="Contracts\Persistance\IDoctorCheckUpFeeRepository\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Features\DoctorCheckUpFee\" />
+    <Folder Include="Features\DoctorCheckUpFee\Command\" />
+    <Folder Include="Features\DoctorCheckUpFee\Quries\" />
+    <Folder Include="Features\DoctorCheckUpFee\Command\ActiveInActive\" />
+    <Folder Include="Features\DoctorCheckUpFee\Command\AddEditDoctorCheckFees\" />
+    <Folder Include="Features\DoctorCheckUpFee\Quries\GetById\" />
+    <Folder Include="Features\DoctorCheckUpFee\Quries\GetAllByProc\" />
+    <Folder Include="Contracts\Persistance\IDoctorCheckUpFeeRepository\" />
+  </ItemGroup>
 </Project>

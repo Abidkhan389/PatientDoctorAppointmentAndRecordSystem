@@ -29,4 +29,10 @@
     <ProjectReference Include="..\PatientDoctor.domain\PatientDoctor.domain.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Remove="Repositories\DoctorFeeCheckUpFee\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Repositories\DoctorFeeCheckUpFee\" />
+  </ItemGroup>
 </Project>

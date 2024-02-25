@@ -17,7 +17,7 @@ namespace PatientDoctor.Application.Features.Medicinetype.Commands.ActiveInActiv
 
         public ActiveInActiveMedicinetypeHandlerQuery(IMedicinetypeRepository medicinetypeRepository)
         {
-            this._medicinetypeRepository = medicinetypeRepository  ?? throw new ArgumentNullException(nameof(IMedicinetypeRepository));
+            this._medicinetypeRepository = medicinetypeRepository  ?? throw new ArgumentNullException(nameof(medicinetypeRepository));
         }
         public async Task<IResponse> Handle(ActiveInActiveMedicinetype request, CancellationToken cancellationToken)
         {

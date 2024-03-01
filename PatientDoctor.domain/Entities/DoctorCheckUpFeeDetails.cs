@@ -19,6 +19,7 @@ namespace PatientDoctor.domain.Entities
 			DoctorId = model.DoctorId;
 			CreatedBy = UserId;
 			CreatedOn = DateTime.UtcNow;
+			Status = 1;
 		}
 		[Key]
 		public Guid Id { get; set; }

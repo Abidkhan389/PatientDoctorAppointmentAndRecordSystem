@@ -101,6 +101,7 @@ namespace PatientDoctor.Infrastructure
             services.AddScoped<IMedicinetypeRepository, MedicineTypeRepository>();
             services.AddScoped<IMedicineRepository, MedicineRepository>();
             services.AddScoped<IDoctorCheckUpFeeRepository, DoctorCheckUpFeeRepository>();
+            services.AddAuthorization();
             return services;
         }
         private static string GenerateJwtSecretKey()

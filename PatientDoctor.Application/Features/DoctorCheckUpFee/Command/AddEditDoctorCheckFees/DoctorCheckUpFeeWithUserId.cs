@@ -6,7 +6,7 @@ using PatientDoctor.Application.Helpers.General;
 
 namespace PatientDoctor.Application.Features.DoctorCheckUpFee.Command.AddEditDoctorCheckFees
 {
-	public class DoctorCheckUpFeeWithUserId : TableParam,IRequest<IResponse>
+	public class DoctorCheckUpFeeWithUserId : IRequest<IResponse>
     {
         public AddEditDoctorCheckUpFeeCommands addEditDoctorCheckUpFee { get; }
         public Guid UserId { get; }

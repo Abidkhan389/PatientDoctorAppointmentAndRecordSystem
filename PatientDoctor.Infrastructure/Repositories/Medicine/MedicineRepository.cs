@@ -44,6 +44,7 @@ namespace PatientDoctor.Infrastructure.Repositories.Medicine
                 }
                  medicine.Status = model.Status;
                 _context.Medicine.Update(medicine);
+                await _context.SaveChangesAsync();
                 _response.Success = Constants.ResponseSuccess;
                 _response.Message = Constants.DataUpdate;
             }

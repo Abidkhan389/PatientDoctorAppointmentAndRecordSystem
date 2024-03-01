@@ -1,16 +1,8 @@
-﻿using AutoMapper;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using PatientDoctor.Application.Contracts.Persistance.Patient;
 using PatientDoctor.Application.Contracts.Security;
-using PatientDoctor.Application.Features.Identity.Quries;
 using PatientDoctor.Application.Helpers;
 using PatientDoctor.domain.Entities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using PatientDoctor.Infrastructure.Persistance;
 using PatientDoctor.Application.Features.Patient.Quries;
@@ -18,10 +10,9 @@ using Microsoft.EntityFrameworkCore;
 using PatientDoctor.Infrastructure.Repositories.GeneralServices;
 using PatientDoctor.Application.Features.Patient.Commands.ActiveInActive;
 using PatientDoctor.Application.Features.Patient.Commands.AddEditPatient;
-using System.Diagnostics.Eventing.Reader;
 using PatientDoctor.Application.Features.Patient.Commands.AddPatientDescription;
-using System.Xml;
 using System.Text.Json;
+using PatientDoctor.Application.Features.Patient.Commands.AddPatientDescription.PatientCheckedUpFeeHistroy;
 
 namespace PatientDoctor.Infrastructure.Repositories.Patient
 {
@@ -329,25 +320,47 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
 
         public async Task<IResponse> AddPatientDescription(AddPatientDescriptionCommand model)
         {
-            var patient = await _context.Patient
-            .Where(x => x.PatientId == model.PatientId)
-            .FirstOrDefaultAsync();
-            var patientDetails = await _context.PatientDetails
-                .FirstOrDefaultAsync(pd => pd.PatientId == model.PatientId);
-            if (patientDetails != null && patient != null)
+            try
             {
-                patient.Description= JsonSerializer.Serialize(model);
-                patientDetails.CheckUpStatus = 1; // update check status to 1, its means patient is checked
-                _context.Patient.Update(patient);
-                _context.PatientDetails.Update(patientDetails);
-                await _context.SaveChangesAsync();
-                _response.Success= Constants.ResponseSuccess;
-                _response.Message = Constants.DataUpdate;
+
+                var patient = await _context.Patient
+                .Where(x => x.PatientId == model.PatientId)
+                .FirstOrDefaultAsync();
+                var patientDetails = await _context.PatientDetails
+                    .FirstOrDefaultAsync(pd => pd.PatientId == model.PatientId);
+                if (patientDetails != null && patient != null)
+                {
+                    patient.Description= JsonSerializer.Serialize(model);
+                    patientDetails.CheckUpStatus = 1; // update check status to 1, its means patient is checked
+                    _context.Patient.Update(patient);
+                    _context.PatientDetails.Update(patientDetails);                var data = await (
+                                                    from patnt in _context.Patient
+                                                    join p_details in _context.PatientDetails on patnt.PatientId equals p_details.PatientId
+                                                    join main in _context.Users on patnt.DoctoerId equals main.Id
+                                                    join DctrCheckUpFeeDetls in _context.DoctorCheckUpFeeDetails on patient.DoctoerId equals DctrCheckUpFeeDetls.DoctorId
+                                                    select new PatientCheckedUpFeeHistroyDto
+                                                    {
+                                                        DoctorId= patient.DoctoerId,
+                                                        DoctorName = main.UserName,
+                                                        DoctorEmail = main.Email, 
+                                                        DoctorNumber = main.PhoneNumber,
+                                                        PatientId= patient.PatientId,
+                                                        PatientName= patient.FirstName + patient.LastName,
+                                                        PatientNumber= p_details.PhoneNumber,
+                                                        PatientCnic = patient.Cnic,
+                                                        CheckUpFee = DctrCheckUpFeeDetls.DoctorFee
+                                                    }).FirstOrDefaultAsync();
+                    var patientCheckedUpFeeHistroy = new PatientCheckedUpFeeHistroy(data);
+                    await _context.PatientCheckedUpFeeHistroy.AddAsync(patientCheckedUpFeeHistroy);
+                    await _context.SaveChangesAsync();
+                    _response.Success = Constants.ResponseSuccess;
+                    _response.Message = Constants.DataUpdate;
+                }
             }
-            else
+            catch(Exception ex)
             {
                 _response.Success= Constants.ResponseFailure;
-                _response.Message = Constants.NotFound;
+                _response.Message = ex.Message;
             }
             return _response;
         }

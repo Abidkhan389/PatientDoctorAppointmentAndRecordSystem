@@ -38,6 +38,7 @@ namespace PatientDoctor.Infrastructure.Repositories.MedicineType
                 }
                 medicinetype.Status = model.Status;
                 _context.MedicineType.Update(medicinetype);
+                await _context.SaveChangesAsync();
                 _response.Success = Constants.ResponseSuccess;
                 _response.Message = Constants.DataUpdate;
             }

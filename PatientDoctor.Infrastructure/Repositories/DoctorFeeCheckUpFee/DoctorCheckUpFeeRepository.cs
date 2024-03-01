@@ -40,6 +40,7 @@ namespace PatientDoctor.Infrastructure.Repositories.DoctorFeeCheckUpFee
                 }
                 doctorCheckUpFeeObj.Status = model.Status;
                 _context.DoctorCheckUpFeeDetails.Update(doctorCheckUpFeeObj);
+                await _context.SaveChangesAsync();
                 _response.Success = Constants.ResponseSuccess;
                 _response.Message = Constants.DataUpdate;
             }

@@ -3,6 +3,8 @@ using PatientDoctor.Application.Features.Patient.Commands.ActiveInActive;
 using PatientDoctor.Application.Features.Patient.Commands.AddEditPatient;
 using PatientDoctor.Application.Features.Patient.Commands.AddPatientDescription;
 using PatientDoctor.Application.Features.Patient.Quries;
+using PatientDoctor.Application.Features.Patient.Quries.GetAllPatientRecordsByDoctor;
+using PatientDoctor.Application.Features.Patient.Quries.GetPatientDetailForPdf;
 using PatientDoctor.Application.Helpers;
 using System;
 using System.Collections.Generic;
@@ -21,5 +23,7 @@ namespace PatientDoctor.Application.Contracts.Persistance.Patient
         Task<IResponse> GetAllPatientAppoitmentWithDoctorProc(GetPatientAppoitmentListWithDocter model);
         Task<IResponse> AddPatientDescription(AddPatientDescriptionCommand model);
         Task<IResponse> GetPatientDescriptionById(GetPatientDescription model);
+        Task<IResponse> GetPatientsRecordWithDoctorProc(GetPatientRecordListWithDoctor model);
+        Task<IResponse> GetPatientDetailsForPdf(GetPatientDetailsForPdfRequest model);
     }
 }

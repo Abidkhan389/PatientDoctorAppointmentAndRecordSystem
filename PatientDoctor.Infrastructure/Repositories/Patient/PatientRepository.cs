@@ -13,6 +13,8 @@ using PatientDoctor.Application.Features.Patient.Commands.AddEditPatient;
 using PatientDoctor.Application.Features.Patient.Commands.AddPatientDescription;
 using System.Text.Json;
 using PatientDoctor.Application.Features.Patient.Commands.AddPatientDescription.PatientCheckedUpFeeHistroy;
+using PatientDoctor.Application.Features.Patient.Quries.GetAllPatientRecordsByDoctor;
+using PatientDoctor.Application.Features.Patient.Quries.GetPatientDetailForPdf;
 
 namespace PatientDoctor.Infrastructure.Repositories.Patient
 {
@@ -332,24 +334,25 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
                 {
                     patient.Description= JsonSerializer.Serialize(model);
                     patientDetails.CheckUpStatus = 1; // update check status to 1, its means patient is checked
+                    patientDetails.CreatedOn = DateTime.Now;
                     _context.Patient.Update(patient);
-                    _context.PatientDetails.Update(patientDetails);                var data = await (
-                                                    from patnt in _context.Patient
-                                                    join p_details in _context.PatientDetails on patnt.PatientId equals p_details.PatientId
-                                                    join main in _context.Users on patnt.DoctoerId equals main.Id
-                                                    join DctrCheckUpFeeDetls in _context.DoctorCheckUpFeeDetails on patient.DoctoerId equals DctrCheckUpFeeDetls.DoctorId
-                                                    select new PatientCheckedUpFeeHistroyDto
-                                                    {
-                                                        DoctorId= patient.DoctoerId,
-                                                        DoctorName = main.UserName,
-                                                        DoctorEmail = main.Email, 
-                                                        DoctorNumber = main.PhoneNumber,
-                                                        PatientId= patient.PatientId,
-                                                        PatientName= patient.FirstName + patient.LastName,
-                                                        PatientNumber= p_details.PhoneNumber,
-                                                        PatientCnic = patient.Cnic,
-                                                        CheckUpFee = DctrCheckUpFeeDetls.DoctorFee
-                                                    }).FirstOrDefaultAsync();
+                    _context.PatientDetails.Update(patientDetails);
+                    var data = await (from patnt in _context.Patient
+                                      join p_details in _context.PatientDetails on patnt.PatientId equals p_details.PatientId
+                                      join main in _context.Users on patnt.DoctoerId equals main.Id
+                                      join DctrCheckUpFeeDetls in _context.DoctorCheckUpFeeDetails on patient.DoctoerId equals DctrCheckUpFeeDetls.DoctorId
+                                      select new PatientCheckedUpFeeHistroyDto
+                                      {
+                                        DoctorId= patient.DoctoerId,
+                                        DoctorName = main.UserName,
+                                        DoctorEmail = main.Email, 
+                                        DoctorNumber = main.PhoneNumber,
+                                        PatientId= patient.PatientId,
+                                        PatientName= patient.FirstName + patient.LastName,
+                                        PatientNumber= p_details.PhoneNumber,
+                                        PatientCnic = patient.Cnic,
+                                        CheckUpFee = DctrCheckUpFeeDetls.DoctorFee
+                                      }).FirstOrDefaultAsync();
                     var patientCheckedUpFeeHistroy = new PatientCheckedUpFeeHistroy(data);
                     await _context.PatientCheckedUpFeeHistroy.AddAsync(patientCheckedUpFeeHistroy);
                     await _context.SaveChangesAsync();
@@ -427,6 +430,85 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
             {
                 _response.Success = Constants.ResponseFailure;
                 _response.Message = Constants.NotFound;
+            }
+            return _response;
+        }
+
+        public async Task<IResponse> GetPatientsRecordWithDoctorProc(GetPatientRecordListWithDoctor model)
+        {
+            model.Sort = model.Sort == null || model.Sort == "" ? "DoctorName" : model.Sort;
+            var data = (from patient in _context.Patient
+                        join main in _context.Users on patient.DoctoerId equals main.Id
+                        join p_details in _context.PatientDetails on patient.PatientId equals p_details.PatientId
+                        join DctrCheckUpFeeDetls in _context.DoctorCheckUpFeeDetails on patient.DoctoerId equals DctrCheckUpFeeDetls.DoctorId
+                        where (
+                                  (EF.Functions.ILike(patient.FirstName, $"%{model.getPatientRecordList.PatientName}%") || string.IsNullOrEmpty(model.getPatientRecordList.PatientName))
+                                && (EF.Functions.ILike(patient.LastName, $"%{model.getPatientRecordList.PatientName}%") || string.IsNullOrEmpty(model.getPatientRecordList.PatientName))
+                                && (EF.Functions.ILike(patient.Cnic, $"%{model.getPatientRecordList.PatientCnic}%") || string.IsNullOrEmpty(model.getPatientRecordList.PatientCnic))
+                                && (EF.Functions.ILike(main.UserName, $"%{model.getPatientRecordList.DoctorName}%") || string.IsNullOrEmpty(model.getPatientRecordList.DoctorName))
+                                && ((model.getPatientRecordList.PatientCheckUpDateFrom <= DctrCheckUpFeeDetls.CreatedOn || model.getPatientRecordList.PatientCheckUpDateFrom == null)
+                                && (model.getPatientRecordList.PatientCheckUpDateTo >= p_details.CreatedOn || model.getPatientRecordList.PatientCheckUpDateTo == null))
+                                && p_details.CheckUpStatus==1
+                              )
+                        select new VM_PatientRecordListWithDoctor
+                        {
+                            PatientId= patient.PatientId,
+                            PatientName = patient.FirstName + patient.LastName,
+                            PatientCnic = patient.Cnic,
+                            PatientCheckUpDate= p_details.CreatedOn,
+                            PatientCheckUpDoctorFee = DctrCheckUpFeeDetls.DoctorFee,
+                            DoctorName = main.UserName,
+                            DoctorEmail = main.Email,
+                            DoctorId= patient.DoctoerId
+                            //DoctorNumber=main.PhoneNumber,// main.RoleName == "Receptionist" ? main.PhoneNumber : "0000000000",
+
+                        }).AsQueryable();
+            var count = data.Count();
+            var sorted = await HelperStatic.OrderBy(data, model.SortEx, model.OrderEx == "desc").Skip(model.Start).Take(model.LimitEx).ToListAsync();
+            foreach (var item in sorted)
+            {
+                item.TotalCount = count;
+                item.SerialNo = ++model.Start;
+            }
+            _countResp.DataList = sorted;
+            _countResp.TotalCount = sorted.Count > 0 ? sorted.First().TotalCount : 0;
+            _response.Success = Constants.ResponseSuccess;
+            _response.Message = Constants.GetData;
+            _response.Data = _countResp;
+            return _response;
+        }
+        public async Task<IResponse> GetPatientDetailsForPdf(GetPatientDetailsForPdfRequest model)
+        {
+            var PatientDetailsForPdf = await (
+                                            from patient in _context.Patient
+                                            join p_details in _context.PatientDetails on patient.PatientId equals p_details.PatientId
+                                            join main in _userManager.Users on patient.DoctoerId equals main.Id
+                                            join DctrCheckUpFeeDetls in _context.DoctorCheckUpFeeDetails on patient.DoctoerId equals DctrCheckUpFeeDetls.DoctorId
+                                            where (
+                                                    patient.PatientId == model.PatientId
+                                                    && main.Id == model.DoctorId
+                                                 )
+                                            select new VM_GetPatientDetailForPdf
+                                            {
+                                                PatientName= patient.FirstName+ patient.LastName,
+                                                City =p_details.City,
+                                                PatientMobileNumber=p_details.PhoneNumber,
+                                                PatientCheckUpDate= (DateTime)p_details.CreatedOn,
+                                                PatientCnic= patient.Cnic,
+                                                PatientCheckUpDoctorFee= DctrCheckUpFeeDetls.DoctorFee,
+                                                DoctorName = main.UserName,
+                                                DoctorEmail= main.Email,
+                                            }).FirstOrDefaultAsync();
+            if (PatientDetailsForPdf != null)
+            {
+                _response.Data = PatientDetailsForPdf;
+                _response.Message = Constants.GetData;
+                _response.Success = Constants.ResponseSuccess;
+            }
+            else
+            {
+                _response.Success = Constants.ResponseFailure;
+                _response.Message = Constants.NotFound.Replace("{data}", "Patient");
             }
             return _response;
         }

@@ -118,17 +118,19 @@ namespace PatientDoctor.Infrastructure.Repositories.DoctorFeeCheckUpFee
             var data = (from doccheckupfee in _context.DoctorCheckUpFeeDetails
                         join doctor in _context.Users on doccheckupfee.DoctorId equals doctor.Id
                         where (
-                                (EF.Functions.ILike(doctor.UserName, $"%{model.DoctorName}%") || string.IsNullOrEmpty(model.DoctorName))
-                              && (doccheckupfee.DoctorFee == model.DoctorFee || model.DoctorFee == null)
-                             )
+                            (string.IsNullOrEmpty(model.DoctorName) ||
+                             EF.Functions.Like(doctor.UserName, $"%{model.DoctorName}%"))
+                            && (model.DoctorFee == null || doccheckupfee.DoctorFee == model.DoctorFee)
+                        )
                         select new VM_DoctorCheckUpFeeDetails
                         {
-                            Id= doccheckupfee.Id,
-                            DocotrId= doccheckupfee.DoctorId,
-                            DoctorName= doctor.UserName,
-                            DocterFee=doccheckupfee.DoctorFee,
-                            Status=doccheckupfee.Status
+                            Id = doccheckupfee.Id,
+                            DocotrId = doccheckupfee.DoctorId,
+                            DoctorName = doctor.UserName,
+                            DocterFee = doccheckupfee.DoctorFee,
+                            Status = doccheckupfee.Status
                         }).AsQueryable();
+
             var count = data.Count();
             var sorted = await HelperStatic.OrderBy(data, model.SortEx, model.OrderEx == "desc").Skip(model.Start).Take(model.LimitEx).ToListAsync();
             foreach (var item in sorted)

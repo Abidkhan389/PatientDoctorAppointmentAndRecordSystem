@@ -118,17 +118,16 @@ namespace PatientDoctor.Infrastructure.Repositories.MedicineType
         public async Task<IResponse> GetAllByProc(GetMedicineTypeList model)
         {
             model.Sort = model.Sort == null || model.Sort == "" ? "TypeName" : model.Sort;
-            var data= (from medicinetype in _context.MedicineType
-                      where(
-                                (EF.Functions.ILike(medicinetype.TypeName, $"%{model.TypeName}%") || string.IsNullOrEmpty(model.TypeName))
-                      )
-                      select new VM_MedicineType
-                      {
-                          TypeName = medicinetype.TypeName,
-                          TabletMg= medicinetype.TabletMg,
-                          Id=medicinetype.Id,
-                          Status=medicinetype.Status,
-                      }).AsQueryable();
+            var data = (from medicinetype in _context.MedicineType
+                        where (string.IsNullOrEmpty(model.TypeName) ||
+                               EF.Functions.Like(medicinetype.TypeName, $"%{model.TypeName}%"))
+                        select new VM_MedicineType
+                        {
+                            TypeName = medicinetype.TypeName,
+                            TabletMg = medicinetype.TabletMg,
+                            Id = medicinetype.Id,
+                            Status = medicinetype.Status,
+                        }).AsQueryable();
             var count = data.Count();
             var sorted = await HelperStatic.OrderBy(data, model.SortEx, model.OrderEx == "desc").Skip(model.Start).Take(model.LimitEx).ToListAsync();
             foreach (var item in sorted)

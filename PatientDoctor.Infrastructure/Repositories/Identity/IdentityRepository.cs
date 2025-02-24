@@ -87,24 +87,25 @@ namespace PatientDoctor.Infrastructure.Repositories.Identity
             model.Sort = model.Sort == null || model.Sort == "" ? "UserName" : model.Sort;
 
             var userList = (from user in _userManager.Users
-                           join userdetails in _context.Userdetail on user.Id equals userdetails.UserId
-                           where (user.Status == model.Status || model.Status == null)
-                           &&(EF.Functions.ILike(user.UserName,$"%{model.UserName}%") || string.IsNullOrEmpty(model.UserName))
-                           &&(EF.Functions.ILike(user.Email,$"%{model.Email}%") || string.IsNullOrEmpty(model.Email))
-                           &&(EF.Functions.ILike(userdetails.City,$"%{model.City}%") || string.IsNullOrEmpty(model.City))
-                           &&(EF.Functions.ILike(userdetails.Cnic,$"%{model.Cnic}%") || string.IsNullOrEmpty(model.Cnic))
-                           &&(EF.Functions.ILike(user.PhoneNumber,$"%{model.MobileNumber}%") || string.IsNullOrEmpty(model.MobileNumber))
-                           select new VM_Users
-                           {
-                               Email=user.Email,
-                               UserId=user.Id,
-                               MobileNumber=user.PhoneNumber,
-                               UserName = user.UserName,
-                               Cnic=userdetails.Cnic,
-                               City=userdetails.City,
-                               RoleName=user.RoleName,
-                               Status=user.Status,
-                           }).AsQueryable();
+                            join userdetails in _context.Userdetail on user.Id equals userdetails.UserId
+                            where (user.Status == model.Status || model.Status == null)
+                            && (user.UserName.ToLower().Contains(model.UserName.ToLower()) || string.IsNullOrEmpty(model.UserName))
+                            && (user.Email.ToLower().Contains(model.Email.ToLower()) || string.IsNullOrEmpty(model.Email))
+                            && (userdetails.City.ToLower().Contains(model.City.ToLower()) || string.IsNullOrEmpty(model.City))
+                            && (userdetails.Cnic.ToLower().Contains(model.Cnic.ToLower()) || string.IsNullOrEmpty(model.Cnic))
+                            && (user.PhoneNumber.ToLower().Contains(model.MobileNumber.ToLower()) || string.IsNullOrEmpty(model.MobileNumber))
+                            select new VM_Users
+                            {
+                                Email = user.Email,
+                                UserId = user.Id,
+                                MobileNumber = user.PhoneNumber,
+                                UserName = user.UserName,
+                                Cnic = userdetails.Cnic,
+                                City = userdetails.City,
+                                RoleName = user.RoleName,
+                                Status = user.Status,
+                            }).AsQueryable();
+
 
             //var tasks = userList.Select(async item => new VM_Users
             //{
@@ -118,7 +119,7 @@ namespace PatientDoctor.Infrastructure.Repositories.Identity
             //    Roles = (List<string>)await _userManager.GetRolesAsync(item.User) // fetching user roles using _usermanager.getrolesasync for each user
             //}).ToList();
             //var vmUserList = (await Task.WhenAll(tasks)).AsQueryable();
-            var count= userList.Count();
+            var count = userList.Count();
             var sorted= await HelperStatic.OrderBy(userList, model.SortEx,model.OrderEx=="desc").Skip(model.Start).Take(model.LimitEx).ToListAsync();
             foreach (var item in sorted)
             {

@@ -37,7 +37,7 @@ namespace PatientDoctor.Infrastructure
         {
             services.AddDbContextPool<DocterPatiendDbContext>(options =>
             {
-                options.UseNpgsql(
+                options.UseSqlServer(
                     configuration.GetConnectionString("PatientDoctorDbConnection"),
                     sqlOptions => sqlOptions.MigrationsAssembly("PatientDoctor.Migrations")
                 );

@@ -129,10 +129,11 @@ namespace PatientDoctor.Infrastructure.Repositories.Medicine
                         join doctor in _context.Users on medicine.DoctorId equals doctor.Id
                         join m_type in _context.MedicineType on medicine.MedicineTypeId equals m_type.Id
                         where (
-                                  (EF.Functions.ILike(medicine.MedicineName, $"%{model.MedicineName}%") || string.IsNullOrEmpty(model.MedicineName))
-                                  && (medicine.DoctorId == model.DoctorId || string.IsNullOrEmpty(model.DoctorId))
-                                  && (model.MedicineTypeId == null || medicine.MedicineTypeId == model.MedicineTypeId)
-                              )
+                            (string.IsNullOrEmpty(model.MedicineName) ||
+                             EF.Functions.Like(medicine.MedicineName, $"%{model.MedicineName}%"))
+                            && (string.IsNullOrEmpty(model.DoctorId) || medicine.DoctorId == model.DoctorId)
+                            && (model.MedicineTypeId == null || medicine.MedicineTypeId == model.MedicineTypeId)
+                        )
                         select new VM_Medicine
                         {
                             Id = medicine.Id,
@@ -141,8 +142,10 @@ namespace PatientDoctor.Infrastructure.Repositories.Medicine
                             DoctorName = doctor.UserName,
                             Status = medicine.Status,
                             StartingDate = medicine.StartingDate,
-                            ExpiryDate = medicine.ExperiyDate // corrected from ExperiyDate to ExpiryDate
+                            ExpiryDate = medicine.ExperiyDate // Ensure the property is correctly spelled
                         }).AsQueryable();
+
+
             var count = data.Count();
             var sorted = await HelperStatic.OrderBy(data, model.SortEx, model.OrderEx == "desc").Skip(model.Start).Take(model.LimitEx).ToListAsync();
             foreach (var item in sorted)

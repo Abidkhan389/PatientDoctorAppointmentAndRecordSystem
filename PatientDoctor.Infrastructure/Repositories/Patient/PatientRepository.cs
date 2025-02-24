@@ -237,34 +237,33 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
         public async Task<IResponse> GetAllByProc(GetPatientList model)
         {
             model.Sort = model.Sort == null || model.Sort == "" ? "FullName" : model.Sort;
-            var data=(from patient in _context.Patient
-                      join main in _context.Users on patient.DoctoerId equals main.Id
-                      join p_details in _context.PatientDetails on patient.PatientId equals p_details.PatientId
-                      join App in _context.Appointment on patient.PatientId equals App.PatientId
-                      where (
-                                (EF.Functions.ILike(patient.FirstName, $"%{model.PatientName}%") || string.IsNullOrEmpty(model.PatientName)) 
-                              && (EF.Functions.ILike(p_details.City, $"%{model.City}%") || string.IsNullOrEmpty(model.City))
-                              && (EF.Functions.ILike(patient.Cnic, $"%{model.Cnic}%") || string.IsNullOrEmpty(model.Cnic))
-                              && (EF.Functions.ILike(p_details.PhoneNumber, $"%{model.MobileNumber}%") || string.IsNullOrEmpty(model.MobileNumber))
-                            //(model.DoctorId == null || patient.DoctoerId == model.DoctorId)
-                            )
-                      select new VM_Patient
-                           {
-                               PatientId = patient.PatientId,
-                               FullName=patient.FirstName+patient.LastName,
-                               Gender=patient.Gender,
-                               DoctorName=main.UserName,
-                               AppointmentTime = App.AppointmentDate,
-                               PatientPhoneNumber=p_details.PhoneNumber,
-                               DoctorPhoneNumber=main.PhoneNumber,
-                               City=p_details.City,
-                               BloodType=p_details.BloodType,
-                               Cnic=patient.Cnic,
-                               Status=patient.Status,
-                               MaritalStatus=p_details.MaritalStatus,
-                               CheckUpStatus = p_details.CheckUpStatus
-                           }).AsQueryable();
-
+            var data = (from patient in _context.Patient
+                        join main in _context.Users on patient.DoctoerId equals main.Id
+                        join p_details in _context.PatientDetails on patient.PatientId equals p_details.PatientId
+                        join App in _context.Appointment on patient.PatientId equals App.PatientId
+                        where (
+                                (string.IsNullOrEmpty(model.PatientName) || patient.FirstName.ToLower().Contains(model.PatientName.ToLower()))
+                             && (string.IsNullOrEmpty(model.City) || p_details.City.ToLower().Contains(model.City.ToLower()))
+                             && (string.IsNullOrEmpty(model.Cnic) || patient.Cnic.ToLower().Contains(model.Cnic.ToLower()))
+                             && (string.IsNullOrEmpty(model.MobileNumber) || p_details.PhoneNumber.ToLower().Contains(model.MobileNumber.ToLower()))
+                              //(model.DoctorId == null || patient.DoctoerId == model.DoctorId)
+                              )
+                        select new VM_Patient
+                        {
+                            PatientId = patient.PatientId,
+                            FullName = patient.FirstName + " " + patient.LastName,
+                            Gender = patient.Gender,
+                            DoctorName = main.UserName,
+                            AppointmentTime = App.AppointmentDate,
+                            PatientPhoneNumber = p_details.PhoneNumber,
+                            DoctorPhoneNumber = main.PhoneNumber,
+                            City = p_details.City,
+                            BloodType = p_details.BloodType,
+                            Cnic = patient.Cnic,
+                            Status = patient.Status,
+                            MaritalStatus = p_details.MaritalStatus,
+                            CheckUpStatus = p_details.CheckUpStatus
+                        }).AsQueryable();
 
             var count = data.Count();
             var sorted = await HelperStatic.OrderBy(data, model.SortEx, model.OrderEx == "desc").Skip(model.Start).Take(model.LimitEx).ToListAsync();
@@ -376,13 +375,19 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
                         join p_details in _context.PatientDetails on patient.PatientId equals p_details.PatientId
                         join App in _context.Appointment on patient.PatientId equals App.PatientId
                         where (
-                                  (EF.Functions.ILike(patient.FirstName, $"%{model.GetPatientAppoitmentsListObj.PatientName}%") || string.IsNullOrEmpty(model.GetPatientAppoitmentsListObj.PatientName))
-                                && (EF.Functions.ILike(p_details.City, $"%{model.GetPatientAppoitmentsListObj.City}%") || string.IsNullOrEmpty(model.GetPatientAppoitmentsListObj.City))
-                                && (EF.Functions.ILike(patient.Cnic, $"%{model.GetPatientAppoitmentsListObj.Cnic}%") || string.IsNullOrEmpty(model.GetPatientAppoitmentsListObj.Cnic))
-                                && (EF.Functions.ILike(p_details.PhoneNumber, $"%{model.GetPatientAppoitmentsListObj.MobileNumber}%") || string.IsNullOrEmpty(model.GetPatientAppoitmentsListObj.MobileNumber))
-                                &&(App.DoctorId == model.DocterId && App.PatientId==patient.PatientId&&p_details.PatiendDetailsId==App.PatientDetailsId
-                                && App.AppointmentDate.Date==model.GetPatientAppoitmentsListObj.Todeydatetime.Date)
-                              )
+                               (string.IsNullOrEmpty(model.GetPatientAppoitmentsListObj.PatientName)
+                                    || patient.FirstName.ToLower().Contains(model.GetPatientAppoitmentsListObj.PatientName.ToLower()))
+                             && (string.IsNullOrEmpty(model.GetPatientAppoitmentsListObj.City)
+                                    || p_details.City.ToLower().Contains(model.GetPatientAppoitmentsListObj.City.ToLower()))
+                             && (string.IsNullOrEmpty(model.GetPatientAppoitmentsListObj.Cnic)
+                                    || patient.Cnic.ToLower().Contains(model.GetPatientAppoitmentsListObj.Cnic.ToLower()))
+                             && (string.IsNullOrEmpty(model.GetPatientAppoitmentsListObj.MobileNumber)
+                                    || p_details.PhoneNumber.ToLower().Contains(model.GetPatientAppoitmentsListObj.MobileNumber.ToLower()))
+                             && (App.DoctorId == model.DocterId
+                                    && App.PatientId == patient.PatientId
+                                    && p_details.PatiendDetailsId == App.PatientDetailsId
+                                    && App.AppointmentDate.Date == model.GetPatientAppoitmentsListObj.Todeydatetime.Date)
+                             )
                         select new VM_Patient
                         {
                             PatientId = patient.PatientId,
@@ -399,6 +404,7 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
                             MaritalStatus = p_details.MaritalStatus,
                             CheckUpStatus = p_details.CheckUpStatus
                         }).AsQueryable();
+
             var count = data.Count();
             var sorted = await HelperStatic.OrderBy(data, model.SortEx, model.OrderEx == "desc").Skip(model.Start).Take(model.LimitEx).ToListAsync();
             foreach (var item in sorted)
@@ -442,27 +448,32 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
                         join p_details in _context.PatientDetails on patient.PatientId equals p_details.PatientId
                         join DctrCheckUpFeeDetls in _context.DoctorCheckUpFeeDetails on patient.DoctoerId equals DctrCheckUpFeeDetls.DoctorId
                         where (
-                                  (EF.Functions.ILike(patient.FirstName, $"%{model.getPatientRecordList.PatientName}%") || string.IsNullOrEmpty(model.getPatientRecordList.PatientName))
-                                && (EF.Functions.ILike(patient.LastName, $"%{model.getPatientRecordList.PatientName}%") || string.IsNullOrEmpty(model.getPatientRecordList.PatientName))
-                                && (EF.Functions.ILike(patient.Cnic, $"%{model.getPatientRecordList.PatientCnic}%") || string.IsNullOrEmpty(model.getPatientRecordList.PatientCnic))
-                                && (EF.Functions.ILike(main.UserName, $"%{model.getPatientRecordList.DoctorName}%") || string.IsNullOrEmpty(model.getPatientRecordList.DoctorName))
-                                && ((model.getPatientRecordList.PatientCheckUpDateFrom <= DctrCheckUpFeeDetls.CreatedOn || model.getPatientRecordList.PatientCheckUpDateFrom == null)
-                                && (model.getPatientRecordList.PatientCheckUpDateTo >= p_details.CreatedOn || model.getPatientRecordList.PatientCheckUpDateTo == null))
-                                && p_details.CheckUpStatus==1
-                              )
+                               (string.IsNullOrEmpty(model.getPatientRecordList.PatientName)
+                                    || patient.FirstName.ToLower().Contains(model.getPatientRecordList.PatientName.ToLower()))
+                             && (string.IsNullOrEmpty(model.getPatientRecordList.PatientName)
+                                    || patient.LastName.ToLower().Contains(model.getPatientRecordList.PatientName.ToLower()))
+                             && (string.IsNullOrEmpty(model.getPatientRecordList.PatientCnic)
+                                    || patient.Cnic.ToLower().Contains(model.getPatientRecordList.PatientCnic.ToLower()))
+                             && (string.IsNullOrEmpty(model.getPatientRecordList.DoctorName)
+                                    || main.UserName.ToLower().Contains(model.getPatientRecordList.DoctorName.ToLower()))
+                             && ((model.getPatientRecordList.PatientCheckUpDateFrom == null
+                                    || model.getPatientRecordList.PatientCheckUpDateFrom <= DctrCheckUpFeeDetls.CreatedOn)
+                             && (model.getPatientRecordList.PatientCheckUpDateTo == null
+                                    || model.getPatientRecordList.PatientCheckUpDateTo >= p_details.CreatedOn))
+                             && p_details.CheckUpStatus == 1
+                            )
                         select new VM_PatientRecordListWithDoctor
                         {
-                            PatientId= patient.PatientId,
-                            PatientName = patient.FirstName + patient.LastName,
+                            PatientId = patient.PatientId,
+                            PatientName = patient.FirstName + " " + patient.LastName,
                             PatientCnic = patient.Cnic,
-                            PatientCheckUpDate= p_details.CreatedOn,
+                            PatientCheckUpDate = p_details.CreatedOn,
                             PatientCheckUpDoctorFee = DctrCheckUpFeeDetls.DoctorFee,
                             DoctorName = main.UserName,
                             DoctorEmail = main.Email,
-                            DoctorId= patient.DoctoerId
-                            //DoctorNumber=main.PhoneNumber,// main.RoleName == "Receptionist" ? main.PhoneNumber : "0000000000",
-
+                            DoctorId = patient.DoctoerId
                         }).AsQueryable();
+
             var count = data.Count();
             var sorted = await HelperStatic.OrderBy(data, model.SortEx, model.OrderEx == "desc").Skip(model.Start).Take(model.LimitEx).ToListAsync();
             foreach (var item in sorted)

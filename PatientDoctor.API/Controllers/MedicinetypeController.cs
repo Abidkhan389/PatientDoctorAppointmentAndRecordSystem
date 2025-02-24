@@ -34,6 +34,7 @@ namespace PatientDoctor.API.Controllers
         public async Task<object> ActiveInActive([FromBody] ActiveInActiveMedicinetype model)
         {
             return await _mediator.Send(model);
+
         }
         [HttpPost]
         [Route("AddEditmedicineType")]

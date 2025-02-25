@@ -45,11 +45,11 @@ namespace PatientDoctor.Infrastructure
             services.AddIdentity<ApplicationUser, IdentityRole>(options =>
             {
                 options.Password.RequiredLength = 4;
-                options.Password.RequireNonAlphanumeric = false;
+                options.Password.RequireNonAlphanumeric = true;
                 options.Password.RequiredUniqueChars = 3;
-                options.Password.RequireDigit = false;
-                options.Password.RequireLowercase = false;
-                options.Password.RequireUppercase = false;
+                options.Password.RequireDigit = true;
+                options.Password.RequireLowercase = true;
+                options.Password.RequireUppercase = true;
 
                 //Options.SignIn.RequireConfirmedEmail = true;
             }).AddEntityFrameworkStores<DocterPatiendDbContext>()

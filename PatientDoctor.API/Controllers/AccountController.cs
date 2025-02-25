@@ -58,24 +58,12 @@ namespace PatientDoctor.API.Controllers
         [Route("Login")]
         public async Task<object> Login(LoginUserCommand model)
         {
-            if (!ModelState.IsValid)
-            {
-                _response.Success = Constants.ResponseFailure;
-                _response.Message = Constants.ModelStateStateIsInvalid;
-                return Ok(_response);
-            }
             return await _mediator.Send(model);
         }
         [HttpPost]
         [Route("GetAllByProc")]
         public async Task<object> GetAllByProc([FromBody] GetUserList model)
         {
-            if (!ModelState.IsValid)
-            {
-                _response.Success = Constants.ResponseFailure;
-                _response.Message = Constants.ModelStateStateIsInvalid;
-                return Ok(_response);
-            }
             return await _mediator.Send(model); 
         }
         [HttpGet]
@@ -97,12 +85,6 @@ namespace PatientDoctor.API.Controllers
         [Route("GetAllRoles")]
         public async Task<object> GetAllRoles()
         {
-            if (!ModelState.IsValid )
-            {
-                _response.Success = Constants.ResponseFailure;
-                _response.Message = Constants.ModelStateStateIsInvalid;
-                return Ok(_response);
-            }
             return await identityRepository.GetAllRoles();
 
         }

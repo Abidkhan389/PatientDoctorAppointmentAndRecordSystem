@@ -194,12 +194,16 @@ namespace PatientDoctor.Infrastructure.Repositories.Identity
                     claims: authClaims,
                     signingCredentials: new SigningCredentials(authSigningKey, SecurityAlgorithms.HmacSha256)
                 );
-
+                var userdetailsObj = await _context.Userdetail.Where(x => x.UserId == user.Id).FirstOrDefaultAsync();
+                
                 var authenticatedUser = new AuthenticatedUser
                 {
                     Token = new JwtSecurityTokenHandler().WriteToken(token),
                     User = user,
+                    FirstName = userdetailsObj.FirstName,
+                    LastName=userdetailsObj.LastName
                 };
+               
 
                 _response.Data = authenticatedUser;
                 _response.Message = Constants.Login;

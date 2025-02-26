@@ -196,12 +196,13 @@ namespace PatientDoctor.Infrastructure.Repositories.Identity
                 );
                 var userdetailsObj = await _context.Userdetail.Where(x => x.UserId == user.Id).FirstOrDefaultAsync();
                 
-                var authenticatedUser = new AuthenticatedUser
+                var authenticatedUser = new 
                 {
                     Token = new JwtSecurityTokenHandler().WriteToken(token),
                     User = user,
                     FirstName = userdetailsObj.FirstName,
-                    LastName=userdetailsObj.LastName
+                    LastName=userdetailsObj.LastName,
+                    Roles = userRoles,
                 };
                
 

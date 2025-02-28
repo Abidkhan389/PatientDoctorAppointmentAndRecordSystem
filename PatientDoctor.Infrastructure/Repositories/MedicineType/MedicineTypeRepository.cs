@@ -52,6 +52,7 @@ namespace PatientDoctor.Infrastructure.Repositories.MedicineType
 
         public async Task<IResponse> AddEditMedicineType(AddEditMedicineTypeWithUserId model)
         {
+            using var transaction = _context.Database.BeginTransaction();
             try
             {
                 if(model.addEditMedicineTypeObj.MedicineTypeId == null)
@@ -67,7 +68,7 @@ namespace PatientDoctor.Infrastructure.Repositories.MedicineType
                     {
                         PatientDoctor.domain.Entities.MedicineType medicinetype = new PatientDoctor.domain.Entities.MedicineType(model.addEditMedicineTypeObj, model.UserId);
                         await _context.MedicineType.AddAsync(medicinetype);
-                        _context.SaveChanges();
+
 
                         if (model.addEditMedicineTypeObj.MedicinePotency != null && model.addEditMedicineTypeObj.MedicinePotency.Any())
                         {
@@ -75,7 +76,7 @@ namespace PatientDoctor.Infrastructure.Repositories.MedicineType
                                 .Select(potency => new PatientDoctor.domain.Entities.MedicinePotency
                                 {
                                     MedicineTypeId = medicinetype.Id, // Set relationship
-                                    Potency = potency,               // Use each potency value from the list
+                                    Potency = potency,               // Directly use string value
                                     CreatedBy = model.UserId,
                                     CreatedOn = DateTime.UtcNow,
                                     Status = 1
@@ -83,9 +84,10 @@ namespace PatientDoctor.Infrastructure.Repositories.MedicineType
                                 .ToList();
 
                             await _context.MedicinePotency.AddRangeAsync(potencies); // Bulk insert
-                            await _context.SaveChangesAsync();
                         }
 
+                        await _context.SaveChangesAsync();
+                        await transaction.CommitAsync();
                         _response.Success = Constants.ResponseSuccess;
                         _response.Message = Constants.DataSaved;
                     }
@@ -118,7 +120,7 @@ namespace PatientDoctor.Infrastructure.Repositories.MedicineType
                     existMedicineTypeObj.UpdatedBy = model.UserId;
                     existMedicineTypeObj.UpdatedOn = DateTime.UtcNow;
                     _context.MedicineType.Update(existMedicineTypeObj);
-                    await _context.SaveChangesAsync();
+                   
 
                     // ✅ Update MedicinePotency Records
                     if (model.addEditMedicineTypeObj.MedicinePotency != null && model.addEditMedicineTypeObj.MedicinePotency.Any())
@@ -158,9 +160,10 @@ namespace PatientDoctor.Infrastructure.Repositories.MedicineType
                             _context.MedicinePotency.RemoveRange(potenciesToRemove);
                         }
 
-                        await _context.SaveChangesAsync();
                     }
 
+                    await _context.SaveChangesAsync();
+                    await transaction.CommitAsync();
                     _response.Success = Constants.ResponseSuccess;
                     _response.Message = Constants.DataUpdate;
                     return _response;
@@ -168,6 +171,7 @@ namespace PatientDoctor.Infrastructure.Repositories.MedicineType
             }
             catch (Exception ex) 
             {
+                await transaction.RollbackAsync(); // Rollback the transaction in case of an exception
                 _response.Message=ex.Message;
                 _response.Success = Constants.ResponseFailure;
                 return _response;

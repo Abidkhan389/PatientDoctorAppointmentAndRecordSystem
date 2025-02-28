@@ -31,10 +31,10 @@ namespace PatientDoctor.domain.Entities
             CreatedBy = userId;
             CreatedOn = DateTime.UtcNow;
 
-            // Initialize MedicinePotencies
-            MedicinePotencies = model.MedicinePotency
-                .Select(p => new MedicinePotency(p, Id, userId))
-                .ToList();
+            //// Initialize MedicinePotencies correctly
+            //MedicinePotencies = model.MedicinePotency
+            //    .Select(p => new MedicinePotency(p, Id, userId)) // ✅ Extracting 'Potency' property
+            //    .ToList();
         }
     }
 

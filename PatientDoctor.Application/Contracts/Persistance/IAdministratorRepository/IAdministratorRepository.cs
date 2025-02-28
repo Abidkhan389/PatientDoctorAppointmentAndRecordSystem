@@ -1,4 +1,5 @@
-﻿using PatientDoctor.Application.Features.Administrator.Commands.ResetPassword;
+﻿using PatientDoctor.Application.Features.Administrator.Commands.Register;
+using PatientDoctor.Application.Features.Administrator.Commands.ResetPassword;
 using PatientDoctor.Application.Features.Patient.Commands.ActiveInActive;
 using PatientDoctor.Application.Helpers;
 using System;
@@ -12,5 +13,6 @@ namespace PatientDoctor.Application.Contracts.Persistance.IAdministratorReposito
     public interface IAdministratorRepository
     {
         Task<IResponse> ResetPassword(ResetPasswordCommand model);
+        Task<IResponse> UserRegister(UserRegisterCommand model);
     }
 }

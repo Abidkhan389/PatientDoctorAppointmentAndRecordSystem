@@ -9,33 +9,30 @@ using System.Threading.Tasks;
 
 namespace PatientDoctor.domain.Entities
 {
-    [Table("MedicineType", Schema = "Admin")]
-    public class MedicineType : LogFields
+    [Table("MedicinePotency", Schema = "Admin")]
+    public class MedicinePotency : LogFields
     {
         public Guid Id { get; set; }
 
-        public string TypeName { get; set; }
+        public string Potency { get; set; }
+
+        public Guid MedicineTypeId { get; set; } // Foreign Key
 
         public int Status { get; set; }
 
         // Navigation Property
-        public virtual ICollection<MedicinePotency> MedicinePotencies { get; set; } = new List<MedicinePotency>();
+        public virtual MedicineType MedicineType { get; set; }
 
-        public MedicineType() { }
+        public MedicinePotency() { }
 
-        public MedicineType(AddEditMedicineTypeCommand model, Guid userId)
+        public MedicinePotency(string potency, Guid medicineTypeId, Guid userId)
         {
             Id = Guid.NewGuid();
+            Potency = potency;
+            MedicineTypeId = medicineTypeId;
             Status = 1;
-            TypeName = model.TypeName;
             CreatedBy = userId;
             CreatedOn = DateTime.UtcNow;
-
-            // Initialize MedicinePotencies
-            MedicinePotencies = model.MedicinePotency
-                .Select(p => new MedicinePotency(p, Id, userId))
-                .ToList();
         }
     }
-
 }

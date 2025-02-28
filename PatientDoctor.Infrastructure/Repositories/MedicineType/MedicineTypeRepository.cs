@@ -57,7 +57,7 @@ namespace PatientDoctor.Infrastructure.Repositories.MedicineType
                 if(model.addEditMedicineTypeObj.MedicineTypeId == null)
                 {
                     var medicineTypeObj= await _context.MedicineType.Where(x=> x.Status != 0 && x.TypeName.ToLower()==
-                        model.addEditMedicineTypeObj.TypeName.ToLower() && x.TabletMg==model.addEditMedicineTypeObj.TabletMg).FirstOrDefaultAsync();
+                        model.addEditMedicineTypeObj.TypeName.ToLower()).FirstOrDefaultAsync();
                     if(medicineTypeObj != null)
                     {
                         _response.Message = Constants.Exists.Replace("{data}", "{medicineTypeObj.TypeName");
@@ -84,8 +84,7 @@ namespace PatientDoctor.Infrastructure.Repositories.MedicineType
                     }
                     else if (await _context.MedicineType
                              .Where(x => x.Id != model.addEditMedicineTypeObj.MedicineTypeId &&
-                                    x.TypeName == model.addEditMedicineTypeObj.TypeName &&
-                                    x.TabletMg == model.addEditMedicineTypeObj.TabletMg)
+                                    x.TypeName == model.addEditMedicineTypeObj.TypeName)
                              .FirstOrDefaultAsync() != null)
                     {
                         _response.Message = Constants.Exists.Replace("{data}", "MedicineTypeName");
@@ -95,7 +94,6 @@ namespace PatientDoctor.Infrastructure.Repositories.MedicineType
                     {
                         //updating Existing Medicine type
                         existMedicineTypeObj.TypeName = model.addEditMedicineTypeObj.TypeName;
-                        existMedicineTypeObj.TabletMg = model.addEditMedicineTypeObj.TabletMg;
                         existMedicineTypeObj.UpdatedBy = model.UserId;
                         existMedicineTypeObj.UpdatedOn = DateTime.UtcNow;
                         _context.MedicineType.Update(existMedicineTypeObj);
@@ -124,7 +122,6 @@ namespace PatientDoctor.Infrastructure.Repositories.MedicineType
                         select new VM_MedicineType
                         {
                             TypeName = medicinetype.TypeName,
-                            TabletMg = medicinetype.TabletMg,
                             Id = medicinetype.Id,
                             Status = medicinetype.Status,
                         }).AsQueryable();
@@ -150,7 +147,6 @@ namespace PatientDoctor.Infrastructure.Repositories.MedicineType
                                          select new VM_MedicinetypeById
                                          {
                                              TypeName= medicinetype.TypeName,
-                                             tabletMg=medicinetype.TabletMg,
                                          }).FirstOrDefaultAsync();
 
             if (medicineTypeObj != null)

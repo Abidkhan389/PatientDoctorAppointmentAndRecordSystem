@@ -9,9 +9,6 @@ namespace PatientDoctor.Application.Features.Medicinetype.Commands.AddEditMedici
             .NotEmpty().WithMessage("{TypeName} is required.")
             .MaximumLength(50).WithMessage("{TypeName} must not exceed 50 characters.")
             .MinimumLength(3).WithMessage("{TypeName} must be at least 3 characters long.");
-
-            RuleFor(c => c.TabletMg)
-           .NotEmpty().WithMessage("{TabletMg} is required.");
         }
     }
 }

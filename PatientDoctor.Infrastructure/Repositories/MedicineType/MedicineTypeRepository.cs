@@ -208,11 +208,16 @@ namespace PatientDoctor.Infrastructure.Repositories.MedicineType
         public async Task<IResponse> GetMedicineTypeById(Guid Id)
         {
             var medicineTypeObj = await (from medicinetype in _context.MedicineType
-                                         where (medicinetype.Id == Id)
+                                         where medicinetype.Id == Id
                                          select new VM_MedicinetypeById
                                          {
-                                             TypeName= medicinetype.TypeName,
+                                             TypeName = medicinetype.TypeName,
+                                             MedicinePotency = _context.MedicinePotency
+                                                 .Where(p => p.MedicineTypeId == medicinetype.Id)
+                                                 .Select(p => p.Potency)
+                                                 .ToList() // Fetching all potency values for this medicine type
                                          }).FirstOrDefaultAsync();
+
 
             if (medicineTypeObj != null)
             {

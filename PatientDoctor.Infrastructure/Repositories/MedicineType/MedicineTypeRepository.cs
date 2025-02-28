@@ -182,14 +182,19 @@ namespace PatientDoctor.Infrastructure.Repositories.MedicineType
         {
             model.Sort = model.Sort == null || model.Sort == "" ? "TypeName" : model.Sort;
             var data = (from medicinetype in _context.MedicineType
-                        where (string.IsNullOrEmpty(model.TypeName) ||
-                               EF.Functions.Like(medicinetype.TypeName, $"%{model.TypeName}%"))
+                        where string.IsNullOrEmpty(model.TypeName) ||
+                              EF.Functions.Like(medicinetype.TypeName, $"%{model.TypeName}%")
                         select new VM_MedicineType
                         {
                             TypeName = medicinetype.TypeName,
                             Id = medicinetype.Id,
                             Status = medicinetype.Status,
+                            MedicinePotency = _context.MedicinePotency
+                                               .Where(mp => mp.MedicineTypeId == medicinetype.Id)
+                                               .Select(mp => mp.Potency)
+                                               .ToList() // Fetch as a list of strings
                         }).AsQueryable();
+
             var count = data.Count();
             var sorted = await HelperStatic.OrderBy(data, model.SortEx, model.OrderEx == "desc").Skip(model.Start).Take(model.LimitEx).ToListAsync();
             foreach (var item in sorted)

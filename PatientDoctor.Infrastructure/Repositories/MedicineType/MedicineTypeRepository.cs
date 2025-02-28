@@ -68,6 +68,24 @@ namespace PatientDoctor.Infrastructure.Repositories.MedicineType
                         PatientDoctor.domain.Entities.MedicineType medicinetype = new PatientDoctor.domain.Entities.MedicineType(model.addEditMedicineTypeObj, model.UserId);
                         await _context.MedicineType.AddAsync(medicinetype);
                         _context.SaveChanges();
+
+                        if (model.addEditMedicineTypeObj.MedicinePotency != null && model.addEditMedicineTypeObj.MedicinePotency.Any())
+                        {
+                            var potencies = model.addEditMedicineTypeObj.MedicinePotency
+                                .Select(potency => new PatientDoctor.domain.Entities.MedicinePotency
+                                {
+                                    MedicineTypeId = medicinetype.Id, // Set relationship
+                                    Potency = potency,               // Use each potency value from the list
+                                    CreatedBy = model.UserId,
+                                    CreatedOn = DateTime.UtcNow,
+                                    Status = 1
+                                })
+                                .ToList();
+
+                            await _context.MedicinePotency.AddRangeAsync(potencies); // Bulk insert
+                            await _context.SaveChangesAsync();
+                        }
+
                         _response.Success = Constants.ResponseSuccess;
                         _response.Message = Constants.DataSaved;
                     }
@@ -75,37 +93,80 @@ namespace PatientDoctor.Infrastructure.Repositories.MedicineType
                 }
                 else
                 {
-                    var existMedicineTypeObj= await _context.MedicineType.Where(x=> x.Id== model.addEditMedicineTypeObj.MedicineTypeId).FirstOrDefaultAsync();
-                    if(existMedicineTypeObj == null)
+                    var existMedicineTypeObj = await _context.MedicineType
+                        .Where(x => x.Id == model.addEditMedicineTypeObj.MedicineTypeId)
+                        .FirstOrDefaultAsync();
+
+                    if (existMedicineTypeObj == null)
                     {
                         _response.Message = Constants.NotFound.Replace("{data}", "{MedicineType}");
                         _response.Success = Constants.ResponseFailure;
                         return _response;
                     }
                     else if (await _context.MedicineType
-                             .Where(x => x.Id != model.addEditMedicineTypeObj.MedicineTypeId &&
-                                    x.TypeName == model.addEditMedicineTypeObj.TypeName)
-                             .FirstOrDefaultAsync() != null)
+                                 .Where(x => x.Id != model.addEditMedicineTypeObj.MedicineTypeId &&
+                                             x.TypeName == model.addEditMedicineTypeObj.TypeName)
+                                 .FirstOrDefaultAsync() != null)
                     {
                         _response.Message = Constants.Exists.Replace("{data}", "MedicineTypeName");
                         _response.Success = Constants.ResponseFailure;
+                        return _response;
                     }
-                    else
-                    {
-                        //updating Existing Medicine type
-                        existMedicineTypeObj.TypeName = model.addEditMedicineTypeObj.TypeName;
-                        existMedicineTypeObj.UpdatedBy = model.UserId;
-                        existMedicineTypeObj.UpdatedOn = DateTime.UtcNow;
-                        _context.MedicineType.Update(existMedicineTypeObj);
-                        await _context.SaveChangesAsync();
-                        _response.Success = Constants.ResponseSuccess;
-                        _response.Message = Constants.DataUpdate;
 
+                    // ✅ Updating Existing MedicineType
+                    existMedicineTypeObj.TypeName = model.addEditMedicineTypeObj.TypeName;
+                    existMedicineTypeObj.UpdatedBy = model.UserId;
+                    existMedicineTypeObj.UpdatedOn = DateTime.UtcNow;
+                    _context.MedicineType.Update(existMedicineTypeObj);
+                    await _context.SaveChangesAsync();
+
+                    // ✅ Update MedicinePotency Records
+                    if (model.addEditMedicineTypeObj.MedicinePotency != null && model.addEditMedicineTypeObj.MedicinePotency.Any())
+                    {
+                        // Get existing potencies for this MedicineType
+                        var existingPotencies = await _context.MedicinePotency
+                            .Where(x => x.MedicineTypeId == existMedicineTypeObj.Id)
+                            .ToListAsync();
+
+                        // Find new potencies to add
+                        var newPotencies = model.addEditMedicineTypeObj.MedicinePotency
+                            .Where(p => !existingPotencies.Any(ep => ep.Potency == p))
+                            .Select(p => new PatientDoctor.domain.Entities.MedicinePotency
+                            {
+                                MedicineTypeId = existMedicineTypeObj.Id,
+                                Potency = p,
+                                CreatedBy = model.UserId,
+                                CreatedOn = DateTime.UtcNow,
+                                Status = 1
+                            })
+                            .ToList();
+
+                        // Find potencies to remove
+                        var potenciesToRemove = existingPotencies
+                            .Where(ep => !model.addEditMedicineTypeObj.MedicinePotency.Contains(ep.Potency))
+                            .ToList();
+
+                        // Add new potencies
+                        if (newPotencies.Any())
+                        {
+                            await _context.MedicinePotency.AddRangeAsync(newPotencies);
+                        }
+
+                        // Delete removed potencies
+                        if (potenciesToRemove.Any())
+                        {
+                            _context.MedicinePotency.RemoveRange(potenciesToRemove);
+                        }
+
+                        await _context.SaveChangesAsync();
                     }
+
+                    _response.Success = Constants.ResponseSuccess;
+                    _response.Message = Constants.DataUpdate;
                     return _response;
                 }
             }
-            catch(Exception ex) 
+            catch (Exception ex) 
             {
                 _response.Message=ex.Message;
                 _response.Success = Constants.ResponseFailure;

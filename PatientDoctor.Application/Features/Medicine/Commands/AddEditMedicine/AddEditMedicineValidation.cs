@@ -11,6 +11,7 @@ namespace PatientDoctor.Application.Features.Medicine.Commands.AddEditMedicine
             .WithMessage("Id is required and white space is not allowed");
 
             RuleFor(x => x.MedicineTypeId).NotEmpty().WithMessage("Medicine type ID is required.");
+            RuleFor(x => x.medicineTypePotencyId).NotEmpty().WithMessage("Medicine type Ptency ID is required.");
             RuleFor(x => x.DoctorId).NotEmpty().WithMessage("Doctor ID is required.");
             RuleFor(x => x.MedicineName)
                .NotEmpty().WithMessage("{MedicineName} is required.")

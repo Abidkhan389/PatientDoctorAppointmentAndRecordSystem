@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using PatientDoctor.Application.Features.Medicine.Commands.ActiveInActive;
 using PatientDoctor.Application.Features.Medicine.Commands.AddEditMedicine;
 using PatientDoctor.Application.Features.Medicine.Quries.GetAllByProc;
+using PatientDoctor.Application.Features.Medicine.Quries.GetAllMedicinePotency;
 using PatientDoctor.Application.Features.Medicine.Quries.GetById;
 using PatientDoctor.Application.Features.Medicinetype.Quries;
 using PatientDoctor.Application.Helpers;
@@ -46,6 +47,12 @@ namespace PatientDoctor.API.Controllers
         [HttpPost]
         [Route("GetMedicineById")]
         public async Task<object> GetMedicineById(GetMedicineById MedicineId)
+        {
+            return await _mediator.Send(MedicineId);
+        }
+        [HttpPost]
+        [Route("GetMedicinePotencyByMedicineTypeId")]
+        public async Task<object> GetMedicinePotencyByMedicineTypeId(GetAllMedicinePotencyByMedicineTypeId MedicineId)
         {
             return await _mediator.Send(MedicineId);
         }

@@ -73,7 +73,7 @@ namespace PatientDoctor.Infrastructure.Repositories.Medicine
                     {
                         PatientDoctor.domain.Entities.Medicine medicine = new PatientDoctor.domain.Entities.Medicine(model.addEditMedicineObj, model.UserId);
                         await _context.Medicine.AddAsync(medicine);
-                        _context.SaveChanges();
+                        await _context.SaveChangesAsync();
                         _response.Success = Constants.ResponseSuccess;
                         _response.Message = Constants.DataSaved;
                     }
@@ -101,6 +101,7 @@ namespace PatientDoctor.Infrastructure.Repositories.Medicine
                         existMedicineObj.MedicineName = model.addEditMedicineObj.MedicineName;
                         existMedicineObj.DoctorId = model.addEditMedicineObj.DoctorId;
                         existMedicineObj.MedicineTypeId = model.addEditMedicineObj.MedicineTypeId;
+                        existMedicineObj.medicineTypePotencyId = model.addEditMedicineObj.medicineTypePotencyId;
                         existMedicineObj.StartingDate = model.addEditMedicineObj.StartingDate;
                         existMedicineObj.ExperiyDate = model.addEditMedicineObj.ExperiyDate;
                         existMedicineObj.UpdatedBy = model.UserId;
@@ -128,17 +129,17 @@ namespace PatientDoctor.Infrastructure.Repositories.Medicine
             var data = (from medicine in _context.Medicine
                         join doctor in _context.Users on medicine.DoctorId equals doctor.Id
                         join m_type in _context.MedicineType on medicine.MedicineTypeId equals m_type.Id
+                        join m_type_potency in _context.MedicinePotency on medicine.medicineTypePotencyId equals m_type_potency.Id
                         where (
                             (string.IsNullOrEmpty(model.MedicineName) ||
                              EF.Functions.Like(medicine.MedicineName, $"%{model.MedicineName}%"))
-                            && (string.IsNullOrEmpty(model.DoctorId) || medicine.DoctorId == model.DoctorId)
-                            && (model.MedicineTypeId == null || medicine.MedicineTypeId == model.MedicineTypeId)
                         )
                         select new VM_Medicine
                         {
                             Id = medicine.Id,
                             MedicineName = medicine.MedicineName,
                             MedicineTypeName = m_type.TypeName,
+                            MedicineTypePotencyName = m_type_potency.Potency,
                             DoctorName = doctor.UserName,
                             Status = medicine.Status,
                             StartingDate = medicine.StartingDate,
@@ -169,11 +170,11 @@ namespace PatientDoctor.Infrastructure.Repositories.Medicine
                                          {
                                              MedicineName = medicine.MedicineName,
                                              MedicineTypeId = medicine.MedicineTypeId,
+                                             MedicineTypePotencyId = medicine.medicineTypePotencyId,
                                              DoctorId = medicine.DoctorId,
                                              StartingDate = medicine.StartingDate,
                                              ExpiryDate=medicine.ExperiyDate
                                          }).FirstOrDefaultAsync();
-
             if (medicineObj != null)
             {
                 _response.Data = medicineObj;
@@ -184,6 +185,31 @@ namespace PatientDoctor.Infrastructure.Repositories.Medicine
             {
                 _response.Success = Constants.ResponseFailure;
                 _response.Message = Constants.NotFound.Replace("{data}", "Medicine");
+            }
+            return _response;
+        }
+
+        public async Task<IResponse> GetAllMedicineTypePotency(Guid Id)
+        {
+            var medicineTypePotencyObj = await (from medicinepotency in _context.MedicinePotency
+                                                where (medicinepotency.MedicineTypeId == Id)
+                                                select new VM_MedicineTypePotency
+                                                {
+                                                    MedicineTypePotencyId = medicinepotency.Id,
+                                                    Potency = medicinepotency.Potency,
+                                                    MedicineTypeId = medicinepotency.MedicineTypeId
+                                                }).ToListAsync();
+
+            if (medicineTypePotencyObj != null)
+            {
+                _response.Data = medicineTypePotencyObj;
+                _response.Message = Constants.GetData;
+                _response.Success = Constants.ResponseSuccess;
+            }
+            else
+            {
+                _response.Success = Constants.ResponseFailure;
+                _response.Message = Constants.NotFound.Replace("{data}", "Medicine Potency");
             }
             return _response;
         }

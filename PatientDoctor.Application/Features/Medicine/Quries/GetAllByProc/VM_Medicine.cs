@@ -12,6 +12,7 @@ namespace PatientDoctor.Application.Features.Medicine.Quries.GetAllByProc
         public Guid Id { get; set; }
         public string MedicineName { get; set; }
         public string MedicineTypeName{ get; set; }
+        public string? MedicineTypePotencyName{ get; set; }
         public string DoctorName { get; set; }
         public DateTime StartingDate { get; set; }
         public DateTime ExpiryDate { get; set; }

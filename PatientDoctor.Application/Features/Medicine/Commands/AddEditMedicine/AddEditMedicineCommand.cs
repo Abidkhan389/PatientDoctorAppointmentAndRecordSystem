@@ -12,6 +12,7 @@ namespace PatientDoctor.Application.Features.Medicine.Commands.AddEditMedicine
     {
         public Guid? Id { get; set; }
         public Guid MedicineTypeId { get; set; }
+        public Guid medicineTypePotencyId { get; set; }
         public string DoctorId { get; set; }
         public string MedicineName { get; set; }
         public DateTime StartingDate { get; set; }

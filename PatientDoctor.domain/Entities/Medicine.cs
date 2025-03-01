@@ -17,6 +17,7 @@ namespace PatientDoctor.domain.Entities
             this.Id= Guid.NewGuid();
             this.MedicineName= model.MedicineName;
             this.MedicineTypeId = model.MedicineTypeId;
+            this.medicineTypePotencyId = model.medicineTypePotencyId;
             this.DoctorId=model.DoctorId;
             this.StartingDate=model.StartingDate;
             this.ExperiyDate=model.ExperiyDate;
@@ -27,7 +28,9 @@ namespace PatientDoctor.domain.Entities
         [Key]
         public Guid Id { get; set; }
         public string MedicineName { get; set; }
+        
         public Guid MedicineTypeId { get; set; }
+        public Guid medicineTypePotencyId { get; set; }
         public string DoctorId { get; set; }
         public DateTime StartingDate { get; set; }
         public DateTime ExperiyDate { get; set; }

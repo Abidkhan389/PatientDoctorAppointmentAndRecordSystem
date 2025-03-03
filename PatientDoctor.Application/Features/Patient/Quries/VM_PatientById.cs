@@ -14,7 +14,7 @@ namespace PatientDoctor.Application.Features.Patient.Quries
         public string Gender { get; set; }
         public string DoctorId { get; set; }
         public DateTime AppoitmentTime { get; set; }
-        public DateTime DateofBirth { get; set; }
+        public int Age { get; set; }
         public string PhoneNumber { get; set; }
         public string City { get; set; }
         public string BloodType { get; set; }

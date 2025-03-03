@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PatientDoctor.Infrastructure.Persistance;
 
@@ -11,9 +12,11 @@ using PatientDoctor.Infrastructure.Persistance;
 namespace PatientDoctor.Migrations.Migrations
 {
     [DbContext(typeof(DocterPatiendDbContext))]
-    partial class DocterPatiendDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250303100232_updatepateintandpatientdetails")]
+    partial class updatepateintandpatientdetails
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -259,41 +262,6 @@ namespace PatientDoctor.Migrations.Migrations
                     b.HasKey("AppointmentId");
 
                     b.ToTable("Appointment", "Admin");
-                });
-
-            modelBuilder.Entity("PatientDoctor.domain.Entities.City", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("CityName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<Guid?>("CreatedBy")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime?>("CreatedOn")
-                        .HasColumnType("datetime2");
-
-                    b.Property<Guid>("ProvinceID")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
-
-                    b.Property<Guid?>("UpdatedBy")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime?>("UpdatedOn")
-                        .HasColumnType("datetime2");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ProvinceID");
-
-                    b.ToTable("City", "Admin");
                 });
 
             modelBuilder.Entity("PatientDoctor.domain.Entities.DoctorCheckUpFeeDetails", b =>
@@ -581,36 +549,6 @@ namespace PatientDoctor.Migrations.Migrations
                     b.ToTable("PatientDetails", "Admin");
                 });
 
-            modelBuilder.Entity("PatientDoctor.domain.Entities.Province", b =>
-                {
-                    b.Property<Guid>("ID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid?>("CreatedBy")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime?>("CreatedOn")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("ProvinceName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
-
-                    b.Property<Guid?>("UpdatedBy")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime?>("UpdatedOn")
-                        .HasColumnType("datetime2");
-
-                    b.HasKey("ID");
-
-                    b.ToTable("Province", "Admin");
-                });
-
             modelBuilder.Entity("PatientDoctor.domain.Entities.Userdetail", b =>
                 {
                     b.Property<Guid>("UserDetailId")
@@ -703,17 +641,6 @@ namespace PatientDoctor.Migrations.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-                });
-
-            modelBuilder.Entity("PatientDoctor.domain.Entities.City", b =>
-                {
-                    b.HasOne("PatientDoctor.domain.Entities.Province", "Province")
-                        .WithMany()
-                        .HasForeignKey("ProvinceID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Province");
                 });
 
             modelBuilder.Entity("PatientDoctor.domain.Entities.MedicinePotency", b =>

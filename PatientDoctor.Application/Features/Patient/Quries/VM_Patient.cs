@@ -10,7 +10,8 @@ namespace PatientDoctor.Application.Features.Patient.Quries
     public class VM_Patient : ListingLogFields
     {
         public Guid PatientId { get; set; }
-        public string FullName { get; set; }
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
         public string Gender { get; set; }
         public string DoctorName { get; set; }
         public DateTime AppointmentTime { get; set; }

@@ -24,5 +24,9 @@ namespace PatientDoctor.Infrastructure.Persistance
         public virtual DbSet<MedicinePotency> MedicinePotency { get; set; } = null!;
         public virtual DbSet<DoctorCheckUpFeeDetails> DoctorCheckUpFeeDetails { get; set; } = null!;
         public virtual DbSet<PatientCheckedUpFeeHistroy> PatientCheckedUpFeeHistroy { get; set; } = null!;
+        public virtual DbSet<Province> Provinces { get; set; } = null!;
+
+        public virtual DbSet<City> Cities { get; set; } = null!;
+
     }
 }

@@ -114,7 +114,7 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
                     // Check for an existing appointment within 30 minutes of the selected time
                     if (await IsAppointmentTimeConflictAsync(model.AddEditPatientObj.DoctorId, model.AddEditPatientObj.AppoitmentTime))
                     {
-                        return CreateErrorResponse("Please choose an appointment time that is at least 30 minutes after the existing appointment from the same doctor.");
+                        return CreateErrorResponse("Please choose an appointment time that is at least 10 minutes after the existing appointment from the same doctor.");
                     }
 
                     // Create new patient, patient details, and appointment records
@@ -127,7 +127,7 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
                         Cnic = model.AddEditPatientObj.Cnic,
                         Gender = model.AddEditPatientObj.Gender,
                         DoctoerId = model.AddEditPatientObj.DoctorId,
-                        DateofBirth = model.AddEditPatientObj.DateofBirth,
+                        Age = model.AddEditPatientObj.Age,
                         Description="",
                     };
                     await _context.Patient.AddAsync(patientObj);
@@ -172,7 +172,7 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
                     }
                     var appointmentCount = await _context.Appointment
                        .Where(a => a.PatientId == patient.PatientId && a.DoctorId == patient.DoctoerId && a.AppointmentDate.Date == model.AddEditPatientObj.AppoitmentTime.Date)
-                       .CountAsync();
+                       .CountAsync();   
                     if (appointmentCount > 2)
                     {
                         // Handle the case where the patient has already taken two appointments.
@@ -189,7 +189,7 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
                     patient.Cnic = model.AddEditPatientObj.Cnic;
                     patient.Gender = model.AddEditPatientObj.Gender;
                     patient.DoctoerId = model.AddEditPatientObj.DoctorId;
-                    patient.DateofBirth = model.AddEditPatientObj.DateofBirth;
+                    patient.Age = model.AddEditPatientObj.Age;
 
                     var patientDetails = await _context.PatientDetails.FindAsync(patient.PatientId);
                     if (patientDetails == null)
@@ -236,7 +236,7 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
 
         public async Task<IResponse> GetAllByProc(GetPatientList model)
         {
-            model.Sort = model.Sort == null || model.Sort == "" ? "FullName" : model.Sort;
+            model.Sort = model.Sort == null || model.Sort == "" ? "FirstName" : model.Sort;
             var data = (from patient in _context.Patient
                         join main in _context.Users on patient.DoctoerId equals main.Id
                         join p_details in _context.PatientDetails on patient.PatientId equals p_details.PatientId
@@ -251,7 +251,8 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
                         select new VM_Patient
                         {
                             PatientId = patient.PatientId,
-                            FullName = patient.FirstName + " " + patient.LastName,
+                            FirstName = patient.FirstName,
+                            LastName=patient.LastName,
                             Gender = patient.Gender,
                             DoctorName = main.UserName,
                             AppointmentTime = App.AppointmentDate,
@@ -301,7 +302,7 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
                                         BloodType = p_Details.BloodType,
                                         MaritalStatus = p_Details.MaritalStatus,
                                         Gender = patient.Gender,
-                                        DateofBirth = patient.DateofBirth,
+                                        Age = patient.Age,
                                         AppoitmentTime = app.AppointmentDate
                                     }).FirstOrDefaultAsync();
             if (patientobj != null)
@@ -391,7 +392,8 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
                         select new VM_Patient
                         {
                             PatientId = patient.PatientId,
-                            FullName = patient.FirstName + " " + patient.LastName,
+                            FirstName = patient.FirstName ,
+                            LastName=patient.LastName,
                             Gender = patient.Gender,
                             DoctorName = main.UserName,
                             AppointmentTime = App.AppointmentDate,

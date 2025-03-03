@@ -15,12 +15,12 @@ namespace PatientDoctor.Application.Features.Patient.Commands.AddEditPatient
         public string LastName { get; set; }
         public string Gender { get; set; }
         public string DoctorId { get; set; }
-        public DateTime DateofBirth { get; set; }
+        public int Age{ get; set; }
         public DateTime AppoitmentTime { get; set; }
         public string PhoneNumber { get; set; }
         public string City { get; set; }
-        public string BloodType { get; set; }
+        public string? BloodType { get; set; }
         public string Cnic { get; set; }
-        public string MaritalStatus { get; set; }
+        public string? MaritalStatus { get; set; }
     }
 }

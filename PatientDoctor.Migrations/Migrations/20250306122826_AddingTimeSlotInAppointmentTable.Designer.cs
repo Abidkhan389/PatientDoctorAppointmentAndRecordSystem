@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PatientDoctor.Infrastructure.Persistance;
 
@@ -11,9 +12,11 @@ using PatientDoctor.Infrastructure.Persistance;
 namespace PatientDoctor.Migrations.Migrations
 {
     [DbContext(typeof(DocterPatiendDbContext))]
-    partial class DocterPatiendDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250306122826_AddingTimeSlotInAppointmentTable")]
+    partial class AddingTimeSlotInAppointmentTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

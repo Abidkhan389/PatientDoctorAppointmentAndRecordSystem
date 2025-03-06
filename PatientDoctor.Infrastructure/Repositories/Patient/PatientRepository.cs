@@ -15,6 +15,10 @@ using System.Text.Json;
 using PatientDoctor.Application.Features.Patient.Commands.AddPatientDescription.PatientCheckedUpFeeHistroy;
 using PatientDoctor.Application.Features.Patient.Quries.GetAllPatientRecordsByDoctor;
 using PatientDoctor.Application.Features.Patient.Quries.GetPatientDetailForPdf;
+using PatientDoctor.Application.Features.Patient.Quries.GetDoctorSlots;
+using PatientDoctor.Application.Features.Doctor_Availability.Commands;
+using System.Globalization;
+using Newtonsoft.Json;
 
 namespace PatientDoctor.Infrastructure.Repositories.Patient
 {
@@ -49,13 +53,13 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
             return new Response { Success = Constants.ResponseFailure, Message = message };
         }
 
-        private async Task<bool> IsAppointmentTimeConflictAsync(string doctorId, DateTime appointmentTime)
+        private async Task<bool> IsAppointmentTimeConflictAsync(string doctorId, DateTime appointmentTime,string TimeSlot)
         {
             var minimumAllowedTime = appointmentTime.AddMinutes(Convert.ToInt32(_configuration["PatientSettings:PatientAllowedTime"]));
             var existingAppointment = await _context.Appointment
                 .Where(x => x.DoctorId == doctorId &&
                             x.AppointmentDate.Date == appointmentTime.Date &&
-                            x.AppointmentDate == appointmentTime &&
+                            x.TimeSlot == TimeSlot &&
                             x.AppointmentDate >= minimumAllowedTime)
                 .FirstOrDefaultAsync();
 
@@ -112,7 +116,7 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
                     //}
 
                     // Check for an existing appointment within 30 minutes of the selected time
-                    if (await IsAppointmentTimeConflictAsync(model.AddEditPatientObj.DoctorId, model.AddEditPatientObj.AppoitmentTime))
+                    if (await IsAppointmentTimeConflictAsync(model.AddEditPatientObj.DoctorId, model.AddEditPatientObj.AppoitmentDate, model.AddEditPatientObj.TimeSlot))
                     {
                         return CreateErrorResponse("Please choose an appointment time that is at least 10 minutes after the existing appointment from the same doctor.");
                     }
@@ -151,7 +155,8 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
                         AppointmentId = Guid.NewGuid(),
                         DoctorId = model.AddEditPatientObj.DoctorId,
                         PatientId = patientObj.PatientId,
-                        AppointmentDate = model.AddEditPatientObj.AppoitmentTime,
+                        AppointmentDate = model.AddEditPatientObj.AppoitmentDate,
+                        TimeSlot = model.AddEditPatientObj.TimeSlot,
                         PatientDetailsId=patientDetails.PatiendDetailsId
                     };
                     await _context.Appointment.AddAsync(patientAppointment);
@@ -171,7 +176,7 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
                         return CreateErrorResponse(Constants.NotFound.Replace("{data}", "Patient"));
                     }
                     var appointmentCount = await _context.Appointment
-                       .Where(a => a.PatientId == patient.PatientId && a.DoctorId == patient.DoctoerId && a.AppointmentDate.Date == model.AddEditPatientObj.AppoitmentTime.Date)
+                       .Where(a => a.PatientId == patient.PatientId && a.DoctorId == patient.DoctoerId && a.AppointmentDate.Date == model.AddEditPatientObj.AppoitmentDate.Date)
                        .CountAsync();   
                     if (appointmentCount > 2)
                     {
@@ -179,7 +184,7 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
                         return CreateErrorResponse("You can't take more than two appointments in a day from the same doctor.");
                     }
                     // Check for an existing appointment within 30 minutes of the selected time
-                    if (await IsAppointmentTimeConflictAsync(model.AddEditPatientObj.DoctorId, model.AddEditPatientObj.AppoitmentTime))
+                    if (await IsAppointmentTimeConflictAsync(model.AddEditPatientObj.DoctorId, model.AddEditPatientObj.AppoitmentDate, model.AddEditPatientObj.TimeSlot))
                     {
                         return CreateErrorResponse("Please choose an appointment time that is at least 30 minutes after the existing appointment from the same doctor.");
                     }
@@ -213,7 +218,7 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
                     }
 
                     existingAppointment.DoctorId = model.AddEditPatientObj.DoctorId;
-                    existingAppointment.AppointmentDate = model.AddEditPatientObj.AppoitmentTime;
+                    existingAppointment.AppointmentDate = model.AddEditPatientObj.AppoitmentDate;
 
                     // Update tables
                     _context.Patient.Update(patient);
@@ -255,13 +260,14 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
                             LastName=patient.LastName,
                             Gender = patient.Gender,
                             DoctorName = main.UserName,
-                            AppointmentTime = App.AppointmentDate,
+                            AppointmentTime = App.AppointmentDate.Date,
                             PatientPhoneNumber = p_details.PhoneNumber,
                             DoctorPhoneNumber = main.PhoneNumber,
                             City = p_details.City,
                             BloodType = p_details.BloodType,
                             Cnic = patient.Cnic,
                             Status = patient.Status,
+                            TimeSlot = App.TimeSlot,
                             MaritalStatus = p_details.MaritalStatus,
                             CheckUpStatus = p_details.CheckUpStatus
                         }).AsQueryable();
@@ -332,7 +338,7 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
                     .FirstOrDefaultAsync(pd => pd.PatientId == model.PatientId);
                 if (patientDetails != null && patient != null)
                 {
-                    patient.Description= JsonSerializer.Serialize(model);
+                    patient.Description= System.Text.Json.JsonSerializer.Serialize(model);
                     patientDetails.CheckUpStatus = 1; // update check status to 1, its means patient is checked
                     patientDetails.CreatedOn = DateTime.Now;
                     _context.Patient.Update(patient);
@@ -429,7 +435,7 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
                                           .FirstOrDefaultAsync();
             if (patientDescriptionEntity != null && patientDescriptionEntity.Description != null)
             { 
-                var patientDescription= JsonSerializer.Deserialize<AddPatientDescriptionCommand>(patientDescriptionEntity.Description);
+                var patientDescription= JsonConvert.DeserializeObject<AddPatientDescriptionCommand>(patientDescriptionEntity.Description);
                 _response.Data = patientDescription;
                 _response.Success = Constants.ResponseSuccess;
                 _response.Message = Constants.GetData;
@@ -525,5 +531,77 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
             }
             return _response;
         }
+
+        public async Task<IResponse> GetDoctorAppointmentsSlotsOfDay(GetDoctorTimeSlotsByDayIdAndDoctorId model)
+        {
+            var doctorObj = await _context.DoctorAvailabilities
+                .Where(x => x.DoctorId == model.DoctorId && x.DayId == model.DayId)
+                .FirstOrDefaultAsync();
+
+            if (doctorObj == null || string.IsNullOrEmpty(doctorObj.TimeSlotsJson))
+            {
+                _response.Success = Constants.ResponseFailure;
+                _response.Message = Constants.NotFound;
+            }
+            else
+            {
+                // Deserialize time slots
+                var timeSlots = JsonConvert.DeserializeObject<List<DoctorTimeSlot>>(doctorObj.TimeSlotsJson);
+
+                var doctorTimeSlotsPerDay = new VM_DoctorTimeSlotsPerDay
+                {
+                    DayId = model.DayId,
+                    DoctorId = model.DoctorId,
+                    DoctorSlots = new List<DoctorTimeSlots>()
+                };
+
+                foreach (var slot in timeSlots)
+                {
+                    var slotChunks = GenerateTimeChunks(slot.StartTime, slot.EndTime);
+                    doctorTimeSlotsPerDay.DoctorSlots.AddRange(slotChunks);
+                }
+
+                _response.Data = doctorTimeSlotsPerDay;
+                _response.Success = Constants.ResponseSuccess;
+                _response.Message = Constants.GetData;
+            }
+            return _response;
+        }
+
+        /// <summary>
+        /// Generates 15-minute chunks between the given start and end times.
+        /// </summary>
+        private static List<DoctorTimeSlots> GenerateTimeChunks(string startTime, string endTime)
+        {
+            var result = new List<DoctorTimeSlots>();
+
+            if (!TimeSpan.TryParse(startTime, out TimeSpan start) || !TimeSpan.TryParse(endTime, out TimeSpan end))
+            {
+                return result; // Return empty if parsing fails
+            }
+
+            while (start <= end)
+            {
+                result.Add(new DoctorTimeSlots
+                {
+                    DoctorTime = ConvertTo12HourFormat(start.ToString(@"hh\:mm"))
+                });
+
+                start = start.Add(TimeSpan.FromMinutes(15));
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Converts 24-hour time format to 12-hour AM/PM format.
+        /// </summary>
+        private static string ConvertTo12HourFormat(string time)
+        {
+            return TimeSpan.TryParse(time, out TimeSpan parsedTime)
+                ? DateTime.Today.Add(parsedTime).ToString("hh:mm tt", CultureInfo.InvariantCulture)
+                : time;
+        }
+
     }
 }

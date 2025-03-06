@@ -4,6 +4,7 @@ using PatientDoctor.Application.Features.Patient.Commands.AddEditPatient;
 using PatientDoctor.Application.Features.Patient.Commands.AddPatientDescription;
 using PatientDoctor.Application.Features.Patient.Quries;
 using PatientDoctor.Application.Features.Patient.Quries.GetAllPatientRecordsByDoctor;
+using PatientDoctor.Application.Features.Patient.Quries.GetDoctorSlots;
 using PatientDoctor.Application.Features.Patient.Quries.GetPatientDetailForPdf;
 using PatientDoctor.Application.Helpers;
 using System;
@@ -25,5 +26,6 @@ namespace PatientDoctor.Application.Contracts.Persistance.Patient
         Task<IResponse> GetPatientDescriptionById(GetPatientDescription model);
         Task<IResponse> GetPatientsRecordWithDoctorProc(GetPatientRecordListWithDoctor model);
         Task<IResponse> GetPatientDetailsForPdf(GetPatientDetailsForPdfRequest model);
+        Task<IResponse> GetDoctorAppointmentsSlotsOfDay(GetDoctorTimeSlotsByDayIdAndDoctorId model);
     }
 }

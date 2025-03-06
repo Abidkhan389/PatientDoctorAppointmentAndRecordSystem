@@ -186,7 +186,7 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
                     // Check for an existing appointment within 30 minutes of the selected time
                     if (await IsAppointmentTimeConflictAsync(model.AddEditPatientObj.DoctorId, model.AddEditPatientObj.AppoitmentDate, model.AddEditPatientObj.TimeSlot))
                     {
-                        return CreateErrorResponse("Please choose an appointment time that is at least 30 minutes after the existing appointment from the same doctor.");
+                        return CreateErrorResponse("Please choose an appointment time that is at least 10 minutes after the existing appointment from the same doctor.");
                     }
                     // Update existing patient and appointment records
                     patient.FirstName = model.AddEditPatientObj.FirstName;
@@ -557,9 +557,12 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
 
                 foreach (var slot in timeSlots)
                 {
-                    var slotChunks = GenerateTimeChunks(slot.StartTime, slot.EndTime);
+                    var slotChunks = GenerateTimeChunks(slot.StartTime, slot.EndTime,doctorObj.AppointmentDurationMinutes);
                     doctorTimeSlotsPerDay.DoctorSlots.AddRange(slotChunks);
                 }
+                var appointmentObj = await _context.Appointment.Where(x => x.AppointmentDate.Date == model.AppointmentDate.Date &&
+                                    x.DoctorId == model.DoctorId).Select(x=> x.TimeSlot).ToListAsync();
+                doctorTimeSlotsPerDay.DoctorSlots.RemoveAll(slot => appointmentObj.Contains(slot.DoctorTime));
 
                 _response.Data = doctorTimeSlotsPerDay;
                 _response.Success = Constants.ResponseSuccess;
@@ -571,7 +574,7 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
         /// <summary>
         /// Generates 15-minute chunks between the given start and end times.
         /// </summary>
-        private static List<DoctorTimeSlots> GenerateTimeChunks(string startTime, string endTime)
+        private static List<DoctorTimeSlots> GenerateTimeChunks(string startTime, string endTime, int AppointmentDurationMinutes)
         {
             var result = new List<DoctorTimeSlots>();
 
@@ -587,7 +590,7 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
                     DoctorTime = ConvertTo12HourFormat(start.ToString(@"hh\:mm"))
                 });
 
-                start = start.Add(TimeSpan.FromMinutes(15));
+                start = start.Add(TimeSpan.FromMinutes(AppointmentDurationMinutes));
             }
 
             return result;

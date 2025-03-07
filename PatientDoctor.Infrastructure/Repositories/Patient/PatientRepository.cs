@@ -250,9 +250,10 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
                         join p_details in _context.PatientDetails on patient.PatientId equals p_details.PatientId
                         join App in _context.Appointment on patient.PatientId equals App.PatientId
                         where (
-                                (string.IsNullOrEmpty(model.PatientName) || patient.FirstName.ToLower().Contains(model.PatientName.ToLower()))
+                                (string.IsNullOrEmpty(model.FirstName) || patient.FirstName.ToLower().Contains(model.FirstName.ToLower()))
+                                && (string.IsNullOrEmpty(model.LastName) || patient.LastName.ToLower().Contains(model.LastName.ToLower()))
                              && (string.IsNullOrEmpty(model.City) || p_details.City.ToLower().Contains(model.City.ToLower()))
-                             && (string.IsNullOrEmpty(model.Cnic) || patient.Cnic.ToLower().Contains(model.Cnic.ToLower()))
+                             && (string.IsNullOrEmpty(model.Cnic) || patient.Cnic.ToLower().Contains(model.Cnic))
                              && (string.IsNullOrEmpty(model.MobileNumber) || p_details.PhoneNumber.ToLower().Contains(model.MobileNumber.ToLower()))
                               //(model.DoctorId == null || patient.DoctoerId == model.DoctorId)
                               )
@@ -303,6 +304,7 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
                                     {
                                         PatientId = patient.PatientId,
                                         DoctorId = main.Id,
+                                        DoctorName = main.UserName,
                                         PhoneNumber = p_Details.PhoneNumber,
                                         FirstName = patient.FirstName,
                                         LastName = patient.LastName,

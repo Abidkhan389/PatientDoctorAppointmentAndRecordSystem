@@ -11,7 +11,8 @@ namespace PatientDoctor.Application.Features.Patient.Quries
 {
     public class GetPatientList : TableParam, IRequest<IResponse>
     {
-        public string? PatientName { get; set; }
+        public string? FirstName { get; set; }
+        public string? LastName { get; set; }
         // public DateTime? PatientAppoitmentTime { get; set; }
         //public int? Status { get; set; }
 

@@ -52,9 +52,9 @@ namespace PatientDoctor.API.Controllers
         [Route("GetAllByProc")]
         public async Task<object> GetAllByProc(GetPatientList model)
         {
-            //var DocterId = HelperStatic.GetUserIdFromClaims((ClaimsIdentity)User.Identity);
-            //return await _mediator.Send(new GetPatientListWithDocterId(model, DocterId));
-            return await _mediator.Send(model);
+            var DocterId = HelperStatic.GetUserIdFromClaims((ClaimsIdentity)User.Identity);
+            return await _mediator.Send(new GetPatientListWithUser(model, DocterId));
+            //return await _mediator.Send(model);
         }
         [HttpPost]
         [Route("GetAllTodeyPatientAppoitments")]

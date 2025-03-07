@@ -20,7 +20,7 @@ namespace PatientDoctor.Application.Contracts.Persistance.Patient
         Task<IResponse> GetPatientById(GetPatientById Id);
         Task<IResponse> AddEditPatient(AddEditPatientWithUserId model);
         Task<IResponse> ActiveInActive(ActiveInActivePatients model);
-        Task<IResponse> GetAllByProc(GetPatientList model);
+        Task<IResponse> GetAllByProc(GetPatientListWithUser model);
         Task<IResponse> GetAllPatientAppoitmentWithDoctorProc(GetPatientAppoitmentListWithDocter model);
         Task<IResponse> AddPatientDescription(AddPatientDescriptionCommand model);
         Task<IResponse> GetPatientDescriptionById(GetPatientDescription model);

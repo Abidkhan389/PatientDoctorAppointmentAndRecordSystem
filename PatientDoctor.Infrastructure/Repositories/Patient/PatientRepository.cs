@@ -157,7 +157,8 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
                         PatientId = patientObj.PatientId,
                         AppointmentDate = model.AddEditPatientObj.AppoitmentDate,
                         TimeSlot = model.AddEditPatientObj.TimeSlot,
-                        PatientDetailsId=patientDetails.PatiendDetailsId
+                        PatientDetailsId=patientDetails.PatiendDetailsId,
+                        PatientCheckUpDayId = model.AddEditPatientObj.PatientCheckUpDayId 
                     };
                     await _context.Appointment.AddAsync(patientAppointment);
 
@@ -183,7 +184,7 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
                         // Handle the case where the patient has already taken two appointments.
                         return CreateErrorResponse("You can't take more than two appointments in a day from the same doctor.");
                     }
-                    // Check for an existing appointment within 30 minutes of the selected time
+                    // Check for an existing appointment within 10 minutes of the selected time
                     if (await IsAppointmentTimeConflictAsync(model.AddEditPatientObj.DoctorId, model.AddEditPatientObj.AppoitmentDate, model.AddEditPatientObj.TimeSlot))
                     {
                         return CreateErrorResponse("Please choose an appointment time that is at least 10 minutes after the existing appointment from the same doctor.");
@@ -196,7 +197,7 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
                     patient.DoctoerId = model.AddEditPatientObj.DoctorId;
                     patient.Age = model.AddEditPatientObj.Age;
 
-                    var patientDetails = await _context.PatientDetails.FindAsync(patient.PatientId);
+                    var patientDetails = await _context.PatientDetails.Where(x=>x.PatientId== patient.PatientId).FirstOrDefaultAsync();
                     if (patientDetails == null)
                     {
                         return CreateErrorResponse(Constants.NotFound.Replace("{data}", "Patient Details"));
@@ -219,6 +220,8 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
 
                     existingAppointment.DoctorId = model.AddEditPatientObj.DoctorId;
                     existingAppointment.AppointmentDate = model.AddEditPatientObj.AppoitmentDate;
+                    existingAppointment.TimeSlot = model.AddEditPatientObj.TimeSlot;
+                    existingAppointment.PatientCheckUpDayId = model.AddEditPatientObj.PatientCheckUpDayId   ;
 
                     // Update tables
                     _context.Patient.Update(patient);
@@ -309,10 +312,25 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
                                         MaritalStatus = p_Details.MaritalStatus,
                                         Gender = patient.Gender,
                                         Age = patient.Age,
-                                        AppoitmentTime = app.AppointmentDate
+                                        AppoitmentDate = app.AppointmentDate,
+                                        PatientCheckUpDayId = app.PatientCheckUpDayId,
+                                        TimeSlot = app.TimeSlot
                                     }).FirstOrDefaultAsync();
+           
             if (patientobj != null)
             {
+                var gettimeslotsObj = new GetDoctorTimeSlotsByDayIdAndDoctorId
+                {
+                    DoctorId = patientobj.DoctorId,
+                    DayId = patientobj.PatientCheckUpDayId ?? 0,
+                    AppointmentDate = patientobj.AppoitmentDate
+                };
+
+                var DoctorAvailabalTimeSlot = await GetDoctorAppointmentsSlotsOfDay(gettimeslotsObj);
+                if (DoctorAvailabalTimeSlot != null)
+                {
+                    patientobj.vM_DoctorTimeSlotsPerDay = (VM_DoctorTimeSlotsPerDay?)DoctorAvailabalTimeSlot.Data;
+                }
                 _response.Data = patientobj;
                 _response.Message = Constants.GetData;
                 _response.Success = Constants.ResponseSuccess;
@@ -531,9 +549,9 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
             }
             return _response;
         }
-
+        
         public async Task<IResponse> GetDoctorAppointmentsSlotsOfDay(GetDoctorTimeSlotsByDayIdAndDoctorId model)
-        {
+            {
             var doctorObj = await _context.DoctorAvailabilities
                 .Where(x => x.DoctorId == model.DoctorId && x.DayId == model.DayId)
                 .FirstOrDefaultAsync();

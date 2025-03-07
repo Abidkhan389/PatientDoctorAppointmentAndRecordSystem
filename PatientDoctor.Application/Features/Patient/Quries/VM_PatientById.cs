@@ -12,6 +12,7 @@ namespace PatientDoctor.Application.Features.Patient.Quries
         public Guid PatientId { get; set; }
         public string FirstName { get; set; }
         public string LastName { get; set; }
+        public string? DoctorName { get; set; }
         public string Gender { get; set; }
         public string DoctorId { get; set; }
         public DateTime AppoitmentDate { get; set; }

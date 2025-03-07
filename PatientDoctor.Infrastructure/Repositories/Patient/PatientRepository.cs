@@ -242,20 +242,22 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
             }
         }
 
-        public async Task<IResponse> GetAllByProc(GetPatientList model)
+        public async Task<IResponse> GetAllByProc(GetPatientListWithUser model)
         {
+            var userInfo = await _userManager.FindByIdAsync(model.UserId);
+            var roleName = userInfo?.RoleName;
             model.Sort = model.Sort == null || model.Sort == "" ? "FirstName" : model.Sort;
             var data = (from patient in _context.Patient
                         join main in _context.Users on patient.DoctoerId equals main.Id
                         join p_details in _context.PatientDetails on patient.PatientId equals p_details.PatientId
                         join App in _context.Appointment on patient.PatientId equals App.PatientId
                         where (
-                                (string.IsNullOrEmpty(model.FirstName) || patient.FirstName.ToLower().Contains(model.FirstName.ToLower()))
-                                && (string.IsNullOrEmpty(model.LastName) || patient.LastName.ToLower().Contains(model.LastName.ToLower()))
-                             && (string.IsNullOrEmpty(model.City) || p_details.City.ToLower().Contains(model.City.ToLower()))
-                             && (string.IsNullOrEmpty(model.Cnic) || patient.Cnic.ToLower().Contains(model.Cnic))
-                             && (string.IsNullOrEmpty(model.MobileNumber) || p_details.PhoneNumber.ToLower().Contains(model.MobileNumber.ToLower()))
-                              //(model.DoctorId == null || patient.DoctoerId == model.DoctorId)
+                                (string.IsNullOrEmpty(model.getPatientListObj.FirstName) || patient.FirstName.ToLower().Contains(model.getPatientListObj.FirstName.ToLower()))
+                                && (string.IsNullOrEmpty(model.getPatientListObj.LastName) || patient.LastName.ToLower().Contains(model.getPatientListObj.LastName.ToLower()))
+                             && (string.IsNullOrEmpty(model.getPatientListObj.City) || p_details.City.ToLower().Contains(model.getPatientListObj.City.ToLower()))
+                             && (string.IsNullOrEmpty(model.getPatientListObj.Cnic) || patient.Cnic.ToLower().Contains(model.getPatientListObj.Cnic))
+                             && (string.IsNullOrEmpty(model.getPatientListObj.MobileNumber) || p_details.PhoneNumber.ToLower().Contains(model.getPatientListObj.MobileNumber.ToLower()))
+                              &&(roleName == "SuperAdmin" || roleName == "Receptionist" || patient.DoctoerId == model.UserId)
                               )
                         select new VM_Patient
                         {

@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace PatientDoctor.Application.Features.Patient.Quries
 {
-    public class GetPatientListQueryHandler : IRequestHandler<GetPatientList, IResponse>
+    public class GetPatientListQueryHandler : IRequestHandler<GetPatientListWithUser, IResponse>
     {
         private readonly IPatientRepository _patientRepository;
 
@@ -17,7 +17,7 @@ namespace PatientDoctor.Application.Features.Patient.Quries
         {
             this._patientRepository = patientRepository ?? throw new ArgumentNullException(nameof(patientRepository));
         }
-        public async Task<IResponse> Handle(GetPatientList request, CancellationToken cancellationToken)
+        public async Task<IResponse> Handle(GetPatientListWithUser request, CancellationToken cancellationToken)
         {
             var patient = await _patientRepository.GetAllByProc(request);
             return patient;

@@ -172,7 +172,23 @@ namespace PatientDoctor.Infrastructure.Repositories.Identity
         }
         public async Task<IResponse> LoginUserAsync(LoginUserCommand model)
         {
+            try
+            {
+                var user1 = await _userManager.FindByEmailAsync(model.Email);
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
             var user = await _userManager.FindByEmailAsync(model.Email);
+
+            if (user == null)
+            {
+               // _logger.LogWarning($"User not found for email: {model.Email}");
+               // return Unauthorized(new { message = "Invalid email or password" });
+            }
+
             if (user != null && this._crypto.CheckKey(user.PasswordHash, user.PasswordSalt, model.Password))
             {
                 var userRoles = await _userManager.GetRolesAsync(user);
@@ -394,7 +410,7 @@ namespace PatientDoctor.Infrastructure.Repositories.Identity
 
         public async Task<IResponse> GetAllDoctors()
         {
-            var users= await _context.Users.Where(x=> x.RoleName=="Doctor" && x.Status==1).Select (y=> new {y.Id,y.UserName}).ToListAsync();
+            var users= await _context.Users.Where(x=> x.RoleName=="DOCTOR" && x.Status==1).Select (y=> new {y.Id,y.UserName}).ToListAsync();
 
             _response.Data=users;
             _response.Success = Constants.ResponseSuccess;

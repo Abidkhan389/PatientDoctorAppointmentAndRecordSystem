@@ -17,10 +17,10 @@ namespace PatientDoctor.domain.Entities
             this.Id= Guid.NewGuid();
             this.MedicineName= model.MedicineName;
             this.MedicineTypeId = model.MedicineTypeId;
-            this.medicineTypePotencyId = model.medicineTypePotencyId;
+            this.medicineTypePotencyId = model.MedicineTypePotencyId;
             this.DoctorId=model.DoctorId;
             this.StartingDate=model.StartingDate;
-            this.ExperiyDate=model.ExperiyDate;
+            this.ExpiryDate = model.ExpiryDate;
             this.Status = 1;
             this.CreatedBy = UserId;
             this.CreatedOn = DateTime.UtcNow;
@@ -33,7 +33,7 @@ namespace PatientDoctor.domain.Entities
         public Guid medicineTypePotencyId { get; set; }
         public string DoctorId { get; set; }
         public DateTime StartingDate { get; set; }
-        public DateTime ExperiyDate { get; set; }
+        public DateTime ExpiryDate { get; set; }
         public int Status { get; set; }
 
 

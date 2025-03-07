@@ -12,5 +12,6 @@ namespace PatientDoctor.Application.Contracts.Persistance.IMedicine
         Task<IResponse> AddEditMedicine(AddEditMedicineWithUserId model);
         Task<IResponse> ActiveInActive(ActiveInActiveMedicine model);
         Task<IResponse> GetAllByProc(GetMedicineList model);
+        Task<IResponse> GetAllMedicineTypeList();
     }
 }

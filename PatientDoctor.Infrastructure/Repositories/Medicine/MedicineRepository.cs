@@ -4,6 +4,7 @@ using PatientDoctor.Application.Contracts.Security;
 using PatientDoctor.Application.Features.Medicine.Commands.ActiveInActive;
 using PatientDoctor.Application.Features.Medicine.Commands.AddEditMedicine;
 using PatientDoctor.Application.Features.Medicine.Quries.GetAllByProc;
+using PatientDoctor.Application.Features.Medicine.Quries.GetAllMedicineTypes;
 using PatientDoctor.Application.Features.Medicine.Quries.GetById;
 using PatientDoctor.Application.Features.Medicinetype.Quries;
 using PatientDoctor.Application.Helpers;
@@ -101,9 +102,9 @@ namespace PatientDoctor.Infrastructure.Repositories.Medicine
                         existMedicineObj.MedicineName = model.addEditMedicineObj.MedicineName;
                         existMedicineObj.DoctorId = model.addEditMedicineObj.DoctorId;
                         existMedicineObj.MedicineTypeId = model.addEditMedicineObj.MedicineTypeId;
-                        existMedicineObj.medicineTypePotencyId = model.addEditMedicineObj.medicineTypePotencyId;
+                        existMedicineObj.medicineTypePotencyId = model.addEditMedicineObj.MedicineTypePotencyId;
                         existMedicineObj.StartingDate = model.addEditMedicineObj.StartingDate;
-                        existMedicineObj.ExperiyDate = model.addEditMedicineObj.ExperiyDate;
+                        existMedicineObj.ExpiryDate = model.addEditMedicineObj.ExpiryDate;
                         existMedicineObj.UpdatedBy = model.UserId;
                         existMedicineObj.UpdatedOn = DateTime.UtcNow;
                         _context.Medicine.Update(existMedicineObj);
@@ -143,7 +144,7 @@ namespace PatientDoctor.Infrastructure.Repositories.Medicine
                             DoctorName = doctor.UserName,
                             Status = medicine.Status,
                             StartingDate = medicine.StartingDate,
-                            ExpiryDate = medicine.ExperiyDate // Ensure the property is correctly spelled
+                            ExpiryDate = medicine.ExpiryDate // Ensure the property is correctly spelled
                         }).AsQueryable();
 
 
@@ -165,15 +166,21 @@ namespace PatientDoctor.Infrastructure.Repositories.Medicine
         public async Task<IResponse> GetMedicineById(Guid Id)
         {
             var medicineObj = await (from medicine in _context.Medicine
-                                         where (medicine.Id == Id)
+                                     join user in _context.Users on medicine.DoctorId equals user.Id
+                                     join medicineType in _context.MedicineType on medicine.MedicineTypeId equals medicineType.Id
+                                     join medicinePotency in _context.MedicinePotency on medicine.medicineTypePotencyId equals medicinePotency.Id
+                                     where (medicine.Id == Id)
                                          select new VM_MedicineById
                                          {
                                              MedicineName = medicine.MedicineName,
-                                             MedicineTypeId = medicine.MedicineTypeId,
-                                             MedicineTypePotencyId = medicine.medicineTypePotencyId,
-                                             DoctorId = medicine.DoctorId,
+                                             MedicineTypeName = medicineType.TypeName,
+                                             MedicineTypeId = medicineType.Id,
+                                             MedicineTypePotencyName = medicinePotency.Potency,
+                                             MedicineTypePotencyId = medicinePotency.Id,
+                                             DoctorId = user.Id,
+                                             DoctorName = user.UserName,
                                              StartingDate = medicine.StartingDate,
-                                             ExpiryDate=medicine.ExperiyDate
+                                             ExpiryDate=medicine.ExpiryDate
                                          }).FirstOrDefaultAsync();
             if (medicineObj != null)
             {
@@ -210,6 +217,29 @@ namespace PatientDoctor.Infrastructure.Repositories.Medicine
             {
                 _response.Success = Constants.ResponseFailure;
                 _response.Message = Constants.NotFound.Replace("{data}", "Medicine Potency");
+            }
+            return _response;
+        }
+
+        public async Task<IResponse> GetAllMedicineTypeList()
+        {
+            var medicineTypeObj = await (from medicinetype in _context.MedicineType                                               
+                                                select new VM_GetAllMedicineTypes
+                                                {
+                                                    MedicineTypeId = medicinetype.Id,
+                                                    MedicineTypeName  = medicinetype.TypeName                                                    
+                                                }).ToListAsync();
+
+            if (medicineTypeObj != null)
+            {
+                _response.Data = medicineTypeObj;
+                _response.Message = Constants.GetData;
+                _response.Success = Constants.ResponseSuccess;
+            }
+            else
+            {
+                _response.Success = Constants.ResponseFailure;
+                _response.Message = Constants.NotFound.Replace("{data}", "Medicine Type List");
             }
             return _response;
         }

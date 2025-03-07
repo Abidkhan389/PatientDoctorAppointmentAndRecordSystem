@@ -5,6 +5,7 @@ using PatientDoctor.Application.Features.Medicine.Commands.ActiveInActive;
 using PatientDoctor.Application.Features.Medicine.Commands.AddEditMedicine;
 using PatientDoctor.Application.Features.Medicine.Quries.GetAllByProc;
 using PatientDoctor.Application.Features.Medicine.Quries.GetAllMedicinePotency;
+using PatientDoctor.Application.Features.Medicine.Quries.GetAllMedicineTypes;
 using PatientDoctor.Application.Features.Medicine.Quries.GetById;
 using PatientDoctor.Application.Features.Medicinetype.Quries;
 using PatientDoctor.Application.Helpers;
@@ -42,7 +43,8 @@ namespace PatientDoctor.API.Controllers
         [Route("GetAllByProc")]
         public async Task<Object> GetAllByProc(GetMedicineList model)
         {
-            return await _mediator.Send(model);
+            var result= await _mediator.Send(model);
+            return result;
         }
         [HttpPost]
         [Route("GetMedicineById")]
@@ -50,11 +52,17 @@ namespace PatientDoctor.API.Controllers
         {
             return await _mediator.Send(MedicineId);
         }
-        [HttpPost]
+        [HttpGet]
         [Route("GetMedicinePotencyByMedicineTypeId")]
-        public async Task<object> GetMedicinePotencyByMedicineTypeId(GetAllMedicinePotencyByMedicineTypeId MedicineId)
+        public async Task<object> GetMedicinePotencyByMedicineTypeId([FromQuery]  GetAllMedicinePotencyByMedicineTypeId MedicineId)
         {
             return await _mediator.Send(MedicineId);
+        }
+        [HttpGet]
+        [Route("GetMedicineTypesList")]
+        public async Task<object> GetMedicineTypesList()
+        {
+            return await _mediator.Send(new GetAllMedicineTypes());
         }
     }
 }

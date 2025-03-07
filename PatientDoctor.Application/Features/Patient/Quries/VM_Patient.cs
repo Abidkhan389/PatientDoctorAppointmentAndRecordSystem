@@ -23,5 +23,6 @@ namespace PatientDoctor.Application.Features.Patient.Quries
         public int Status { get; set; }
         public int CheckUpStatus { get; set; }
         public string MaritalStatus { get; set; }
+        public string? TimeSlot { get; set; }
     }
 }

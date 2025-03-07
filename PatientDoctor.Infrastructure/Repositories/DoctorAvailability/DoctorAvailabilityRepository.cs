@@ -143,7 +143,7 @@ public class DoctorAvailabilityRepository(DocterPatiendDbContext _context, IResp
                 : JsonConvert.DeserializeObject<List<DoctorTimeSlot>>(availability.TimeSlotsJson)
                     .Select(slot => new DoctorTimeSlot
                     {
-                        StartTime = slot.StartTime, // Convert back to 12-hour format
+                        StartTime = slot.StartTime, 
                         EndTime = slot.EndTime
                     })
                     .ToList();

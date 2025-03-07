@@ -9,6 +9,7 @@ using PatientDoctor.Application.Features.Patient.Commands.AddEditPatient;
 using PatientDoctor.Application.Features.Patient.Commands.AddPatientDescription;
 using PatientDoctor.Application.Features.Patient.Quries;
 using PatientDoctor.Application.Features.Patient.Quries.GetAllPatientRecordsByDoctor;
+using PatientDoctor.Application.Features.Patient.Quries.GetDoctorSlots;
 using PatientDoctor.Application.Features.Patient.Quries.GetPatientDetailForPdf;
 using PatientDoctor.Application.Helpers;
 using PatientDoctor.Infrastructure.Repositories.GeneralServices;
@@ -85,10 +86,17 @@ namespace PatientDoctor.API.Controllers
             var DocterId = HelperStatic.GetUserIdFromClaims((ClaimsIdentity)User.Identity);
             return await _mediator.Send(new GetPatientRecordListWithDoctor(model, DocterId));
         }
+        
         [HttpPost("GetPatientDetailForPdf")]
         public async Task<Object> GetPatientDetailForPdf(GetPatientDetailsForPdfRequest model)
         {
             return await _mediator.Send(model);
         }
+        [HttpPost("GetDoctorAppointmentsSlotsOfDay")]
+        public async Task<Object> GetDoctorAppointmentsSlotsOfDay(GetDoctorTimeSlotsByDayIdAndDoctorId model)
+        {
+            return await _mediator.Send(model);
+        }
+
     }
 }

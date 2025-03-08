@@ -140,7 +140,8 @@ namespace PatientDoctor.Infrastructure.Repositories.Identity
         {
             var user = await (from main in _userManager.Users
                               join userdetail in _context.Userdetail on main.Id equals userdetail.UserId
-                              join roles in _context.UserRoles on main.Id equals roles.UserId
+                              join userRoles in _context.UserRoles on main.Id equals userRoles.UserId
+                              join roles in _context.Roles on userRoles.RoleId equals roles.Id // ✅ Join with Roles Table
                               where (main.Status == 1 && main.Id == model.id)
                               select new VM_User
                               {
@@ -152,10 +153,12 @@ namespace PatientDoctor.Infrastructure.Repositories.Identity
                                   LastName = userdetail.LastName,
                                   City = userdetail.City,
                                   Cnic = userdetail.Cnic,
-                                  RoleId=roles.RoleId,
+                                  RoleId = roles.Id, // ✅ RoleId from Roles table
+                                  RoleName = roles.Name // ✅ Fetch Role Name
                               }).FirstOrDefaultAsync();
-           
-              
+
+
+
             //var user = await _userManager.FindByIdAsync(UserId.ToString());
             if (user == null)
             {
@@ -257,7 +260,7 @@ namespace PatientDoctor.Infrastructure.Repositories.Identity
                         IsSuperAdmin = false,
                         PhoneNumber = model.addEditUsermodel.MobileNumber,
                         Email = model.addEditUsermodel.Email,
-                        UserName = model.addEditUsermodel.FirstName + "" + model.addEditUsermodel.LastName,
+                        UserName = model.addEditUsermodel.Email,
                         Status = 1,
                     };
                     // salt and hast the password
@@ -296,7 +299,7 @@ namespace PatientDoctor.Infrastructure.Repositories.Identity
 
                     await transaction.CommitAsync();
                     _response.Success = Constants.ResponseSuccess;
-                    _response.Message = Constants.DataSaved;
+                    _response.Message = Constants.Register;
                     return _response;
                 }
                 else
@@ -321,7 +324,7 @@ namespace PatientDoctor.Infrastructure.Repositories.Identity
                     //update existing user
                     existUser.PhoneNumber= model.addEditUsermodel.MobileNumber;
                     existUser.Email = model.addEditUsermodel.Email;
-                    existUser.UserName = model.addEditUsermodel.FirstName + model.addEditUsermodel.LastName;
+                    existUser.UserName = model.addEditUsermodel.Email;
                     var existinguserdetails = await _context.Userdetail.Where(x => x.UserId == existUser.Id).FirstOrDefaultAsync();
                     if (existinguserdetails == null)
                     {

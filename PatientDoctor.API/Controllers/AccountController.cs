@@ -70,16 +70,9 @@ namespace PatientDoctor.API.Controllers
         [Route("GetUserById")]
         public async Task<object> GetUserById(string UserId)
         {
-            if (UserId == null)
-            {
-                _response.Success = Constants.ResponseFailure;
-                _response.Message = Constants.ModelStateStateIsInvalid;
-                return Ok(_response);
-            }
             GetUserById userobj= new GetUserById();
             userobj.id = UserId;
             return await _mediator.Send(userobj);
-
         }
         [HttpGet]
         [Route("GetAllRoles")]

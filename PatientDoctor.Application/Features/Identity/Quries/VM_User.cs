@@ -17,5 +17,6 @@ namespace PatientDoctor.Application.Features.Identity.Quries
         public string City { get; set; }
         public int Status { get; set; }
         public string RoleId { get; set; }
+        public string? RoleName { get; set; }
     }
 }

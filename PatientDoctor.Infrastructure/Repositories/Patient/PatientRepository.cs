@@ -242,10 +242,11 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
             }
         }
 
-        public async Task<IResponse> GetAllByProc(GetPatientListWithUser model)
+        public async Task<IResponse> GetAllByProc(GetPatientListWithUser model) 
         {
             var userInfo = await _userManager.FindByIdAsync(model.UserId);
             var roleName = userInfo?.RoleName;
+            DateTime filterDate = model.getPatientListObj.appoitmentDate?.Date ?? DateTime.Today;
             model.Sort = model.Sort == null || model.Sort == "" ? "FirstName" : model.Sort;
             var data = (from patient in _context.Patient
                         join main in _context.Users on patient.DoctoerId equals main.Id
@@ -257,7 +258,8 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
                              && (string.IsNullOrEmpty(model.getPatientListObj.City) || p_details.City.ToLower().Contains(model.getPatientListObj.City.ToLower()))
                              && (string.IsNullOrEmpty(model.getPatientListObj.Cnic) || patient.Cnic.ToLower().Contains(model.getPatientListObj.Cnic))
                              && (string.IsNullOrEmpty(model.getPatientListObj.MobileNumber) || p_details.PhoneNumber.ToLower().Contains(model.getPatientListObj.MobileNumber.ToLower()))
-                              &&(roleName == "SuperAdmin" || roleName == "Receptionist" || patient.DoctoerId == model.UserId)
+                              && App.AppointmentDate.Date == filterDate
+                              && (roleName == "SuperAdmin" || roleName == "Receptionist" || patient.DoctoerId == model.UserId)
                               )
                         select new VM_Patient
                         {

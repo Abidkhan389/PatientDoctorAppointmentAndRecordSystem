@@ -20,5 +20,6 @@ namespace PatientDoctor.Application.Features.Patient.Quries
         public string? Cnic { get; set; }
         public string? MobileNumber { get; set; }
         public string? City { get; set; }
+        public DateTime? appoitmentDate { get; set; }   
     }
 }

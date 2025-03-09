@@ -1,6 +1,8 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using PatientDoctor.Application.Features.DoctorMedicine.Command;
+using PatientDoctor.Application.Features.DoctorMedicine.Query;
 using PatientDoctor.Application.Features.Medicine.Commands.ActiveInActive;
 using PatientDoctor.Application.Features.Medicine.Commands.AddEditMedicine;
 using PatientDoctor.Application.Features.Medicine.Quries.GetAllByProc;
@@ -63,6 +65,19 @@ namespace PatientDoctor.API.Controllers
         public async Task<object> GetMedicineTypesList()
         {
             return await _mediator.Send(new GetAllMedicineTypes());
+        }
+
+        [HttpGet]
+        [Route("GetDoctorMedicineMappingList")]
+        public async Task<object> GetDoctorMedicineMappingList(Guid MedicineId)
+        {
+            return await _mediator.Send(new DoctorMedicineById(MedicineId));
+        }
+        [HttpPost]
+        [Route("CreateDoctorMedicineMapping")]
+        public async Task<object> CreateDoctorMedicineMapping(AddEditDoctorMedicineCommand model)
+        {
+            return await _mediator.Send(model);
         }
     }
 }

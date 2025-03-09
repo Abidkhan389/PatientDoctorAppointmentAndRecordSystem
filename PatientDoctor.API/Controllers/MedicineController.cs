@@ -69,14 +69,16 @@ namespace PatientDoctor.API.Controllers
 
         [HttpGet]
         [Route("GetDoctorMedicineMappingList")]
-        public async Task<object> GetDoctorMedicineMappingList(Guid MedicineId)
+        public async Task<object> GetDoctorMedicineMappingList([FromQuery] Guid medicineId)
         {
-            return await _mediator.Send(new DoctorMedicineById(MedicineId));
+            return await _mediator.Send(new DoctorMedicineById(medicineId));
         }
         [HttpPost]
         [Route("CreateDoctorMedicineMapping")]
         public async Task<object> CreateDoctorMedicineMapping(AddEditDoctorMedicineCommand model)
         {
+            var UserId = HelperStatic.GetUserIdFromClaims((ClaimsIdentity)User.Identity);
+            model.UserId = UserId.ToString();
             return await _mediator.Send(model);
         }
     }

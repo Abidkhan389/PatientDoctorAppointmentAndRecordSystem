@@ -7,6 +7,8 @@ using PatientDoctor.Application.Features.Medicine.Commands.AddEditMedicine;
 using PatientDoctor.Application.Helpers;
 using PatientDoctor.domain.Entities;
 using PatientDoctor.Infrastructure.Persistance;
+using PatientDoctor.Infrastructure.Repositories.GeneralServices;
+using System.Security.Claims;
 
 namespace PatientDoctor.Infrastructure.Repositories.DoctorMedicine;
 public class DoctorMedicineRepository(DocterPatiendDbContext _context, IResponse _response, ICountResponse _countResp, UserManager<ApplicationUser> _userManager) : IDoctorMedicineRepository
@@ -15,12 +17,16 @@ public class DoctorMedicineRepository(DocterPatiendDbContext _context, IResponse
     {
         try
         {
-            if (model.Id == null)
+            var userInfo = await _userManager.FindByIdAsync(model.UserId);
+            var doctormedicineManagementToUpdate = await _context.DoctorMedicines
+                    .Where(s => s.MedicineId == model.MedicineId)
+                    .ToListAsync();
+            if (!doctormedicineManagementToUpdate.Any())
             {
                 List<DoctorMedicines> doctormedicineList = new List<DoctorMedicines>();
                 foreach (var doctor in model.DoctorIds)
                 {
-                    var DoctorMedicineObj = new DoctorMedicines(model, doctor.DoctorId);
+                    var DoctorMedicineObj = new DoctorMedicines(model, doctor.DoctorId, userInfo.Id);
                     doctormedicineList.Add(DoctorMedicineObj);
                 }
                 await _context.DoctorMedicines.AddRangeAsync(doctormedicineList);
@@ -30,11 +36,6 @@ public class DoctorMedicineRepository(DocterPatiendDbContext _context, IResponse
             }
             else
             {
-                // Fetch existing entities based on ClassRoomId
-                var doctormedicineManagementToUpdate = await _context.DoctorMedicines
-                    .Where(s => s.MedicineId == model.MedicineId)
-                    .ToListAsync();
-
                 // Prepare lists for removal and addition
                 var doctorMedicineToRemove = new List<DoctorMedicines>();
                 var doctorMedicineToAdd = new List<DoctorMedicines>();
@@ -69,6 +70,7 @@ public class DoctorMedicineRepository(DocterPatiendDbContext _context, IResponse
                     var newEntity = new DoctorMedicines
                     {
                         DoctorId = item.DoctorId // Assuming ClassRoomId needs to be set
+                        
                     };
                     doctorMedicineToAdd.Add(newEntity);
                 }
@@ -78,6 +80,7 @@ public class DoctorMedicineRepository(DocterPatiendDbContext _context, IResponse
                 {
                     await _context.DoctorMedicines.AddRangeAsync(doctorMedicineToAdd);
                 }
+                await _context.SaveChangesAsync();
                 _response.Success = Constants.ResponseSuccess;
                 _response.Message = Constants.DataUpdate;
             }
@@ -116,12 +119,13 @@ public class DoctorMedicineRepository(DocterPatiendDbContext _context, IResponse
                         MedicineId = group.Key,
                         DoctorIds = group.Select(item => new DoctorIds
                         {
-                            DoctorId = item.Id
+                            
+                            DoctorId = item.DoctorId
                         }).ToList()
                     })
                     .FirstOrDefault(); // Select the first or default item to return a single object
 
-                _response.Success = Constants.ResponseFailure;
+                _response.Success = Constants.ResponseSuccess;
                 _response.Message = Constants.GetData;
                 _response.Data = DoctorMedicineDto;
             }

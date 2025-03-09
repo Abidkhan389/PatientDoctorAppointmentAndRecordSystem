@@ -18,7 +18,8 @@ public class AddEditDoctorMedicineValidation : AbstractValidator<AddEditDoctorMe
             .SetValidator(new DoctorIdValidator());
 
         RuleFor(x => x.UserId)
-            .Must(id => id == null || id != Guid.Empty).WithMessage("User Id must be a valid GUID if provided.");
+    .Must(id => string.IsNullOrEmpty(id) || Guid.TryParse(id, out _))
+    .WithMessage("User Id must be a valid GUID if provided.");
     }
 }
 
@@ -27,8 +28,7 @@ public class DoctorIdValidator : AbstractValidator<DoctorIds>
     public DoctorIdValidator()
     {
         RuleFor(x => x.DoctorId)
-            .NotEmpty().WithMessage("Doctor Id is required.")
-            .NotEqual(Guid.Empty).WithMessage("Doctor Id must be a valid GUID.");
+             .NotEmpty().WithMessage("Doctor Id is required.");
     }
 }
 

@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PatientDoctor.Infrastructure.Persistance;
 
@@ -11,9 +12,11 @@ using PatientDoctor.Infrastructure.Persistance;
 namespace PatientDoctor.Migrations.Migrations
 {
     [DbContext(typeof(DocterPatiendDbContext))]
-    partial class DocterPatiendDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250309120322_doctormedicinemapping")]
+    partial class doctormedicinemapping
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -396,8 +399,10 @@ namespace PatientDoctor.Migrations.Migrations
                     b.Property<DateTime?>("CreatedOn")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("DoctorId")
-                        .IsRequired()
+                    b.Property<Guid>("DoctorId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("DoctorId1")
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<Guid>("MedicineId")
@@ -411,7 +416,7 @@ namespace PatientDoctor.Migrations.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("DoctorId");
+                    b.HasIndex("DoctorId1");
 
                     b.HasIndex("MedicineId");
 
@@ -820,9 +825,7 @@ namespace PatientDoctor.Migrations.Migrations
                 {
                     b.HasOne("PatientDoctor.domain.Entities.ApplicationUser", "Doctor")
                         .WithMany("DoctorMedicines")
-                        .HasForeignKey("DoctorId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("DoctorId1");
 
                     b.HasOne("PatientDoctor.domain.Entities.Medicine", "Medicine")
                         .WithMany("DoctorMedicines")

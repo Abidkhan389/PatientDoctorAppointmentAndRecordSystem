@@ -34,6 +34,8 @@ namespace PatientDoctor.API.Controllers
         [Route("GetAllByProc")]
         public async Task<Object> GetAllByProc(GetDoctorAvailabiltiesList model)
         {
+            var UserId = HelperStatic.GetUserIdFromClaims((ClaimsIdentity)User.Identity);
+            model.UserId = UserId.ToString();
             return await _mediator.Send(model);
         }
         [HttpPost]

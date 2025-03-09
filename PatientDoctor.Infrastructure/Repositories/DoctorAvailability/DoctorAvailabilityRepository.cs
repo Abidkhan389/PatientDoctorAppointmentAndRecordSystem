@@ -172,9 +172,14 @@ public class DoctorAvailabilityRepository(DocterPatiendDbContext _context, IResp
         model.Sort = string.IsNullOrEmpty(model.Sort) ? "DayId" : model.Sort;
         try
         {
+            var userInfo = await _userManager.FindByIdAsync(model.UserId);
+            var roleName = userInfo?.RoleName;
             var data = (from availability in _context.DoctorAvailabilities
                         join doctor in _context.Users on availability.DoctorId equals doctor.Id
-                        where (model.DayId == null || availability.DayId == model.DayId)
+                        where (
+                        (model.DayId == null || availability.DayId == model.DayId)
+                         && (roleName == "SuperAdmin" || roleName == "Receptionist" || availability.DoctorId == model.UserId)
+                        )
                         select new
                         {
                             AvailabilityId = availability.AvailabilityId,
@@ -228,6 +233,7 @@ public class DoctorAvailabilityRepository(DocterPatiendDbContext _context, IResp
         {
             _response.Success = Constants.ResponseFailure;
             _response.Message = ex.Message;
+            _countResp.TotalCount =  0;
             return _response;
         }
     }

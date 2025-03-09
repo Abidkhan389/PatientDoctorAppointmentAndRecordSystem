@@ -13,7 +13,7 @@ public class GetPatientListWithUser : TableParam, IRequest<IResponse>
     public GetPatientListWithUser(GetPatientList model, Guid Userid)
     {
         getPatientListObj = model;
-        this.UserId = Userid.ToString(); ;
+        this.UserId = Userid.ToString(); 
     }
 }
 

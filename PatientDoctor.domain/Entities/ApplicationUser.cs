@@ -22,5 +22,6 @@ namespace PatientDoctor.domain.Entities
             this.IsSuperAdmin = false;
             this.PasswordHash = string.Empty;
         }
+        public ICollection<DoctorMedicines> DoctorMedicines { get; set; } = new List<DoctorMedicines>();
     }
 }

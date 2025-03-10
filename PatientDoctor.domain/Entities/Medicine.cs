@@ -35,7 +35,7 @@ namespace PatientDoctor.domain.Entities
         public DateTime StartingDate { get; set; }
         public DateTime ExpiryDate { get; set; }
         public int Status { get; set; }
-
+        public ICollection<DoctorMedicines> DoctorMedicines { get; set; } = new List<DoctorMedicines>();
 
     }
 }

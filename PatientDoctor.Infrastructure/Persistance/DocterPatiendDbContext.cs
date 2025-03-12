@@ -30,6 +30,8 @@ namespace PatientDoctor.Infrastructure.Persistance
 
         public virtual DbSet<City> Cities { get; set; } = null!;
         public virtual DbSet<DoctorMedicines> DoctorMedicines { get; set; } = null!;
+        public virtual DbSet<Prescription> Prescriptions { get; set; } = null!;
+        public virtual DbSet<PrescriptionMedicine> PrescriptionMedicines { get; set; } = null!;
 
     }
 }

@@ -23,5 +23,6 @@ namespace PatientDoctor.domain.Entities
             this.PasswordHash = string.Empty;
         }
         public ICollection<DoctorMedicines> DoctorMedicines { get; set; } = new List<DoctorMedicines>();
+        public virtual ICollection<Prescription> Prescriptions { get; set; } = new List<Prescription>();
     }
 }

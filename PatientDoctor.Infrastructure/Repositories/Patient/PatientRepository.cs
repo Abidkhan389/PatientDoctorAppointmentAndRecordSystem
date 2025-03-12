@@ -268,6 +268,7 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
                             LastName=patient.LastName,
                             Gender = patient.Gender,
                             DoctorName = main.UserName,
+                            DoctorId = main .Id,
                             AppointmentTime = App.AppointmentDate.Date,
                             PatientPhoneNumber = p_details.PhoneNumber,
                             DoctorPhoneNumber = main.PhoneNumber,

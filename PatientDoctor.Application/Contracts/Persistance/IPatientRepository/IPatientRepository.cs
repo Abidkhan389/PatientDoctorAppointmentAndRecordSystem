@@ -22,7 +22,7 @@ namespace PatientDoctor.Application.Contracts.Persistance.Patient
         Task<IResponse> ActiveInActive(ActiveInActivePatients model);
         Task<IResponse> GetAllByProc(GetPatientListWithUser model);
         Task<IResponse> GetAllPatientAppoitmentWithDoctorProc(GetPatientAppoitmentListWithDocter model);
-        Task<IResponse> AddPatientDescription(AddPatientDescriptionCommand model);
+        Task<IResponse> AddEditPatientDescription(AddPatientDescriptionCommand model);
         Task<IResponse> GetPatientDescriptionById(GetPatientDescription model);
         Task<IResponse> GetPatientsRecordWithDoctorProc(GetPatientRecordListWithDoctor model);
         Task<IResponse> GetPatientDetailsForPdf(GetPatientDetailsForPdfRequest model);

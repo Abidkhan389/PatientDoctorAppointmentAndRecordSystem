@@ -268,6 +268,7 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
                             LastName=patient.LastName,
                             Gender = patient.Gender,
                             DoctorName = main.UserName,
+                            DoctorId = main .Id,
                             AppointmentTime = App.AppointmentDate.Date,
                             PatientPhoneNumber = p_details.PhoneNumber,
                             DoctorPhoneNumber = main.PhoneNumber,
@@ -350,52 +351,169 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
 
         }
 
-        public async Task<IResponse> AddPatientDescription(AddPatientDescriptionCommand model)
+        public async Task<IResponse> AddEditPatientDescription(AddPatientDescriptionCommand model)
         {
+            using var transaction = _context.Database.BeginTransaction();
             try
             {
-
-                var patient = await _context.Patient
-                .Where(x => x.PatientId == model.PatientId)
-                .FirstOrDefaultAsync();
-                var patientDetails = await _context.PatientDetails
-                    .FirstOrDefaultAsync(pd => pd.PatientId == model.PatientId);
-                if (patientDetails != null && patient != null)
+                if (model.Id == null)
                 {
-                    patient.Description= System.Text.Json.JsonSerializer.Serialize(model);
-                    patientDetails.CheckUpStatus = 1; // update check status to 1, its means patient is checked
-                    patientDetails.CreatedOn = DateTime.Now;
-                    _context.Patient.Update(patient);
-                    _context.PatientDetails.Update(patientDetails);
-                    var data = await (from patnt in _context.Patient
-                                      join p_details in _context.PatientDetails on patnt.PatientId equals p_details.PatientId
-                                      join main in _context.Users on patnt.DoctoerId equals main.Id
-                                      join DctrCheckUpFeeDetls in _context.DoctorCheckUpFeeDetails on patient.DoctoerId equals DctrCheckUpFeeDetls.DoctorId
-                                      select new PatientCheckedUpFeeHistroyDto
-                                      {
-                                        DoctorId= patient.DoctoerId,
-                                        DoctorName = main.UserName,
-                                        DoctorEmail = main.Email, 
-                                        DoctorNumber = main.PhoneNumber,
-                                        PatientId= patient.PatientId,
-                                        PatientName= patient.FirstName + patient.LastName,
-                                        PatientNumber= p_details.PhoneNumber,
-                                        PatientCnic = patient.Cnic,
-                                        CheckUpFee = DctrCheckUpFeeDetls.DoctorFee
-                                      }).FirstOrDefaultAsync();
-                    var patientCheckedUpFeeHistroy = new PatientCheckedUpFeeHistroy(data);
-                    await _context.PatientCheckedUpFeeHistroy.AddAsync(patientCheckedUpFeeHistroy);
-                    await _context.SaveChangesAsync();
-                    _response.Success = Constants.ResponseSuccess;
-                    _response.Message = Constants.DataUpdate;
+
+
+                    var patientDetails = await _context.PatientDetails
+                        .FirstOrDefaultAsync(pd => pd.PatientId == model.PatientId);
+
+                    if (patientDetails != null)
+                    {
+                        var patienCheckUpDescription = new Prescription(model);
+                        patientDetails.CheckUpStatus = 1; // update check status to 1, its means patient is checked
+                        patientDetails.CreatedOn = DateTime.Now;
+                        await _context.Prescriptions.AddAsync(patienCheckUpDescription);
+                        _context.PatientDetails.Update(patientDetails);
+                        //var data = await (from patnt in _context.Patient
+                        //                  join p_details in _context.PatientDetails on patnt.PatientId equals p_details.PatientId
+                        //                  join main in _context.Users on patnt.DoctoerId equals main.Id
+                        //                  join DctrCheckUpFeeDetls in _context.DoctorCheckUpFeeDetails on patient.DoctoerId equals DctrCheckUpFeeDetls.DoctorId
+                        //                  select new PatientCheckedUpFeeHistroyDto
+                        //                  {
+                        //                      DoctorId = patient.DoctoerId,
+                        //                      DoctorName = main.UserName,
+                        //                      DoctorEmail = main.Email,
+                        //                      DoctorNumber = main.PhoneNumber,
+                        //                      PatientId = patient.PatientId,
+                        //                      PatientName = patient.FirstName + patient.LastName,
+                        //                      PatientNumber = p_details.PhoneNumber,
+                        //                      PatientCnic = patient.Cnic,
+                        //                      CheckUpFee = DctrCheckUpFeeDetls.DoctorFee
+                        //                  }).FirstOrDefaultAsync();
+                        //var patientCheckedUpFeeHistroy = new PatientCheckedUpFeeHistroy(data);
+                        //await _context.PatientCheckedUpFeeHistroy.AddAsync(patientCheckedUpFeeHistroy);
+                        await _context.SaveChangesAsync();
+                        await transaction.CommitAsync();
+                        _response.Success = Constants.ResponseSuccess;
+                        _response.Message = Constants.DataUpdate;
+                    }
+                }
+                else
+                {
+                    var existingPrescription = await _context.Prescriptions
+                    .Include(x => x.Medicines)
+                    .FirstOrDefaultAsync(x => x.PrescriptionId == model.Id);
+
+                    if (existingPrescription != null)
+                    {
+                        // Update prescription fields
+                        existingPrescription.LeftVision = model.LeftVision;
+                        existingPrescription.RightVision = model.RightVision;
+                        existingPrescription.LeftMG = model.LeftMG;
+                        existingPrescription.RightMG = model.RightMG;
+                        existingPrescription.LeftEOM = model.LeftEOM;
+                        existingPrescription.RightEOM = model.RightEom;
+                        existingPrescription.LeftOrtho = model.LeftOrtho;
+                        existingPrescription.RightOrtho = model.RightOrtho;
+                        existingPrescription.LeftTension = model.LeftTension;
+                        existingPrescription.RightTension = model.RightTension;
+                        existingPrescription.LeftAntSegment = model.LeftAntSegment;
+                        existingPrescription.RightAntSegment = model.RightAntSegment;
+                        existingPrescription.LeftDisc = model.LeftDisc;
+                        existingPrescription.RightDisc = model.RightDisc;
+                        existingPrescription.LeftMacula = model.LeftMacula;
+                        existingPrescription.RightMacula = model.RightMacula;
+                        existingPrescription.LeftPeriphery = model.LeftPeriphery;
+                        existingPrescription.RightPeriphery = model.RightPeriphery;
+                        existingPrescription.Complaint = model.ComplaintOf;
+                        existingPrescription.Diagnosis = model.Diagnosis;
+                        existingPrescription.Plan = model.Plan;
+                        existingPrescription.UpdatedOn = DateTime.UtcNow;
+                        existingPrescription.UpdatedBy = model.UserId;
+
+                        //// 1. Remove old medicines
+                        //_context.PrescriptionMedicines.RemoveRange(existingPrescription.Medicines);
+
+                        //// 2. Add new medicines
+                        //var updatedMedicines = model.medicine.Select(m => new PrescriptionMedicine
+                        //{
+                        //    PrescriptionId = existingPrescription.PrescriptionId,
+                        //    MedicineId = m.MedicineId,
+                        //    DurationInDays = m.DurationInDays,
+                        //    Morning = m.Morning,
+                        //    Afternoon = m.Afternoon,
+                        //    Evening = m.Evening,
+                        //    Night = m.Night,
+                        //    RepeatEveryHours = m.RepeatEveryHours,
+                        //    RepeatEveryTwoHours = m.RepeatEveryTwoHours
+                        //}).ToList();
+
+                        //existingPrescription.Medicines = updatedMedicines;
+
+                        //_context.Prescriptions.Update(existingPrescription); its optionall
+                        // Update/Add medicines
+                        var existingMedicines = existingPrescription.Medicines;
+                        var newMedicines = new List<PrescriptionMedicine>();
+
+                        foreach (var m in model.medicine)
+                        {
+                            var existing = existingMedicines.FirstOrDefault(x => x.Id == m.Id);
+
+                            if (existing != null)
+                            {
+                                // Update existing
+                                existing.MedicineId = m.MedicineId;
+                                existing.DurationInDays = m.DurationInDays;
+                                existing.Morning = m.Morning;
+                                existing.Afternoon = m.Afternoon;
+                                existing.Evening = m.Evening;
+                                existing.Night = m.Night;
+                                existing.RepeatEveryHours = m.RepeatEveryHours;
+                                existing.RepeatEveryTwoHours = m.RepeatEveryTwoHours;
+                            }
+                            else
+                            {
+                                // Add new
+                                newMedicines.Add(new PrescriptionMedicine
+                                {
+                                    Id = Guid.NewGuid(),
+                                    PrescriptionId = existingPrescription.PrescriptionId,
+                                    MedicineId = m.MedicineId,
+                                    DurationInDays = m.DurationInDays,
+                                    Morning = m.Morning,
+                                    Afternoon = m.Afternoon,
+                                    Evening = m.Evening,
+                                    Night = m.Night,
+                                    RepeatEveryHours = m.RepeatEveryHours,
+                                    RepeatEveryTwoHours = m.RepeatEveryTwoHours
+                                });
+                            }
+                        }
+
+                        // Add all new medicines at once
+                        _context.PrescriptionMedicines.AddRange(newMedicines);
+
+                        // Remove deleted medicines
+                        var medicineIdsFromModel = model.medicine
+                            .Where(m => m.Id != null)
+                            .Select(m => m.Id)
+                            .ToList();
+                        var toRemove = existingMedicines
+                            .Where(em => em.Id != null && !medicineIdsFromModel.Contains(em.Id))
+                            .ToList();
+
+                        if (toRemove.Any())
+                            _context.PrescriptionMedicines.RemoveRange(toRemove);
+
+                        // Save everything
+                        await _context.SaveChangesAsync();
+                    }
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                _response.Success= Constants.ResponseFailure;
+                await transaction.RollbackAsync(); // Rollback the transaction in case of an exception
+                _response.Success = Constants.ResponseFailure;
                 _response.Message = ex.Message;
             }
             return _response;
+
         }
 
         public async Task<IResponse> GetAllPatientAppoitmentWithDoctorProc(GetPatientAppoitmentListWithDocter model)

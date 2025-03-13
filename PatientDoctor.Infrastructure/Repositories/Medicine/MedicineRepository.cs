@@ -4,17 +4,12 @@ using PatientDoctor.Application.Contracts.Security;
 using PatientDoctor.Application.Features.Medicine.Commands.ActiveInActive;
 using PatientDoctor.Application.Features.Medicine.Commands.AddEditMedicine;
 using PatientDoctor.Application.Features.Medicine.Quries.GetAllByProc;
+using PatientDoctor.Application.Features.Medicine.Quries.GetAllMedicine;
 using PatientDoctor.Application.Features.Medicine.Quries.GetAllMedicineTypes;
 using PatientDoctor.Application.Features.Medicine.Quries.GetById;
-using PatientDoctor.Application.Features.Medicinetype.Quries;
 using PatientDoctor.Application.Helpers;
 using PatientDoctor.Infrastructure.Persistance;
 using PatientDoctor.Infrastructure.Repositories.GeneralServices;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace PatientDoctor.Infrastructure.Repositories.Medicine
 {
@@ -223,12 +218,12 @@ namespace PatientDoctor.Infrastructure.Repositories.Medicine
 
         public async Task<IResponse> GetAllMedicineTypeList()
         {
-            var medicineTypeObj = await (from medicinetype in _context.MedicineType                                               
-                                                select new VM_GetAllMedicineTypes
-                                                {
-                                                    MedicineTypeId = medicinetype.Id,
-                                                    MedicineTypeName  = medicinetype.TypeName                                                    
-                                                }).ToListAsync();
+            var medicineTypeObj = await (from medicinetype in _context.MedicineType
+                                         select new VM_GetAllMedicineTypes
+                                         {
+                                             MedicineTypeId = medicinetype.Id,
+                                             MedicineTypeName = medicinetype.TypeName
+                                         }).ToListAsync();
 
             if (medicineTypeObj != null)
             {
@@ -240,6 +235,29 @@ namespace PatientDoctor.Infrastructure.Repositories.Medicine
             {
                 _response.Success = Constants.ResponseFailure;
                 _response.Message = Constants.NotFound.Replace("{data}", "Medicine Type List");
+            }
+            return _response;
+        }
+        public async Task<IResponse> GetAllMedicineList(GetAllMedicines model)
+        {
+            var medicineTypeObj = await (from medicine in _context.Medicine
+                                         where medicine.DoctorId == model.DoctorId
+                                         select new VM_AllMedicine
+                                         {
+                                             MedicineId = medicine.Id,
+                                             MedicineName = medicine.MedicineName
+                                         }).ToListAsync();
+
+            if (medicineTypeObj != null)
+            {
+                _response.Data = medicineTypeObj;
+                _response.Message = Constants.GetData;
+                _response.Success = Constants.ResponseSuccess;
+            }
+            else
+            {
+                _response.Success = Constants.ResponseFailure;
+                _response.Message = Constants.NotFound.Replace("{data}", "Medicine  List");
             }
             return _response;
         }

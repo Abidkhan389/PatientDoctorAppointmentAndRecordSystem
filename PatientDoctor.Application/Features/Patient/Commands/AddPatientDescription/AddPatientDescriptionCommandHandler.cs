@@ -18,7 +18,7 @@ namespace PatientDoctor.Application.Features.Patient.Commands.AddPatientDescript
         }
         public Task<IResponse> Handle(AddPatientDescriptionCommand request, CancellationToken cancellationToken)
         {
-            return _patientRepository.AddPatientDescription(request);
+            return _patientRepository.AddEditPatientDescription(request);
         }
     }
 }

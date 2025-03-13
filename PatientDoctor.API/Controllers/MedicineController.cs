@@ -6,6 +6,7 @@ using PatientDoctor.Application.Features.DoctorMedicine.Query;
 using PatientDoctor.Application.Features.Medicine.Commands.ActiveInActive;
 using PatientDoctor.Application.Features.Medicine.Commands.AddEditMedicine;
 using PatientDoctor.Application.Features.Medicine.Quries.GetAllByProc;
+using PatientDoctor.Application.Features.Medicine.Quries.GetAllMedicine;
 using PatientDoctor.Application.Features.Medicine.Quries.GetAllMedicinePotency;
 using PatientDoctor.Application.Features.Medicine.Quries.GetAllMedicineTypes;
 using PatientDoctor.Application.Features.Medicine.Quries.GetById;
@@ -65,6 +66,12 @@ namespace PatientDoctor.API.Controllers
         public async Task<object> GetMedicineTypesList()
         {
             return await _mediator.Send(new GetAllMedicineTypes());
+        }
+        [HttpPost]
+        [Route("GetMedicineList")]
+        public async Task<object> GetMedicineList(GetAllMedicines model)
+        {
+            return await _mediator.Send(model);
         }
 
         [HttpGet]

@@ -19,6 +19,7 @@ namespace PatientDoctor.Application.Features.Identity.Commands.RegisterUser
         public string Cnic { get; set; }
         public string City { get; set; }
         public string RoleId { get; set; }
+        public int? Fee { get; set; }
         public string? ProfilePicture { get; set; }
 
 

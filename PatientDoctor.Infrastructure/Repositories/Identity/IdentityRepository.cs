@@ -154,7 +154,8 @@ namespace PatientDoctor.Infrastructure.Repositories.Identity
                                   City = userdetail.City,
                                   Cnic = userdetail.Cnic,
                                   RoleId = roles.Id, // ✅ RoleId from Roles table
-                                  RoleName = roles.Name // ✅ Fetch Role Name
+                                  RoleName = roles.Name, // ✅ Fetch Role Name
+                                  Fee = userdetail.Fee ?? 0 // ✅ Fetch Role Name
                               }).FirstOrDefaultAsync();
 
 
@@ -339,6 +340,7 @@ namespace PatientDoctor.Infrastructure.Repositories.Identity
                     existinguserdetails.FirstName=model.addEditUsermodel.FirstName;
                     existinguserdetails.LastName = model.addEditUsermodel.LastName;
                     existinguserdetails.UpdatedOn= DateTime.Now;
+                    existinguserdetails.Fee = model.addEditUsermodel.Fee;
                     //update user
                     var result = await _userManager.UpdateAsync(existUser);
                     if (!result.Succeeded)

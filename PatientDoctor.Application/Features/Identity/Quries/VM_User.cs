@@ -18,5 +18,6 @@ namespace PatientDoctor.Application.Features.Identity.Quries
         public int Status { get; set; }
         public string RoleId { get; set; }
         public string? RoleName { get; set; }
+        public int? Fee { get; set; }
     }
 }

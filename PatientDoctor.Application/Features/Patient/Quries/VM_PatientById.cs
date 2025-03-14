@@ -24,6 +24,7 @@ namespace PatientDoctor.Application.Features.Patient.Quries
         public string TimeSlot { get; set; }
         public string Cnic { get; set; }
         public string MaritalStatus { get; set; }
+        public int? DoctorFee { get; set; }
         public VM_DoctorTimeSlotsPerDay? vM_DoctorTimeSlotsPerDay { get; set; }
     }
 }

@@ -18,7 +18,7 @@ namespace PatientDoctor.domain.Entities
         public Guid PatientId { get; set; } // Foreign key to reference the patient.
 
         public string DoctorId { get; set; } // Foreign key to reference the doctor.
-
+        public int DoctorFee { get; set; }
         public DateTime AppointmentDate { get; set; }
         public string TimeSlot { get; set; }
         public int PatientCheckUpDayId { get; set; }

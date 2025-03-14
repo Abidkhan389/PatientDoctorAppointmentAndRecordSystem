@@ -21,5 +21,6 @@ namespace PatientDoctor.domain.Entities
         public int Status {  get; set; }
         public string? MaritalStatus { get; set; }
         public int CheckUpStatus { get; set; }
+
     }
 }

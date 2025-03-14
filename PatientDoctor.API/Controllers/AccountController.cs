@@ -6,6 +6,7 @@ using PatientDoctor.Application.Features.Identity.Commands.ActiveInActive;
 using PatientDoctor.Application.Features.Identity.Commands.LoginUser;
 using PatientDoctor.Application.Features.Identity.Commands.RegisterUser;
 using PatientDoctor.Application.Features.Identity.Quries;
+using PatientDoctor.Application.Features.Identity.Quries.GetDoctorFee.GetDoctorFeeById;
 using PatientDoctor.Application.Features.Patient.Quries;
 using PatientDoctor.Application.Helpers;
 using PatientDoctor.Infrastructure.Repositories.GeneralServices;
@@ -92,6 +93,12 @@ namespace PatientDoctor.API.Controllers
                 return Ok(_response);
             }
             return await identityRepository.GetAllDoctors();
+        }
+        [HttpGet]
+        [Route("GetDoctorFeeByDocotorId")]
+        public async Task<object> GetDoctorFeeByDocotorId(string DoctorId)
+        {
+            return await _mediator.Send(new GetDoctorFee(DoctorId));
         }
     }
 }

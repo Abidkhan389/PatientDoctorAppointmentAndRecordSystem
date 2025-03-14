@@ -172,15 +172,7 @@ namespace PatientDoctor.Infrastructure.Repositories.Identity;
         }
         public async Task<IResponse> LoginUserAsync(LoginUserCommand model)
         {
-            try
-            {
-                var user1 = await _userManager.FindByEmailAsync(model.Email);
-
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
+           
             var user = await _userManager.FindByEmailAsync(model.Email);
 
             if (user == null)
@@ -429,19 +421,18 @@ namespace PatientDoctor.Infrastructure.Repositories.Identity;
         var doctorFee = await (from main in _userManager.Users
                                join userdetails in _context.Userdetail on main.Id equals userdetails.UserId
                                where main.Id == model.DoctorId
-                               select new { Fee = userdetails.City }
+                               select new { Fee = userdetails.Fee }
                               ).FirstOrDefaultAsync();
         if (doctorFee == null)
         {
             _response.Success = Constants.ResponseFailure;
             _response.Message = Constants.NotFound.Replace("{data}", "user");
-            _response.Data = 0;
         }
         else
         {
             _response.Success = Constants.ResponseSuccess;
             _response.Message = Constants.GetData;
-            _response.Data = 1500;
+            _response.Data = doctorFee;
         }
         return _response;
     }

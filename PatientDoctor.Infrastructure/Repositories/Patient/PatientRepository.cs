@@ -11,8 +11,6 @@ using PatientDoctor.Infrastructure.Repositories.GeneralServices;
 using PatientDoctor.Application.Features.Patient.Commands.ActiveInActive;
 using PatientDoctor.Application.Features.Patient.Commands.AddEditPatient;
 using PatientDoctor.Application.Features.Patient.Commands.AddPatientDescription;
-using System.Text.Json;
-using PatientDoctor.Application.Features.Patient.Commands.AddPatientDescription.PatientCheckedUpFeeHistroy;
 using PatientDoctor.Application.Features.Patient.Quries.GetAllPatientRecordsByDoctor;
 using PatientDoctor.Application.Features.Patient.Quries.GetPatientDetailForPdf;
 using PatientDoctor.Application.Features.Patient.Quries.GetDoctorSlots;
@@ -120,47 +118,76 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
                     {
                         return CreateErrorResponse("Please choose an appointment time that is at least 10 minutes after the existing appointment from the same doctor.");
                     }
+                    // Check if patient already exists
+                    var existingPatient = await (from p in _context.Patient
+                                                 join pd in _context.PatientDetails on p.PatientId equals pd.PatientId
+                                                 where p.FirstName == model.AddEditPatientObj.FirstName
+                                                       && p.LastName == model.AddEditPatientObj.LastName
+                                                       && p.Cnic == model.AddEditPatientObj.Cnic
+                                                       && p.Gender == model.AddEditPatientObj.Gender
+                                                       && pd.PhoneNumber == model.AddEditPatientObj.PhoneNumber
+                                                 select new { Patient = p, PatientDetails = pd }).FirstOrDefaultAsync();
 
-                    // Create new patient, patient details, and appointment records
-                    var patientObj = new PatientDoctor.domain.Entities.Patient
-                    {
-                        PatientId = Guid.NewGuid(),
-                        FirstName = model.AddEditPatientObj.FirstName,
-                        LastName = model.AddEditPatientObj.LastName,
-                        Status = 1,
-                        Cnic = model.AddEditPatientObj.Cnic,
-                        Gender = model.AddEditPatientObj.Gender,
-                        DoctoerId = model.AddEditPatientObj.DoctorId,
-                        Age = model.AddEditPatientObj.Age,
-                        Description="",
-                    };
-                    await _context.Patient.AddAsync(patientObj);
+                    Guid patientId;
+                    Guid patientDetailsId;
 
-                    var patientDetails = new PatientDetails
+                    if (existingPatient == null)
                     {
-                        PatiendDetailsId = Guid.NewGuid(),
-                        PatientId = patientObj.PatientId,
-                        PhoneNumber = model.AddEditPatientObj.PhoneNumber,
-                        City = model.AddEditPatientObj.City,
-                        BloodType = model.AddEditPatientObj.BloodType,
-                        Status = 1,
-                        MaritalStatus = model.AddEditPatientObj.MaritalStatus,
-                        CheckUpStatus = 0, // 0 for bydefault waiting, means patient is in waiting list
-                        CreatedBy=model.UserId,
-                        CreatedOn=DateTime.Now,
-                    };
-                    await _context.PatientDetails.AddAsync(patientDetails);
-                    var patientAppointment = new Appointment
+                        // Create Patient
+                        var patient = new PatientDoctor.domain.Entities.Patient
+                        {
+                            PatientId = Guid.NewGuid(),
+                            FirstName = model.AddEditPatientObj.FirstName,
+                            LastName = model.AddEditPatientObj.LastName,
+                            Status = 1,
+                            Cnic = model.AddEditPatientObj.Cnic,
+                            Gender = model.AddEditPatientObj.Gender,
+                            DoctoerId = model.AddEditPatientObj.DoctorId,
+                            Age = model.AddEditPatientObj.Age,
+                            Description = ""
+                        };
+                        await _context.Patient.AddAsync(patient);
+
+                        // Create Patient Details
+                        var patientDetails = new PatientDetails
+                        {
+                            PatiendDetailsId = Guid.NewGuid(),
+                            PatientId = patient.PatientId,
+                            PhoneNumber = model.AddEditPatientObj.PhoneNumber,
+                            City = model.AddEditPatientObj.City,
+                            BloodType = model.AddEditPatientObj.BloodType,
+                            Status = 1,
+                            MaritalStatus = model.AddEditPatientObj.MaritalStatus,
+                            CheckUpStatus = 0, // 0 = Waiting
+                            CreatedBy = model.UserId,
+                            CreatedOn = DateTime.Now
+                        };
+                        await _context.PatientDetails.AddAsync(patientDetails);
+
+                        // Store IDs for appointment
+                        patientId = patient.PatientId;
+                        patientDetailsId = patientDetails.PatiendDetailsId;
+                    }
+                    else
+                    {
+                        // Use existing IDs
+                        patientId = existingPatient.Patient.PatientId;
+                        patientDetailsId = existingPatient.PatientDetails.PatiendDetailsId;
+                    }
+
+                    // Create Appointment (common code for both conditions)
+                    var appointment = new Appointment
                     {
                         AppointmentId = Guid.NewGuid(),
                         DoctorId = model.AddEditPatientObj.DoctorId,
-                        PatientId = patientObj.PatientId,
+                        PatientId = patientId,
                         AppointmentDate = model.AddEditPatientObj.AppoitmentDate,
                         TimeSlot = model.AddEditPatientObj.TimeSlot,
-                        PatientDetailsId=patientDetails.PatiendDetailsId,
-                        PatientCheckUpDayId = model.AddEditPatientObj.PatientCheckUpDayId 
+                        PatientDetailsId = patientDetailsId,
+                        DoctorFee=model.AddEditPatientObj.doctorFee,
+                        PatientCheckUpDayId = model.AddEditPatientObj.PatientCheckUpDayId
                     };
-                    await _context.Appointment.AddAsync(patientAppointment);
+                    await _context.Appointment.AddAsync(appointment);
 
                     await _context.SaveChangesAsync();
                     await transaction.CommitAsync();
@@ -258,7 +285,7 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
                              && (string.IsNullOrEmpty(model.getPatientListObj.City) || p_details.City.ToLower().Contains(model.getPatientListObj.City.ToLower()))
                              && (string.IsNullOrEmpty(model.getPatientListObj.Cnic) || patient.Cnic.ToLower().Contains(model.getPatientListObj.Cnic))
                              && (string.IsNullOrEmpty(model.getPatientListObj.MobileNumber) || p_details.PhoneNumber.ToLower().Contains(model.getPatientListObj.MobileNumber.ToLower()))
-                              && App.AppointmentDate.Date == filterDate
+                              && App.AppointmentDate.Date == filterDate.Date
                               && (roleName == "SuperAdmin" || roleName == "Receptionist" || patient.DoctoerId == model.UserId)
                               )
                         select new VM_Patient
@@ -311,6 +338,7 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
                                         DoctorId = main.Id,
                                         DoctorName = main.UserName,
                                         PhoneNumber = p_Details.PhoneNumber,
+                                        DoctorFee = app.DoctorFee ,
                                         FirstName = patient.FirstName,
                                         LastName = patient.LastName,
                                         City = p_Details.City,

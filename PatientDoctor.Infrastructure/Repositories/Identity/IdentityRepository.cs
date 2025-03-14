@@ -1,15 +1,10 @@
 ﻿using AutoMapper;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 using PatientDoctor.Application.Contracts.Persistance.IIdentityRepository;
 using PatientDoctor.Application.Contracts.Security;
 using PatientDoctor.Application.Helpers;
 using PatientDoctor.domain.Entities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using PatientDoctor.Infrastructure.Persistance;
 using PatientDoctor.Application.Features.Identity.Commands.LoginUser;
 using PatientDoctor.Application.Features.Identity.Commands.RegisterUser;
@@ -18,14 +13,13 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using Microsoft.Extensions.Configuration;
-using PatientDoctor.Infrastructure.Utalities;
 using PatientDoctor.Application.Features.Identity.Quries;
 using Microsoft.EntityFrameworkCore;
 using PatientDoctor.Infrastructure.Repositories.GeneralServices;
 using System.Data;
+using PatientDoctor.Application.Features.Identity.Quries.GetDoctorFee.GetDoctorFeeById;
 
-namespace PatientDoctor.Infrastructure.Repositories.Identity
-{
+namespace PatientDoctor.Infrastructure.Repositories.Identity;
     public class IdentityRepository : IIdentityRepository
     {
         private readonly DocterPatiendDbContext _context;
@@ -429,5 +423,27 @@ namespace PatientDoctor.Infrastructure.Repositories.Identity
         {
             return new Response { Success = Constants.ResponseFailure, Message = message };
         }
+
+    public async Task<IResponse> GetDoctorFee(GetDoctorFee model)
+    {
+        var doctorFee = await (from main in _userManager.Users
+                               join userdetails in _context.Userdetail on main.Id equals userdetails.UserId
+                               where main.Id == model.DoctorId
+                               select new { Fee = userdetails.City }
+                              ).FirstOrDefaultAsync();
+        if (doctorFee == null)
+        {
+            _response.Success = Constants.ResponseFailure;
+            _response.Message = Constants.NotFound.Replace("{data}", "user");
+            _response.Data = 0;
+        }
+        else
+        {
+            _response.Success = Constants.ResponseSuccess;
+            _response.Message = Constants.GetData;
+            _response.Data = 1500;
+        }
+        return _response;
     }
 }
+

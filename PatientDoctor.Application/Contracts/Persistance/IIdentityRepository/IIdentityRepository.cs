@@ -2,6 +2,7 @@
 using PatientDoctor.Application.Features.Identity.Commands.LoginUser;
 using PatientDoctor.Application.Features.Identity.Commands.RegisterUser;
 using PatientDoctor.Application.Features.Identity.Quries;
+using PatientDoctor.Application.Features.Identity.Quries.GetDoctorFee.GetDoctorFeeById;
 using PatientDoctor.Application.Helpers;
 using System;
 using System.Collections.Generic;
@@ -15,6 +16,7 @@ namespace PatientDoctor.Application.Contracts.Persistance.IIdentityRepository
     {
         // Task<IResponse> GetAllProducts(GetProductList model);
         Task<IResponse> GetUserById(GetUserById Id);
+        Task<IResponse> GetDoctorFee(GetDoctorFee Id);
         Task<IResponse> LoginUserAsync(LoginUserCommand model);
         Task<IResponse> ActiveInActiveUser(ActiveInActiveIdentity model);
         Task<IResponse> GetAllByProc(GetUserList model);

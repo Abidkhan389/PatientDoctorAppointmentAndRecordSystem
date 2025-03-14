@@ -72,6 +72,7 @@ namespace PatientDoctor.API.Controllers
             patientobj.Id = PatientId;
             return await _mediator.Send(patientobj);
         }
+        
         [HttpGet]
         [Route("GetPatientDescriptionById")]
         public async Task<object> GetPatientDescriptionById(Guid PatientId)

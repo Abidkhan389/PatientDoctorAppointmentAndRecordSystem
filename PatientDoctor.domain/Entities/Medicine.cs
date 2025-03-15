@@ -18,7 +18,6 @@ namespace PatientDoctor.domain.Entities
             this.MedicineName= model.MedicineName;
             this.MedicineTypeId = model.MedicineTypeId;
             this.medicineTypePotencyId = model.MedicineTypePotencyId;
-            this.DoctorId=model.DoctorId;
             this.StartingDate=model.StartingDate;
             this.ExpiryDate = model.ExpiryDate;
             this.Status = 1;
@@ -31,7 +30,6 @@ namespace PatientDoctor.domain.Entities
         
         public Guid MedicineTypeId { get; set; }
         public Guid medicineTypePotencyId { get; set; }
-        public string DoctorId { get; set; }
         public DateTime StartingDate { get; set; }
         public DateTime ExpiryDate { get; set; }
         public int Status { get; set; }

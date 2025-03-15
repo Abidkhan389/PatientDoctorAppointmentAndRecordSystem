@@ -403,9 +403,17 @@ namespace PatientDoctor.Infrastructure.Repositories.Identity;
 
         public async Task<IResponse> GetAllDoctors()
         {
-            var users= await _context.Users.Where(x=> x.RoleName=="DOCTOR" && x.Status==1).Select (y=> new {y.Id,y.UserName}).ToListAsync();
-
-            _response.Data=users;
+        //var users= await _context.Users.Where(x=> x.RoleName=="DOCTOR" && x.Status==1).Select (y=> new {y.Id,y.UserName}).ToListAsync();
+        var users = await (from u in _context.Users
+                           join ud in _context.Userdetail on u.Id equals ud.UserId
+                           where u.RoleName == "DOCTOR" && u.Status == 1
+                           select new
+                           {
+                               u.Id,
+                               u.UserName,
+                               ud.Fee
+                           }).ToListAsync();
+        _response.Data=users;
             _response.Success = Constants.ResponseSuccess;
             _response.Message = Constants.GetData;
             return _response;

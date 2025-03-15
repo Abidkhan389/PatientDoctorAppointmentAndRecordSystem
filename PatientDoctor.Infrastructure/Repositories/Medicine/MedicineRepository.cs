@@ -95,7 +95,6 @@ namespace PatientDoctor.Infrastructure.Repositories.Medicine
                     {
                         //updating Existing Medicine type
                         existMedicineObj.MedicineName = model.addEditMedicineObj.MedicineName;
-                        existMedicineObj.DoctorId = model.addEditMedicineObj.DoctorId;
                         existMedicineObj.MedicineTypeId = model.addEditMedicineObj.MedicineTypeId;
                         existMedicineObj.medicineTypePotencyId = model.addEditMedicineObj.MedicineTypePotencyId;
                         existMedicineObj.StartingDate = model.addEditMedicineObj.StartingDate;
@@ -123,7 +122,6 @@ namespace PatientDoctor.Infrastructure.Repositories.Medicine
         {
             model.Sort = model.Sort == null || model.Sort == "" ? "MedicineName" : model.Sort;
             var data = (from medicine in _context.Medicine
-                        join doctor in _context.Users on medicine.DoctorId equals doctor.Id
                         join m_type in _context.MedicineType on medicine.MedicineTypeId equals m_type.Id
                         join m_type_potency in _context.MedicinePotency on medicine.medicineTypePotencyId equals m_type_potency.Id
                         where (
@@ -136,7 +134,6 @@ namespace PatientDoctor.Infrastructure.Repositories.Medicine
                             MedicineName = medicine.MedicineName,
                             MedicineTypeName = m_type.TypeName,
                             MedicineTypePotencyName = m_type_potency.Potency,
-                            DoctorName = doctor.UserName,
                             Status = medicine.Status,
                             StartingDate = medicine.StartingDate,
                             ExpiryDate = medicine.ExpiryDate // Ensure the property is correctly spelled
@@ -161,7 +158,6 @@ namespace PatientDoctor.Infrastructure.Repositories.Medicine
         public async Task<IResponse> GetMedicineById(Guid Id)
         {
             var medicineObj = await (from medicine in _context.Medicine
-                                     join user in _context.Users on medicine.DoctorId equals user.Id
                                      join medicineType in _context.MedicineType on medicine.MedicineTypeId equals medicineType.Id
                                      join medicinePotency in _context.MedicinePotency on medicine.medicineTypePotencyId equals medicinePotency.Id
                                      where (medicine.Id == Id)
@@ -171,9 +167,7 @@ namespace PatientDoctor.Infrastructure.Repositories.Medicine
                                              MedicineTypeName = medicineType.TypeName,
                                              MedicineTypeId = medicineType.Id,
                                              MedicineTypePotencyName = medicinePotency.Potency,
-                                             MedicineTypePotencyId = medicinePotency.Id,
-                                             DoctorId = user.Id,
-                                             DoctorName = user.UserName,
+                                             MedicineTypePotencyId = medicinePotency.Id,                                         
                                              StartingDate = medicine.StartingDate,
                                              ExpiryDate=medicine.ExpiryDate
                                          }).FirstOrDefaultAsync();
@@ -241,7 +235,6 @@ namespace PatientDoctor.Infrastructure.Repositories.Medicine
         public async Task<IResponse> GetAllMedicineList(GetAllMedicines model)
         {
             var medicineTypeObj = await (from medicine in _context.Medicine
-                                         where medicine.DoctorId == model.DoctorId
                                          select new VM_AllMedicine
                                          {
                                              MedicineId = medicine.Id,

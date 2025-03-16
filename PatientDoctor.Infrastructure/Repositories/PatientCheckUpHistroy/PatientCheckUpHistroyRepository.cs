@@ -1,9 +1,7 @@
-﻿using Azure;
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using PatientDoctor.Application.Contracts.Persistance.IPatientCheckUpHistroy;
-using PatientDoctor.Application.Features.Patient.Commands.ActiveInActive;
 using PatientDoctor.Application.Features.PatientCheckUpHistroy.Quries.Commands.ActiveInActive;
 using PatientDoctor.Application.Features.PatientCheckUpHistroy.Quries.GetAll;
 using PatientDoctor.Application.Features.PatientCheckUpHistroy.Quries.GetById;
@@ -64,9 +62,72 @@ public class PatientCheckUpHistroyRepository(DocterPatiendDbContext _context, Us
         return _response;
     }
 
-    public Task<IResponse> GetPatientCheckHistroyById(GetPatientCheckHistroyById model)
+    public async Task<IResponse> GetPatientCheckHistroyById(GetPatientCheckHistroyById model)
     {
-        throw new NotImplementedException();
+        var result = await _context.Prescriptions
+                .Where(x => x.PrescriptionId == model.Id)
+                .Include(x => x.Medicines)
+                .Select(x => new VM_PatientCheckHistroyById
+                {
+                    PrescriptionId = x.PrescriptionId,
+                    PatientId = x.PatientId,
+                    DoctorId = x.DoctorId,
+                    // Eye Examination Details
+                    LeftVision = x.LeftVision,
+                    RightVision = x.RightVision,
+                    LeftMG = x.LeftMG,
+                    RightMG = x.RightMG,
+                    LeftEOM = x.LeftEOM,
+                    RightEOM = x.RightEOM,
+                    LeftOrtho = x.LeftOrtho,
+                    RightOrtho = x.RightOrtho,
+                    LeftTension = x.LeftTension,
+                    RightTension = x.RightTension,
+                    LeftAntSegment = x.LeftAntSegment,
+                    RightAntSegment = x.RightAntSegment,
+                    LeftDisc = x.LeftDisc,
+                    RightDisc = x.RightDisc,
+                    LeftMacula = x.LeftMacula,
+                    RightMacula = x.RightMacula,
+                    LeftPeriphery = x.LeftPeriphery,
+                    RightPeriphery = x.RightPeriphery,
+
+                    Status = x.Status,
+
+                    // Other Details
+                    Complaint = x.Complaint,
+                    Diagnosis = x.Diagnosis,
+                    Plan = x.Plan,
+                    CreatedAt = x.CreatedAt,
+
+                    // Medicines
+                    Medicine = x.Medicines.Select(m => new VM_PrescriptionMedicine
+                    {
+                        Id = m.Id,
+                        MedicineId = m.MedicineId,
+                        Morning = m.Morning,
+                        Afternoon = m.Afternoon,
+                        Evening = m.Evening,
+                        Night = m.Night,
+                        RepeatEveryHours = m.RepeatEveryHours,
+                        RepeatEveryTwoHours = m.RepeatEveryTwoHours,
+                        DurationInDays = m.DurationInDays
+                    }).ToList()
+                })
+                .FirstOrDefaultAsync();
+
+        if (result != null)
+        {
+            _response.Success = Constants.ResponseSuccess;
+            _response.Message = Constants.DataUpdate;
+            _response.Data = result;
+        }
+        else
+        {
+            _response.Success = Constants.ResponseFailure;
+            _response.Message = Constants.NotFound;
+        }
+        return _response;
     }
     public async Task<IResponse> ActiveInActive(ActiveInActivePatientCheckUpHistory model)
     {
@@ -87,6 +148,7 @@ public class PatientCheckUpHistroyRepository(DocterPatiendDbContext _context, Us
             patiendetial.Status = model.Status;
             _context.Patient.Update(patient);
             _context.PatientDetails.Update(patiendetial);
+            await _context.SaveChangesAsync();
             await transaction.CommitAsync();
             _response.Success = Constants.ResponseSuccess;
             _response.Message = Constants.DataUpdate;

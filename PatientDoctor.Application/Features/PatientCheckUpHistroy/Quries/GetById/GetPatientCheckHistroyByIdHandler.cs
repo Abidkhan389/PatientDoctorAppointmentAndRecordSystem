@@ -9,9 +9,9 @@ public class GetPatientCheckHistroyByIdHandler(IPatientCheckUpHistroyRepository 
     private readonly IPatientCheckUpHistroyRepository _repo =
         _patientCheckUpHistroyRepository ?? throw new ArgumentNullException(nameof(_patientCheckUpHistroyRepository));
 
-    public Task<IResponse> Handle(GetPatientCheckHistroyById request, CancellationToken cancellationToken)
+    public async Task<IResponse> Handle(GetPatientCheckHistroyById request, CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        return await _patientCheckUpHistroyRepository.GetPatientCheckHistroyById(request);
     }
 }
 

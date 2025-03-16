@@ -419,7 +419,7 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
                         await _context.SaveChangesAsync();
                         await transaction.CommitAsync();
                         _response.Success = Constants.ResponseSuccess;
-                        _response.Message = Constants.DataUpdate;
+                        _response.Message = Constants.DataSaved;
                     }
                 }
                 else
@@ -456,82 +456,31 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
                         existingPrescription.UpdatedBy = model.UserId;
 
                         //// 1. Remove old medicines
-                        //_context.PrescriptionMedicines.RemoveRange(existingPrescription.Medicines);
+                        _context.PrescriptionMedicines.RemoveRange(existingPrescription.Medicines);
 
-                        //// 2. Add new medicines
-                        //var updatedMedicines = model.medicine.Select(m => new PrescriptionMedicine
-                        //{
-                        //    PrescriptionId = existingPrescription.PrescriptionId,
-                        //    MedicineId = m.MedicineId,
-                        //    DurationInDays = m.DurationInDays,
-                        //    Morning = m.Morning,
-                        //    Afternoon = m.Afternoon,
-                        //    Evening = m.Evening,
-                        //    Night = m.Night,
-                        //    RepeatEveryHours = m.RepeatEveryHours,
-                        //    RepeatEveryTwoHours = m.RepeatEveryTwoHours
-                        //}).ToList();
-
-                        //existingPrescription.Medicines = updatedMedicines;
-
-                        //_context.Prescriptions.Update(existingPrescription); its optionall
-                        // Update/Add medicines
-                        var existingMedicines = existingPrescription.Medicines;
-                        var newMedicines = new List<PrescriptionMedicine>();
-
-                        foreach (var m in model.medicine)
+                        // 2. Add new medicines
+                        var updatedMedicines = model.medicine.Select(m => new PrescriptionMedicine
                         {
-                            var existing = existingMedicines.FirstOrDefault(x => x.Id == m.Id);
+                            PrescriptionId = existingPrescription.PrescriptionId,
+                            MedicineId = m.MedicineId,
+                            DurationInDays = m.DurationInDays,
+                            Morning = m.Morning,
+                            Afternoon = m.Afternoon,
+                            Evening = m.Evening,
+                            Night = m.Night,
+                            RepeatEveryHours = m.RepeatEveryHours,
+                            RepeatEveryTwoHours = m.RepeatEveryTwoHours
+                        }).ToList();
 
-                            if (existing != null)
-                            {
-                                // Update existing
-                                existing.MedicineId = m.MedicineId;
-                                existing.DurationInDays = m.DurationInDays;
-                                existing.Morning = m.Morning;
-                                existing.Afternoon = m.Afternoon;
-                                existing.Evening = m.Evening;
-                                existing.Night = m.Night;
-                                existing.RepeatEveryHours = m.RepeatEveryHours;
-                                existing.RepeatEveryTwoHours = m.RepeatEveryTwoHours;
-                            }
-                            else
-                            {
-                                // Add new
-                                newMedicines.Add(new PrescriptionMedicine
-                                {
-                                    Id = Guid.NewGuid(),
-                                    PrescriptionId = existingPrescription.PrescriptionId,
-                                    MedicineId = m.MedicineId,
-                                    DurationInDays = m.DurationInDays,
-                                    Morning = m.Morning,
-                                    Afternoon = m.Afternoon,
-                                    Evening = m.Evening,
-                                    Night = m.Night,
-                                    RepeatEveryHours = m.RepeatEveryHours,
-                                    RepeatEveryTwoHours = m.RepeatEveryTwoHours
-                                });
-                            }
-                        }
+                        existingPrescription.Medicines = updatedMedicines;
 
-                        // Add all new medicines at once
-                        _context.PrescriptionMedicines.AddRange(newMedicines);
-
-                        // Remove deleted medicines
-                        var medicineIdsFromModel = model.medicine
-                            .Where(m => m.Id != null)
-                            .Select(m => m.Id)
-                            .ToList();
-                        var toRemove = existingMedicines
-                            .Where(em => em.Id != null && !medicineIdsFromModel.Contains(em.Id))
-                            .ToList();
-
-                        if (toRemove.Any())
-                            _context.PrescriptionMedicines.RemoveRange(toRemove);
-
-                        // Save everything
+                        _context.Prescriptions.Update(existingPrescription); //its optionall
+                        // Final Save
                         await _context.SaveChangesAsync();
+                        await transaction.CommitAsync();
                     }
+                    _response.Success = Constants.ResponseSuccess;
+                    _response.Message = Constants.DataUpdate;
                 }
             }
             catch (Exception ex)

@@ -37,13 +37,12 @@ public class VM_PatientCheckHistroyById
 
     public DateTime CreatedAt { get; set; } = DateTime.Now;
 
-    public virtual ICollection<VM_PrescriptionMedicine> Medicines { get; set; } = new List<VM_PrescriptionMedicine>();
+    public virtual ICollection<VM_PrescriptionMedicine> Medicine { get; set; } = new List<VM_PrescriptionMedicine>();
 }
 public class VM_PrescriptionMedicine
 {
-    public Guid Id { get; set; }
+    public Guid? Id { get; set; }
     public Guid MedicineId { get; set; }
-    public Guid PrescriptionId { get; set; }
 
     // Timing Information
     public bool? Morning { get; set; }

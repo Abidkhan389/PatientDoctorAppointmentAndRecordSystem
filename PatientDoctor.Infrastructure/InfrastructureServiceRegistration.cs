@@ -32,6 +32,8 @@ using PatientDoctor.Application.Contracts.Persistance.IDoctorAvailability;
 using PatientDoctor.Infrastructure.Repositories.DoctorAvailability;
 using PatientDoctor.Application.Contracts.Persistance.IDoctorMedicine;
 using PatientDoctor.Infrastructure.Repositories.DoctorMedicine;
+using PatientDoctor.Infrastructure.Repositories.PatientCheckUpHistroy;
+using PatientDoctor.Application.Contracts.Persistance.IPatientCheckUpHistroy;
 
 namespace PatientDoctor.Infrastructure
 {
@@ -107,6 +109,7 @@ namespace PatientDoctor.Infrastructure
             services.AddScoped<IDoctorCheckUpFeeRepository, DoctorCheckUpFeeRepository>();
             services.AddScoped<IDoctorAvailabilityRepository, DoctorAvailabilityRepository>();
             services.AddScoped<IDoctorMedicineRepository, DoctorMedicineRepository>();
+            services.AddScoped<IPatientCheckUpHistroyRepository, PatientCheckUpHistroyRepository>();
             services.AddAuthorization();
             return services;
         }

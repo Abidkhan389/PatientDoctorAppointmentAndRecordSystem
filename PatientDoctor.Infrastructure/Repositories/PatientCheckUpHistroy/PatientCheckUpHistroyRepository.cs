@@ -16,7 +16,10 @@ public class PatientCheckUpHistroyRepository(DocterPatiendDbContext _context, Us
 {
     public async Task<IResponse> GetAllByProc(GetAllPatientCheckUpHistroyByDoctor model)
     {
-        model.Sort = model.Sort == null || model.Sort == "" ? "Plan" : model.Sort;
+        
+        model.Sort = model.Sort == null || model.Sort == "" ? "FirstName" : model.Sort;
+        DateTime filterDate = model.getPatientHistoryListObj.AppoitmentDate?.Date ?? DateTime.Today;
+
         var data = (from main in _userManager.Users
                     join per in _context.Prescriptions on main.Id equals per.DoctorId
                     join userDetails in _context.Userdetail on main.Id equals userDetails.UserId
@@ -30,6 +33,7 @@ public class PatientCheckUpHistroyRepository(DocterPatiendDbContext _context, Us
                      && (string.IsNullOrEmpty(model.getPatientHistoryListObj.FirstName) || patient.FirstName.ToLower().Contains(model.getPatientHistoryListObj.FirstName))
                      && (string.IsNullOrEmpty(model.getPatientHistoryListObj.LastName) || patient.LastName.ToLower().Contains(model.getPatientHistoryListObj.LastName))
                      && (string.IsNullOrEmpty(model.getPatientHistoryListObj.PhoneNumber) || patientDetails.PhoneNumber.ToLower().Contains(model.getPatientHistoryListObj.PhoneNumber))
+                     &&((model.getPatientHistoryListObj.AppoitmentDate == null) ||(filterDate.Date == per.CreatedAt.Date))
                      //&& (main.Id == model.LogedInDoctorId)
                      )
 
@@ -45,7 +49,7 @@ public class PatientCheckUpHistroyRepository(DocterPatiendDbContext _context, Us
                         patientCity = patientDetails.City,
                         PatientPhoneNumber = patientDetails.PhoneNumber,
                         Status = per.Status,
-                        Plan=per.Plan
+                        AppointmentDate = per.CreatedAt.Date
                     }).AsQueryable();
         var count = data.Count();
         var sorted = await HelperStatic.OrderBy(data, model.SortEx, model.OrderEx == "desc").Skip(model.Start).Take(model.LimitEx).ToListAsync();

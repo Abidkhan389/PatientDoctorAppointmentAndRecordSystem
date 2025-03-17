@@ -15,5 +15,6 @@ namespace PatientDoctor.Application.Features.PatientCheckUpHistroy.Quries.GetAll
     public string PatientPhoneNumber { get; set; }
     public string Plan { get; set; }
     public int Status { get; set; }
+    public DateTime AppointmentDate { get; set; }
 }
 

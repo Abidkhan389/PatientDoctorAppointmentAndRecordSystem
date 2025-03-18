@@ -5,6 +5,7 @@ using PatientDoctor.Application.Contracts.Persistance.IPatientCheckUpHistroy;
 using PatientDoctor.Application.Features.PatientCheckUpHistroy.Quries.Commands.ActiveInActive;
 using PatientDoctor.Application.Features.PatientCheckUpHistroy.Quries.GetAll;
 using PatientDoctor.Application.Features.PatientCheckUpHistroy.Quries.GetById;
+using PatientDoctor.Application.Features.PatientCheckUpHistroy.Quries.GetByIdForHistoryShow_OfPateint;
 using PatientDoctor.Application.Helpers;
 using PatientDoctor.domain.Entities;
 using PatientDoctor.Infrastructure.Persistance;
@@ -69,7 +70,7 @@ public class PatientCheckUpHistroyRepository(DocterPatiendDbContext _context, Us
     public async Task<IResponse> GetPatientCheckHistroyById(GetPatientCheckHistroyById model)
     {
         var result = await _context.Prescriptions
-                .Where(x => x.PrescriptionId == model.Id)
+                .Where(x => x.PrescriptionId == model.Id && x.Status==1)
                 .Include(x => x.Medicines)
                 .Select(x => new VM_PatientCheckHistroyById
                 {
@@ -161,6 +162,102 @@ public class PatientCheckUpHistroyRepository(DocterPatiendDbContext _context, Us
         {
             _response.Message = ex.Message;
             _response.Success = Constants.ResponseFailure;
+        }
+        return _response;
+    }
+
+    public async Task<IResponse> GetPatientCheckHistroyByIdForHistory(GetByIdForHistoryShow_OfPateintById model)
+    {
+        var result = await (from pre in _context.Prescriptions
+                            join patient in _context.Patient on pre.PatientId equals patient.PatientId
+                            join patient_details in _context.PatientDetails on patient.PatientId equals patient_details.PatientId
+                            join appointment in _context.Appointment on patient.PatientId equals appointment.PatientId
+                            where pre.PrescriptionId == model.Id && pre.Status == 1
+                            select new VM_GetByIdForHistoryShow_OfPateintById
+                            {
+                                PrescriptionId = pre.PrescriptionId,
+                                PatientId = pre.PatientId,
+                                DoctorId = pre.DoctorId,
+
+                                // Eye Examination Details
+                                LeftVision = pre.LeftVision,
+                                RightVision = pre.RightVision,
+                                LeftMG = pre.LeftMG,
+                                RightMG = pre.RightMG,
+                                LeftEOM = pre.LeftEOM,
+                                RightEOM = pre.RightEOM,
+                                LeftOrtho = pre.LeftOrtho,
+                                RightOrtho = pre.RightOrtho,
+                                LeftTension = pre.LeftTension,
+                                RightTension = pre.RightTension,
+                                LeftAntSegment = pre.LeftAntSegment,
+                                RightAntSegment = pre.RightAntSegment,
+                                LeftDisc = pre.LeftDisc,
+                                RightDisc = pre.RightDisc,
+                                LeftMacula = pre.LeftMacula,
+                                RightMacula = pre.RightMacula,
+                                LeftPeriphery = pre.LeftPeriphery,
+                                RightPeriphery = pre.RightPeriphery,
+
+                                Status = pre.Status,
+
+                                Complaint = pre.Complaint,
+                                Diagnosis = pre.Diagnosis,
+                                Plan = pre.Plan,
+                                CreatedAt = pre.CreatedAt,
+
+                                // Patient Details
+                                FirstName = patient.FirstName,
+                                LastName = patient.LastName,
+                                PhoneNumber = patient_details.PhoneNumber,
+                                Cnic = patient.Cnic,
+                                City = patient_details.City,
+                                Age = patient.Age,
+
+                                // Medicines (temporarily assign null or map basic info)
+                                Medicine = pre.Medicines.Select(m => new VM_PrescriptionMedicineForView
+                                {
+                                    Id = m.Id,
+                                    MedicineId = m.MedicineId,
+                                    // MedicineName will be populated later
+                                    Morning = m.Morning,
+                                    Afternoon = m.Afternoon,
+                                    Evening = m.Evening,
+                                    Night = m.Night,
+                                    RepeatEveryHours = m.RepeatEveryHours,
+                                    RepeatEveryTwoHours = m.RepeatEveryTwoHours,
+                                    DurationInDays = m.DurationInDays
+                                }).ToList()
+                            }).FirstOrDefaultAsync();
+
+        if (result != null && result.Medicine != null && result.Medicine.Count > 0)
+        {
+            var medicineIds = result.Medicine.Select(x => x.MedicineId).ToList();
+            var medicineNames = await _context.Medicine
+                                        .Where(m => medicineIds.Contains(m.Id))
+                                        .ToDictionaryAsync(m => m.Id, m => m.MedicineName);
+
+            foreach (var med in result.Medicine)
+            {
+                if (medicineNames.TryGetValue(med.MedicineId, out var name))
+                {
+                    med.MedicineName = name;
+                }
+            }
+        }
+
+
+
+        if (result != null)
+        {
+            _response.Success = Constants.ResponseSuccess;
+            _response.Message = Constants.DataUpdate;
+            _response.Data = result;
+        }
+        else
+        {
+            _response.Success = Constants.ResponseFailure;
+            _response.Message = Constants.NotFound;
         }
         return _response;
     }

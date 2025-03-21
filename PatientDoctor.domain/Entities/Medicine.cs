@@ -33,6 +33,9 @@ namespace PatientDoctor.domain.Entities
         public DateTime StartingDate { get; set; }
         public DateTime ExpiryDate { get; set; }
         public int Status { get; set; }
+        // ✅ Add this navigation property
+        [ForeignKey("MedicineTypeId")]
+        public virtual MedicineType MedicineType { get; set; }
         public ICollection<DoctorMedicines> DoctorMedicines { get; set; } = new List<DoctorMedicines>();
 
     }

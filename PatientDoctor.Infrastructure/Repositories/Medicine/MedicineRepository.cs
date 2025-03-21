@@ -7,7 +7,10 @@ using PatientDoctor.Application.Features.Medicine.Quries.GetAllByProc;
 using PatientDoctor.Application.Features.Medicine.Quries.GetAllMedicine;
 using PatientDoctor.Application.Features.Medicine.Quries.GetAllMedicineTypes;
 using PatientDoctor.Application.Features.Medicine.Quries.GetById;
+using PatientDoctor.Application.Features.Medicine.Quries.GetDoctorMedicine;
+using PatientDoctor.Application.Features.Medicine.Quries.GetDoctorMedicinePotency;
 using PatientDoctor.Application.Helpers;
+using PatientDoctor.domain.Entities;
 using PatientDoctor.Infrastructure.Persistance;
 using PatientDoctor.Infrastructure.Repositories.GeneralServices;
 
@@ -251,6 +254,61 @@ namespace PatientDoctor.Infrastructure.Repositories.Medicine
             {
                 _response.Success = Constants.ResponseFailure;
                 _response.Message = Constants.NotFound.Replace("{data}", "Medicine  List");
+            }
+            return _response;
+        }
+
+        public async Task<IResponse> GetDoctorMedicineByDoctorId(GetDoctorMedicineByDoctorId model)
+        {
+            var doctorMedicine = await (from doctor in _context.DoctorMedicines
+                                        join medicine in _context.Medicine on doctor.MedicineId equals medicine.Id
+                                        where doctor.DoctorId == model.DoctorId
+                                        select new VM_DoctorMedicine
+                                        {
+                                            MedicineId = medicine.Id,
+                                            MedicineName = medicine.MedicineName,
+                                        }).ToListAsync();
+
+            if (doctorMedicine != null)
+            {
+                _response.Data = doctorMedicine;
+                _response.Message = Constants.GetData;
+                _response.Success = Constants.ResponseSuccess;
+            }
+            else
+            {
+                _response.Success = Constants.ResponseFailure;
+                _response.Message = Constants.NotFound.Replace("{data}", "Doctor Medicine");
+            }
+            return _response;
+
+        }
+
+        public async Task<IResponse> GetDoctorMedicinePotencyById(GetDoctorMedicinePotencyById model)
+        {
+            var medicine = await _context.Medicine
+                                .Include(m => m.MedicineType)
+                                .ThenInclude(mt => mt.MedicinePotencies)
+                                .FirstOrDefaultAsync(m => m.Id == model.MedicineId);
+
+            var medicinePotencyObj = medicine?.MedicineType?.MedicinePotencies
+                .Select(p => new VM_DoctorMedicinePotency
+                {
+                    PotencyId = p.Id,
+                    Potency = p.Potency
+                }).ToList();
+
+
+            if (medicinePotencyObj != null)
+            {
+                _response.Data = medicinePotencyObj;
+                _response.Message = Constants.GetData;
+                _response.Success = Constants.ResponseSuccess;
+            }
+            else
+            {
+                _response.Success = Constants.ResponseFailure;
+                _response.Message = Constants.NotFound.Replace("{data}", "Doctor Medicine Potency");
             }
             return _response;
         }

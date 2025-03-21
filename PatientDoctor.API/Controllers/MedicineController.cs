@@ -10,6 +10,8 @@ using PatientDoctor.Application.Features.Medicine.Quries.GetAllMedicine;
 using PatientDoctor.Application.Features.Medicine.Quries.GetAllMedicinePotency;
 using PatientDoctor.Application.Features.Medicine.Quries.GetAllMedicineTypes;
 using PatientDoctor.Application.Features.Medicine.Quries.GetById;
+using PatientDoctor.Application.Features.Medicine.Quries.GetDoctorMedicine;
+using PatientDoctor.Application.Features.Medicine.Quries.GetDoctorMedicinePotency;
 using PatientDoctor.Application.Features.Medicinetype.Quries;
 using PatientDoctor.Application.Helpers;
 using PatientDoctor.Infrastructure.Repositories.GeneralServices;
@@ -78,7 +80,7 @@ namespace PatientDoctor.API.Controllers
         [Route("GetDoctorMedicineMappingList")]
         public async Task<object> GetDoctorMedicineMappingList([FromQuery] Guid medicineId)
         {
-            return await _mediator.Send(new DoctorMedicineById(medicineId));
+            return await _mediator.Send(new DoctorMedicineById(medicineId)); 
         }
         [HttpPost]
         [Route("CreateDoctorMedicineMapping")]
@@ -86,6 +88,18 @@ namespace PatientDoctor.API.Controllers
         {
             var UserId = HelperStatic.GetUserIdFromClaims((ClaimsIdentity)User.Identity);
             model.UserId = UserId.ToString();
+            return await _mediator.Send(model); 
+        }
+        [HttpPost]
+        [Route("GetAllDoctorMedicine")]
+        public async Task<object> GetAllDoctorMedicine(GetDoctorMedicineByDoctorId model)
+        {
+            return await _mediator.Send(model);
+        }
+        [HttpPost]
+        [Route("GetDoctorMedicinePotencyById")]
+        public async Task<object> GetDoctorMedicinePotencyById(GetDoctorMedicinePotencyById model)
+        {
             return await _mediator.Send(model);
         }
     }

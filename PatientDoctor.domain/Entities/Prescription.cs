@@ -92,6 +92,7 @@ namespace PatientDoctor.domain.Entities
                 this.Medicines = model.medicine.Select(m => new PrescriptionMedicine
                 {
                     MedicineId = m.MedicineId,
+                    PotencyId=m.PotencyId,
                     DurationInDays = m.DurationInDays,
                     Morning = m.Morning ,
                     Afternoon = m.Afternoon,

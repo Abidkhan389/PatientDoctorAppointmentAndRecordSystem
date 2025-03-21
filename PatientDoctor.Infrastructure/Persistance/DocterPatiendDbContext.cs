@@ -32,6 +32,31 @@ namespace PatientDoctor.Infrastructure.Persistance
         public virtual DbSet<DoctorMedicines> DoctorMedicines { get; set; } = null!;
         public virtual DbSet<Prescription> Prescriptions { get; set; } = null!;
         public virtual DbSet<PrescriptionMedicine> PrescriptionMedicines { get; set; } = null!;
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder); // Always keep this line first
+
+            // Configure PrescriptionMedicine relationships with CASCADE
+            modelBuilder.Entity<PrescriptionMedicine>()
+     .HasOne(pm => pm.Prescription)
+     .WithMany(p => p.Medicines)
+     .HasForeignKey(pm => pm.PrescriptionId)
+     .OnDelete(DeleteBehavior.Cascade); // ✅ Keep this Cascade
+
+            modelBuilder.Entity<PrescriptionMedicine>()
+                .HasOne(pm => pm.Medicine)
+                .WithMany()
+                .HasForeignKey(pm => pm.MedicineId)
+                .OnDelete(DeleteBehavior.Restrict); // ✅ Change to Restrict or NoAction
+
+            modelBuilder.Entity<PrescriptionMedicine>()
+                .HasOne(pm => pm.MedicinePotency)
+                .WithMany()
+                .HasForeignKey(pm => pm.PotencyId)
+                .OnDelete(DeleteBehavior.Restrict); // ✅ Change to Restrict or NoAction
+
+        }
+
 
     }
 }

@@ -463,6 +463,7 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
                         {
                             PrescriptionId = existingPrescription.PrescriptionId,
                             MedicineId = m.MedicineId,
+                            PotencyId=m.PotencyId,
                             DurationInDays = m.DurationInDays,
                             Morning = m.Morning,
                             Afternoon = m.Afternoon,

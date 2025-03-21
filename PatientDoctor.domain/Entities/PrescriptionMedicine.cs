@@ -9,11 +9,13 @@ namespace PatientDoctor.domain.Entities;
         public Guid Id { get; set; }
         [ForeignKey("MedicineId")]
         public Guid MedicineId { get; set; }
-        [ForeignKey("Prescription")]
-        public Guid PrescriptionId { get; set; }
+    [ForeignKey("Prescription")]
+    public Guid PrescriptionId { get; set; }
+    [ForeignKey("MedicinePotency")]
+    public Guid PotencyId { get; set; }
 
-        // Timing Information
-        public bool? Morning { get; set; }
+    // Timing Information
+    public bool? Morning { get; set; }
         public bool? Afternoon { get; set; }
         public bool? Evening { get; set; }
         public bool? Night { get; set; }
@@ -25,7 +27,8 @@ namespace PatientDoctor.domain.Entities;
 
         // Navigation Property
         public virtual Prescription Prescription { get; set; }
-        public virtual Medicine Medicine { get; set; }
-    }
+    public virtual Medicine Medicine { get; set; }
+    public virtual MedicinePotency MedicinePotency { get; set; }
+}
 
 

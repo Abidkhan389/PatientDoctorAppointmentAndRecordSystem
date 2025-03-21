@@ -35,7 +35,8 @@ namespace PatientDoctor.Application.Features.Patient.Commands.AddPatientDescript
     {
         public Guid? Id { get; set; }
         public Guid MedicineId { get; set; }
-        public int DurationInDays { get; set; }
+        public Guid PotencyId { get; set; }
+    public int DurationInDays { get; set; }
         public bool? Morning { get; set; }
         public bool? Afternoon { get; set; }
         public bool? Evening { get; set; }

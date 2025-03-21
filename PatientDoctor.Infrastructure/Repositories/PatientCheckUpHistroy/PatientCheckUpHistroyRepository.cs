@@ -230,6 +230,7 @@ public class PatientCheckUpHistroyRepository(DocterPatiendDbContext _context, Us
                                 {
                                     Id = m.Id,
                                     MedicineId = m.MedicineId,
+                                    PotencyId = m.PotencyId,
                                     // MedicineName will be populated later
                                     Morning = m.Morning,
                                     Afternoon = m.Afternoon,
@@ -244,15 +245,25 @@ public class PatientCheckUpHistroyRepository(DocterPatiendDbContext _context, Us
         if (result != null && result.Medicine != null && result.Medicine.Count > 0)
         {
             var medicineIds = result.Medicine.Select(x => x.MedicineId).ToList();
+            var potencyIds = result.Medicine.Select(x => x.PotencyId).ToList();
+
             var medicineNames = await _context.Medicine
                                         .Where(m => medicineIds.Contains(m.Id))
                                         .ToDictionaryAsync(m => m.Id, m => m.MedicineName);
+            // Get potency values
+            var potencyNames = await _context.MedicinePotency
+                                        .Where(p => potencyIds.Contains(p.Id))
+                                        .ToDictionaryAsync(p => p.Id, p => p.Potency);
 
             foreach (var med in result.Medicine)
             {
                 if (medicineNames.TryGetValue(med.MedicineId, out var name))
                 {
                     med.MedicineName = name;
+                }
+                if (potencyNames.TryGetValue(med.PotencyId, out var potency))
+                {
+                    med.Potency = potency;
                 }
             }
         }

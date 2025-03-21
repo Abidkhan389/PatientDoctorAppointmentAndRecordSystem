@@ -49,7 +49,9 @@ public class VM_PrescriptionMedicineForView
 {
     public Guid? Id { get; set; }
     public Guid MedicineId { get; set; }
+    public Guid PotencyId { get; set; }
     public string MedicineName { get; set; }
+    public string Potency { get; set; }
 
     // Timing Information
     public bool? Morning { get; set; }

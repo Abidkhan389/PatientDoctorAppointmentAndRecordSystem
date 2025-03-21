@@ -75,5 +75,29 @@ namespace PatientDoctor.Infrastructure.Repositories.Dashboard
             return _response;
 
         }
+
+        public async Task<IResponse> GetPatientCurrentWeekAndMonth(WelComeCurrentWeekAndMonth model)
+        {
+            VM_CurrentWeekAndMonthCount vM_CurrentWeekAndMonth = new VM_CurrentWeekAndMonthCount();
+            if (model.logInUserRole == "Doctor")
+            {
+                var CurrentMonthparient = _context.Prescriptions.Where(x => x.DoctorId == model.logInUserId && (x.CreatedOn >= DateTime.Now.Date.AddDays(-30) && x.CreatedOn <= DateTime.Now.Date.AddDays(1)));
+                var CurrentWeekparient = CurrentMonthparient.Where(x => x.DoctorId == model.logInUserId && (x.CreatedOn >= DateTime.Now.Date.AddDays(-7) && x.CreatedOn <= DateTime.Now.Date.AddDays(1)));
+
+                vM_CurrentWeekAndMonth.CurrentMonthPatientCount = CurrentMonthparient.Count();
+                vM_CurrentWeekAndMonth.CurrentWeekPatientCount = CurrentWeekparient.Count();
+            }
+            else if(model.logInUserRole.Contains("Admin") || model.logInUserRole.Contains("SuperAdmin"))
+            {
+                var CurrentMonthparient = _context.Prescriptions.Where(x => x.CreatedOn >= DateTime.Now.Date.AddDays(-30) && x.CreatedOn <= DateTime.Now.Date.AddDays(1));
+                var CurrentWeekparient = CurrentMonthparient.Where(x => x.CreatedOn >= DateTime.Now.Date.AddDays(-7) && x.CreatedOn <= DateTime.Now.Date.AddDays(1));
+                vM_CurrentWeekAndMonth.CurrentMonthPatientCount = CurrentMonthparient.Count();
+                vM_CurrentWeekAndMonth.CurrentWeekPatientCount = CurrentWeekparient.Count();
+            }
+            _response.Data = vM_CurrentWeekAndMonth;
+            _response.Success = Constants.ResponseSuccess;
+            _response.Message = Constants.GetData;
+            return _response;
+        }
     }
 }

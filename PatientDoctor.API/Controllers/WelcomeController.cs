@@ -22,12 +22,43 @@ namespace PatientDoctor.API.Controllers
         }
         [HttpPost]
         [Route("CurrentWeekMonthWeekPatientCount")]
-        public async Task<object> ActiveInActive([FromBody] WelComeCurrentWeekAndMonth model)
+        public async Task<object> CurrentWeekMonthWeekPatientCount([FromBody] WelComeCurrentWeekAndMonth model)
         {
             var loggedInUserId = HelperStatic.GetUserIdFromClaims((ClaimsIdentity)User.Identity);
             model.logInUserId = Convert.ToString(loggedInUserId);
             return await _mediator.Send(model);
+        }
+        [HttpPost]
+        [Route("AllPatientWithFeeCount")]
+        public async Task<object> AllPatientWithFeeCount([FromBody] AllPatientWithFeeCount model)
+        {
+            return await _mediator.Send(model);
+        }
 
+        [HttpPost]
+        [Route("AllPatientYearlyWiseCount")]
+        public async Task<object> AllPatientYearlyWiseCount([FromBody] PatientCountYearWise model)
+        {
+            return await _mediator.Send(model);
+        }
+
+        [HttpPost]
+        [Route("PreviousDayPatientsRecord")]
+        public async Task<object> PreviousDayPatientsRecord([FromBody] PreviousDayPatientsRecord model)
+        {
+            return await _mediator.Send(model);
+        }
+        [HttpPost]
+        [Route("LastTwoWeekWeekPatientCount")]
+        public async Task<object> LastTwoWeekWeekPatientCount([FromBody] LastTwoWeekPatientCount model)
+        {
+            return await _mediator.Send(model);
+        }
+        [HttpPost]
+        [Route("LastWeekPatientFeeSum")]
+        public async Task<object> LastWeekPatientFeeSum([FromBody] CurrentWeekPatientWithFeeCount model)
+        {
+            return await _mediator.Send(model);
         }
     }
 }

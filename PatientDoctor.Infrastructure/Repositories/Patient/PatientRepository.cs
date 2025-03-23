@@ -388,16 +388,18 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
                 {
 
 
-                    var patientDetails = await _context.PatientDetails
-                        .FirstOrDefaultAsync(pd => pd.PatientId == model.PatientId);
+                    var patientDetails = await _context.PatientDetails.FirstOrDefaultAsync(pd => pd.PatientId == model.PatientId);
+                    var appointmentDetail = await _context.Appointment.FirstOrDefaultAsync(pd => pd.PatientId == model.PatientId);
 
                     if (patientDetails != null)
                     {
                         var patienCheckUpDescription = new Prescription(model);
                         patientDetails.CheckUpStatus = 1; // update check status to 1, its means patient is checked
+                        appointmentDetail.CheckUpStatus = true;
                         patientDetails.CreatedOn = DateTime.Now;
                         await _context.Prescriptions.AddAsync(patienCheckUpDescription);
                         _context.PatientDetails.Update(patientDetails);
+                        _context.Appointment.Update(appointmentDetail);
                         //var data = await (from patnt in _context.Patient
                         //                  join p_details in _context.PatientDetails on patnt.PatientId equals p_details.PatientId
                         //                  join main in _context.Users on patnt.DoctoerId equals main.Id
@@ -424,6 +426,7 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
                 }
                 else
                 {
+                    var appointmentDetail = await _context.Appointment.FirstOrDefaultAsync(pd => pd.PatientId == model.PatientId);
                     var existingPrescription = await _context.Prescriptions
                     .Include(x => x.Medicines)
                     .FirstOrDefaultAsync(x => x.PrescriptionId == model.Id);
@@ -476,6 +479,8 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
                         existingPrescription.Medicines = updatedMedicines;
 
                         _context.Prescriptions.Update(existingPrescription); //its optionall
+                        appointmentDetail.CheckUpStatus = true;
+                        _context.Appointment.Update(appointmentDetail);
                         // Final Save
                         await _context.SaveChangesAsync();
                         await transaction.CommitAsync();

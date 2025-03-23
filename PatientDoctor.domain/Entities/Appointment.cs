@@ -23,6 +23,7 @@ namespace PatientDoctor.domain.Entities
         public string TimeSlot { get; set; }
         public int PatientCheckUpDayId { get; set; }
         public Guid PatientDetailsId { get; set; }
+        public bool CheckUpStatus { get; set; }
     }
 
 }

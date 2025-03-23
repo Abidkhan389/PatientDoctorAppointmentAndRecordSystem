@@ -45,6 +45,8 @@ namespace PatientDoctor.Application.Helpers
         public const string Referer = "Referer";
         public const string Register = "User Register successfully";
         public const string RegisterFailed = "User Register Failed";
+        public const string ErrorWhileGettingData = "Error while getting data ";
+
         public static partial class ActionMethods
         {
             public const string Logout = "Logout";

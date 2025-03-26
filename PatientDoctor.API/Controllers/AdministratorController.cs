@@ -1,14 +1,10 @@
 ﻿using MediatR;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using PatientDoctor.Application.Contracts.Persistance.IIdentityRepository;
-using PatientDoctor.Application.Contracts.Persistance.ISecurity;
 using PatientDoctor.Application.Features.Administrator.Commands.Register;
-using PatientDoctor.Application.Features.Administrator.Commands.ResetPassword;
-using PatientDoctor.Application.Helpers;
-using PatientDoctor.domain.Entities;
+using PatientDoctor.Application.Features.Administrator.Commands.UserProfile;
+using PatientDoctor.Application.Features.Administrator.Quries;
+using PatientDoctor.Infrastructure.Repositories.GeneralServices;
+using System.Security.Claims;
 
 namespace PatientDoctor.API.Controllers
 {
@@ -17,42 +13,29 @@ namespace PatientDoctor.API.Controllers
     public class AdministratorController : ControllerBase
     {
         private readonly IMediator _mediator;
-        private readonly IResponse _response;
-        private readonly ILocalAuthenticationRepository _localAuthenticationRepository;
-        private readonly UserManager<ApplicationUser> _userManager;
 
-        public AdministratorController(IMediator mediator, IResponse response, ILocalAuthenticationRepository localAuthenticationRepository,
-            UserManager<ApplicationUser> userManager)
+        public AdministratorController(IMediator mediator)
         {
-            this._mediator = mediator;
-            this._response = response;
-            this._localAuthenticationRepository = localAuthenticationRepository;
-            this._userManager = userManager;
+            _mediator = mediator;
         }
         [HttpPost]
-        [Route("ResetPassword")]
-        public async Task<Object> resetPassword(ResetPasswordCommand model)
+        [Route("UpdateUserProfile")]
+        public async Task<Object> UpdateUserProfile(UserProfileCommand model)
         {
-           
-            var user = await _userManager.FindByIdAsync(model.UserId);
-            if (user == null)
-            {
-                _response.Success = Constants.ResponseFailure;
-                _response.Message = "User With this Id is not Found";
-                return Ok(_response);
-            }
-            var userObj = await _localAuthenticationRepository.ResolveUser(user.Email, model.OldPassword, false);
-            if (userObj)
-            {
-                return await _mediator.Send(model);
-            }
-            _response.Message = ("No Password Match");
-            _response.Success = Constants.ResponseFailure;
-            return _response;
+            var UserId = HelperStatic.GetUserIdFromClaims((ClaimsIdentity)User.Identity);
+            model.LoedInUserId = UserId;
+            return await _mediator.Send(model);
         }
+        
         [HttpPost]
         [Route("UserRegister")]
         public async Task<Object> UserRegister(UserRegisterCommand model)
+        {
+            return await _mediator.Send(model);
+        }
+        [HttpPost]
+        [Route("GetUserProfileByEmailAndId")]
+        public async Task<Object> GetUserProfileByEmailAndId(GetUserProfileByEmailAndId model)
         {
             return await _mediator.Send(model);
         }

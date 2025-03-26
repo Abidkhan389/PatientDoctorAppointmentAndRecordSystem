@@ -86,12 +86,6 @@ namespace PatientDoctor.API.Controllers
         [Route("GetAllDoctors")]
         public async Task<object> GetAllDoctors()
         {
-            if (!ModelState.IsValid)
-            {
-                _response.Success = Constants.ResponseFailure;
-                _response.Message = Constants.ModelStateStateIsInvalid;
-                return Ok(_response);
-            }
             return await identityRepository.GetAllDoctors();
         }
         [HttpGet]

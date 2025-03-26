@@ -37,13 +37,13 @@ namespace PatientDoctor.Application.Features.Identity.Commands.RegisterUser
                 .NotNull()
                 .WithMessage("{RoleId} must contain at least one role.");
 
-            RuleFor(c => c.Email)
-                .NotEmpty().WithMessage("{Email} is Required")
-                .NotNull()
-                .MaximumLength(100).WithMessage("{Email} must not exceed 100 characters.")
-                .MinimumLength(10).WithMessage("{Email} must be greater than 10 characters.")
-                .Matches(@"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$")
-                .WithMessage("{Email} is not in a valid email format.");
+            //RuleFor(c => c.Email)
+            //    .NotEmpty().WithMessage("{Email} is Required")
+            //    .NotNull()
+            //    .MaximumLength(100).WithMessage("{Email} must not exceed 100 characters.")
+            //    .MinimumLength(10).WithMessage("{Email} must be greater than 10 characters.")
+            //    .Matches(@"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$")
+            //    .WithMessage("{Email} is not in a valid email format.");
 
             RuleFor(c => c.Cnic)
                 .NotEmpty().WithMessage("{Cnic} is Required")

@@ -234,8 +234,11 @@ namespace PatientDoctor.Infrastructure.Repositories.Identity;
             {
                 if (string.IsNullOrEmpty(model.addEditUsermodel.Id))
                 {
-                    var existUser = await _userManager.FindByEmailAsync(model.addEditUsermodel.Email);
-                    if (existUser != null)
+                var existUser = await _userManager.Users
+                                 .Where(u => u.Email == model.addEditUsermodel.Email || u.Email == model.addEditUsermodel.MobileNumber)
+                                 .FirstOrDefaultAsync();
+
+                if (existUser  != null)
                     {
                         _response.Message = Constants.Exists.Replace("{data}", "{existUser.email");
                         _response.Success = Constants.ResponseFailure;
@@ -301,7 +304,7 @@ namespace PatientDoctor.Infrastructure.Repositories.Identity;
                     if (existUser.Email != model.addEditUsermodel.Email)
                     {
                         var CheckEmail = await _userManager.FindByEmailAsync(model.addEditUsermodel.Email);
-                        if (existUser != null)
+                        if (CheckEmail != null)
                         {
                             _response.Message = Constants.UniqueEmail;
                             _response.Success = Constants.ResponseFailure;
@@ -325,7 +328,7 @@ namespace PatientDoctor.Infrastructure.Repositories.Identity;
                     existinguserdetails.UpdatedBy = model.UserId;
                     existinguserdetails.FirstName=model.addEditUsermodel.FirstName;
                     existinguserdetails.LastName = model.addEditUsermodel.LastName;
-                    existinguserdetails.UpdatedOn= DateTime.Now;
+                    existinguserdetails.UpdatedOn= DateTime.UtcNow;
                     existinguserdetails.Fee = model.addEditUsermodel.Fee;
                     //update user
                     var result = await _userManager.UpdateAsync(existUser);

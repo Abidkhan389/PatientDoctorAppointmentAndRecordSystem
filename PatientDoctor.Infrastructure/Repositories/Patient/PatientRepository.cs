@@ -660,7 +660,7 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
         public async Task<IResponse> GetDoctorAppointmentsSlotsOfDay(GetDoctorTimeSlotsByDayIdAndDoctorId model)
             {
             var doctorObj = await _context.DoctorAvailabilities
-                .Where(x => x.DoctorId == model.DoctorId && x.DayId == model.DayId)
+                .Where(x => x.DoctorId == model.DoctorId && x.DayId == model.DayId && x.Status==1)
                 .FirstOrDefaultAsync();
 
             if (doctorObj == null || string.IsNullOrEmpty(doctorObj.TimeSlotsJson))

@@ -32,6 +32,7 @@ namespace PatientDoctor.Infrastructure.Persistance
         public virtual DbSet<DoctorMedicines> DoctorMedicines { get; set; } = null!;
         public virtual DbSet<Prescription> Prescriptions { get; set; } = null!;
         public virtual DbSet<PrescriptionMedicine> PrescriptionMedicines { get; set; } = null!;
+        public virtual DbSet<Attachments> Attachments { get; set; } = null!;
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder); // Always keep this line first

@@ -1,18 +1,13 @@
 ﻿using PatientDoctor.Application.Features.Administrator.Commands.Register;
-using PatientDoctor.Application.Features.Administrator.Commands.ResetPassword;
-using PatientDoctor.Application.Features.Patient.Commands.ActiveInActive;
+using PatientDoctor.Application.Features.Administrator.Commands.UserProfile;
+using PatientDoctor.Application.Features.Administrator.Quries;
 using PatientDoctor.Application.Helpers;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace PatientDoctor.Application.Contracts.Persistance.IAdministratorRepository
+namespace PatientDoctor.Application.Contracts.Persistance.IAdministratorRepository;
+public interface IAdministratorRepository
 {
-    public interface IAdministratorRepository
-    {
-        Task<IResponse> ResetPassword(ResetPasswordCommand model);
-        Task<IResponse> UserRegister(UserRegisterCommand model);
-    }
+    Task<IResponse> UpdateUserProfile(UserProfileCommand model);
+    Task<IResponse> UserRegister(UserRegisterCommand model);
+    Task<IResponse> GetUserProfileByEmailAndId(GetUserProfileByEmailAndId model);
 }
+

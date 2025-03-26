@@ -1,22 +1,19 @@
-﻿using AutoMapper;
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using PatientDoctor.Application.Contracts.Persistance.IAdministratorRepository;
+using PatientDoctor.Application.Contracts.Persistance.IFileRepository;
+using PatientDoctor.Application.Contracts.Persistance.ISecurity;
 using PatientDoctor.Application.Contracts.Security;
 using PatientDoctor.Application.Features.Administrator.Commands.Register;
-using PatientDoctor.Application.Features.Administrator.Commands.ResetPassword;
+using PatientDoctor.Application.Features.Administrator.Commands.UserProfile;
+using PatientDoctor.Application.Features.Administrator.Quries;
 using PatientDoctor.Application.Helpers;
+using PatientDoctor.Application.Helpers.Auth;
 using PatientDoctor.domain.Entities;
 using PatientDoctor.Infrastructure.Persistance;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Threading.Tasks.Dataflow;
 
-namespace PatientDoctor.Infrastructure.Repositories.Administrator
-{
+namespace PatientDoctor.Infrastructure.Repositories.Administrator;
     public class AdministratorRepository : IAdministratorRepository
     {
         private readonly DocterPatiendDbContext _context;
@@ -24,38 +21,143 @@ namespace PatientDoctor.Infrastructure.Repositories.Administrator
         private readonly IResponse _response;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
+    private readonly ILocalAuthenticationRepository _localAuthenticationRepository;
+    private readonly IFileUploader _fileUploader;
 
-        public AdministratorRepository(DocterPatiendDbContext context, ICryptoService cryptoService,
+    public AdministratorRepository(DocterPatiendDbContext context, ICryptoService cryptoService,
             IResponse response, UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager
-            , ICryptoService crypto)
+            , ICryptoService crypto, ILocalAuthenticationRepository localAuthenticationRepository, IFileUploader fileUploader)
+    {
+        _context = context;
+        _crypto = cryptoService;
+        _response = response;
+        _userManager = userManager;
+        _roleManager = roleManager;
+        _localAuthenticationRepository = localAuthenticationRepository;
+        _fileUploader = fileUploader;
+    }
+
+    public async Task<IResponse> GetUserProfileByEmailAndId(GetUserProfileByEmailAndId model)
+    {
+        try
         {
-            this._context = context;
-            _crypto = cryptoService;
-            this._response = response;
-            this._userManager = userManager;
-            _roleManager = roleManager;
-        }
-        public async Task<IResponse> ResetPassword(ResetPasswordCommand model)
-        {
-            var user = await _userManager.FindByIdAsync(model.UserId);
-            var passswordSalt = _crypto.CreateSalt();
-            var passwordHash = _crypto.CreateKey(passswordSalt, model.Password);
-            user.PasswordHash = passwordHash;
-            user.PasswordSalt = passswordSalt;
-            var result = await _userManager.UpdateAsync(user);
-            if (!result.Succeeded)
+            var user = await (from main in _userManager.Users
+                              join userdetails in _context.Userdetail on main.Id equals userdetails.UserId
+                              where main.Email == model.EmailOrPhoneNumber
+                              select new VM_GetUserProfileByEmailAndId
+                              {
+                                  UserId = main.Id,
+                                  FirstName = userdetails.FirstName,
+                                  LastName = userdetails.LastName,
+                                  ProfilePicture = main.ProfilePicture,
+                                  PhoneNumber = main.PhoneNumber,
+                                  EmailorPhoneNumber = main.Email
+                              }).FirstOrDefaultAsync();
+            if (user != null)
             {
-                // User was successfully updated
+                _response.Success = Constants.ResponseSuccess;
+                _response.Message = Constants.DataUpdate;
+                _response.Data = user;
+            }
+            else
+            {
                 _response.Success = Constants.ResponseFailure;
                 _response.Message = Constants.NotFound;
             }
-            _response.Data = user;
-            _response.Success = Constants.ResponseSuccess;
-            _response.Message = Constants.DataUpdate;
             return _response;
         }
+        catch (Exception ex)
+        {
+            return CreateErrorResponse(ex.Message);
+        }
+    }
 
-        public async Task<IResponse> UserRegister(UserRegisterCommand model)
+    public async Task<IResponse> UpdateUserProfile(UserProfileCommand model)
+    {
+        using var transaction = await _context.Database.BeginTransactionAsync();
+        try
+        {
+            bool ProfileImageChange = false;
+            var userObj = await _userManager.FindByIdAsync(model.UserId);
+            if (userObj == null)
+            {
+                return CreateErrorResponse("User not found.");
+            }
+
+            // Password Change Handling
+            if (model.PasswordChange)
+            {
+                var passwordCheck = await _localAuthenticationRepository.ResolveUser(userObj.Email, model.OldPassword, false);
+                if (!passwordCheck)
+                {
+                    return CreateErrorResponse("Old password does not match.");
+                }
+
+                var passwordSalt = _crypto.CreateSalt();
+                var passwordHash = _crypto.CreateKey(passwordSalt, model.NewPassword);
+                userObj.PasswordSalt = passwordSalt;
+                userObj.PasswordHash = passwordHash;
+            }
+            if(model.File is not null)
+            {
+
+            using (var stream = model.File.OpenReadStream())
+            {
+
+                //var attachmentDto = await _fileUploader.UploadFileAsync(stream, model.File.FileName, model.EntityId ?? 0, model.EntityType, model.UserId);
+                var attachmentDto = await _fileUploader.SaveFileInRootAsync(stream, model.File.FileName,model.UserId ?? "", model.EntityType);
+                    model.ProfilePicture = attachmentDto;
+                    ProfileImageChange = true;
+                }
+
+            }
+            if (ProfileImageChange)
+            {
+                userObj.ProfilePicture = model.ProfilePicture;
+            }
+
+            // Update User Phone Number
+            userObj.PhoneNumber = model.PhoneNumber;
+            // Update User Details
+            var existingUserDetails = await _context.Userdetail
+                .FirstOrDefaultAsync(x => x.UserId == userObj.Id);
+
+            if (existingUserDetails == null)
+            {
+                return CreateErrorResponse("User details not found.");
+            }
+
+            existingUserDetails.FirstName = model.FirstName;
+            existingUserDetails.LastName = model.LastName;
+            existingUserDetails.UpdatedBy = model.LoedInUserId;
+            existingUserDetails.UpdatedOn = DateTime.UtcNow;
+            // Save Changes
+
+            var identityResult = await _userManager.UpdateAsync(userObj);
+            if (!identityResult.Succeeded)
+            {
+                return CreateErrorResponse("Failed to update user profile.");
+            }
+
+            _context.Userdetail.Update(existingUserDetails);
+            await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
+
+            return new Response
+            {
+                Success = Constants.ResponseSuccess,
+                Message = Constants.DataUpdate,
+                Data = userObj
+            };
+        }
+        catch (Exception ex)
+        {
+            await transaction.RollbackAsync();
+            return CreateErrorResponse($"An error occurred while updating profile: {ex.Message}");
+        }
+    }
+
+    public async Task<IResponse> UserRegister(UserRegisterCommand model)
         {
             using var transaction = _context.Database.BeginTransaction();
             try
@@ -149,4 +251,4 @@ namespace PatientDoctor.Infrastructure.Repositories.Administrator
             return new Response { Success = Constants.ResponseFailure, Message = message };
         }
     }
-}
+

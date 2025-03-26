@@ -3,15 +3,8 @@ using PatientDoctor.Application.Contracts.Persistance.ISecurity;
 using PatientDoctor.Application.Contracts.Security;
 using PatientDoctor.domain.Entities;
 using PatientDoctor.Infrastructure.Persistance;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Claims;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace PatientDoctor.Infrastructure.Repositories.SecurityRepository
-{
+namespace PatientDoctor.Infrastructure.Repositories.SecurityRepository;
     //public interface IUserRepository : ILocalAuthenticationRepository, IEntityRepository<ApplicationUser> { }
     public class UserRepository : ILocalAuthenticationRepository
     {
@@ -38,6 +31,6 @@ namespace PatientDoctor.Infrastructure.Repositories.SecurityRepository
                 return false;
             }
             return false;
-        }
+        } 
     }
-}
+

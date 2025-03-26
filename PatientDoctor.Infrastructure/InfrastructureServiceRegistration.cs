@@ -34,6 +34,10 @@ using PatientDoctor.Application.Contracts.Persistance.IDoctorMedicine;
 using PatientDoctor.Infrastructure.Repositories.DoctorMedicine;
 using PatientDoctor.Infrastructure.Repositories.PatientCheckUpHistroy;
 using PatientDoctor.Application.Contracts.Persistance.IPatientCheckUpHistroy;
+using PatientDoctor.Application.Contracts.Persistance.IFileStorage;
+using PatientDoctor.Infrastructure.Repositories.FileUploaders;
+using PatientDoctor.Application.Contracts.Persistance.IFileRepository;
+using PatientDoctor.Infrastructure.Repositories.FileSystemStorage;
 
 namespace PatientDoctor.Infrastructure
 {
@@ -41,6 +45,8 @@ namespace PatientDoctor.Infrastructure
     {
         public static IServiceCollection AddInfrastructureServices(this IServiceCollection services, IConfiguration configuration)
         {
+            var rootPath = Path.Combine(Directory.GetCurrentDirectory(), configuration.GetValue<string>("FileStorageRootPath"));
+
             services.AddDbContextPool<DocterPatiendDbContext>(options =>
             {
                 options.UseSqlServer(
@@ -103,6 +109,9 @@ namespace PatientDoctor.Infrastructure
             services.AddScoped<ICryptoService, CryptoHelper>();
             services.AddScoped<IDashboardRepository, DashboardRepository>();
             services.AddScoped<ILocalAuthenticationRepository, UserRepository>();
+            services.AddScoped<IFileUploader, FileUploaderRepository>();
+            services.AddScoped<IFileStorageRepository>(provider => new FileSystemStorageRepository(rootPath));
+
             services.AddScoped<IAdministratorRepository, AdministratorRepository>();
             services.AddScoped<IMedicinetypeRepository, MedicineTypeRepository>();
             services.AddScoped<IMedicineRepository, MedicineRepository>();

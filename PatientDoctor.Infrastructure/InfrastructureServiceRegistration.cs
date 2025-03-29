@@ -38,6 +38,8 @@ using PatientDoctor.Application.Contracts.Persistance.IFileStorage;
 using PatientDoctor.Infrastructure.Repositories.FileUploaders;
 using PatientDoctor.Application.Contracts.Persistance.IFileRepository;
 using PatientDoctor.Infrastructure.Repositories.FileSystemStorage;
+using PatientDoctor.Application.Contracts.Persistance.IDoctorHolidayRepository;
+using PatientDoctor.Infrastructure.Repositories.DoctorHoliday;
 
 namespace PatientDoctor.Infrastructure
 {
@@ -119,6 +121,7 @@ namespace PatientDoctor.Infrastructure
             services.AddScoped<IDoctorAvailabilityRepository, DoctorAvailabilityRepository>();
             services.AddScoped<IDoctorMedicineRepository, DoctorMedicineRepository>();
             services.AddScoped<IPatientCheckUpHistroyRepository, PatientCheckUpHistroyRepository>();
+            services.AddScoped<IDoctorHolidayRepository, DoctorHolidayRepository>();
             services.AddAuthorization();
             return services;
         }

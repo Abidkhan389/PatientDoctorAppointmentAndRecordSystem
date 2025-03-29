@@ -1,4 +1,5 @@
 ﻿using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using PatientDoctor.Application.Contracts.Persistance.IIdentityRepository;
@@ -14,6 +15,7 @@ using System.Security.Claims;
 
 namespace PatientDoctor.API.Controllers
 {
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class AccountController : ControllerBase
@@ -55,6 +57,7 @@ namespace PatientDoctor.API.Controllers
 
             return await _mediator.Send(new AddEditUserWithCreatedOrUpdatedById(model, UserId));
         }
+        [AllowAnonymous]
         [HttpPost]
         [Route("Login")]
         public async Task<object> Login(LoginUserCommand model)

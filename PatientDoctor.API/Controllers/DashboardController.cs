@@ -8,7 +8,7 @@ using PatientDoctor.Application.Helpers;
 
 namespace PatientDoctor.API.Controllers
 {
-    //[Authorize]
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class DashboardController : ControllerBase

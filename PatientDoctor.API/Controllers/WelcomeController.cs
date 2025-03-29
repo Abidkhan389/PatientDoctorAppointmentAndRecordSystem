@@ -1,4 +1,5 @@
 ﻿using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using PatientDoctor.Application.Features.Dashboard.Quries;
@@ -9,6 +10,7 @@ using System.Security.Claims;
 
 namespace PatientDoctor.API.Controllers
 {
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class WelcomeController : ControllerBase

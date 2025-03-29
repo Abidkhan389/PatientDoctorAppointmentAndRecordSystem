@@ -10,7 +10,7 @@ public  class GetDoctorHolidayList : TableParam, IRequest<IResponse>
     public string? LastName { get; set; }
     public DateTime? FromDate { get; set; } // Nullable for weekly off
     public DateTime? ToDate { get; set; } // Nullable for weekly off
-    public int? DayOfWeek { get; set; } // Sunday, Monday, etc.
+    //public int? DayOfWeek { get; set; } // Sunday, Monday, etc.
     public string? LogedInDoctorId { get; set; }
 
 }

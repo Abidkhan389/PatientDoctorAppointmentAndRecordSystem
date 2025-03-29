@@ -25,10 +25,7 @@ public class AddEditDoctorHolidayValidation : AbstractValidator<AddEditDoctorHol
             .GreaterThanOrEqualTo(x => x.FromDate)
             .WithMessage("ToDate must be on or after FromDate.");
 
-        // DayOfWeek: Should be between 0 (Sunday) and 6 (Saturday)
-        RuleFor(x => x.DayOfWeek)
-            .InclusiveBetween(0, 6)
-            .WithMessage("DayOfWeek must be a valid value between 0 (Sunday) and 6 (Saturday).");
+        
 
         // Reason: Should not be only whitespace if provided
         RuleFor(x => x.Reason)

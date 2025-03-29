@@ -12,7 +12,7 @@ public   class AddEditDoctorHolidayCommand :IRequest<IResponse>
 
     public DateTime ToDate { get; set; } // Nullable for weekly off
 
-    public int DayOfWeek { get; set; } // Sunday, Monday, etc.
+    //public int DayOfWeek { get; set; } // Sunday, Monday, etc.
 
     public string? Reason { get; set; } // Optional reason for leave
     public string? LogedInUserId { get; set; }

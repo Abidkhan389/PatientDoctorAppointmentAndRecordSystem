@@ -14,8 +14,6 @@ public class DoctorHolidays : LogFields
 
     public DateTime ToDate { get; set; } // Nullable for weekly off
 
-    public int DayOfWeek { get; set; } // Sunday, Monday, etc.
-
     public string? Reason { get; set; } // Optional reason for leave
 
     public int Status { get; set; }
@@ -32,8 +30,8 @@ public class DoctorHolidays : LogFields
         DoctorId = model.DoctorId;
         FromDate = model.FromDate;
         ToDate = model.ToDate;
-        DayOfWeek = model.DayOfWeek;
         Reason = model.Reason;
+        Status = 1;
     }
 }
 

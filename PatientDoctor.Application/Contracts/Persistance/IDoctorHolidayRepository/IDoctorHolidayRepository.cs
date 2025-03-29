@@ -5,6 +5,7 @@ using PatientDoctor.Application.Features.DoctorHoliday.Command.ActiveInActive;
 using PatientDoctor.Application.Features.DoctorHoliday.Command.AddEditDoctorHoliday;
 using PatientDoctor.Application.Features.DoctorHoliday.Quries.GetAllByProc;
 using PatientDoctor.Application.Features.DoctorHoliday.Quries.GetDoctorHolidayById;
+using PatientDoctor.Application.Features.DoctorHoliday.Quries.GetDoctorHolidaysByDoctorIdForPatientAppointment;
 using PatientDoctor.Application.Helpers;
 
 namespace PatientDoctor.Application.Contracts.Persistance.IDoctorHolidayRepository;
@@ -14,5 +15,6 @@ public   interface IDoctorHolidayRepository
     Task<IResponse> GetByIdDoctorHoliday(GetByIdDoctorHoliday Id);
     Task<IResponse> GetAllByProc(GetDoctorHolidayList model);
     Task<IResponse> ActiveInActive(ActiveInActiveDoctorHoliday model);
+    Task<IResponse> GetDoctorHolidayByDoctorIdForPatientAppointment(GetDoctorHolidayByDoctorIdForPatientAppointment model);
 }
 

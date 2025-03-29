@@ -659,6 +659,24 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
         
         public async Task<IResponse> GetDoctorAppointmentsSlotsOfDay(GetDoctorTimeSlotsByDayIdAndDoctorId model)
             {
+            // 1️⃣ Check if the doctor has a holiday on the given appointment date
+            bool isHoliday = await _context.DoctorHolidays
+                .AnyAsync(x =>
+                    x.DoctorId == model.DoctorId &&
+                    x.Status == 1 && // Only consider active holidays
+                    model.AppointmentDate.Date >= x.FromDate.Date &&
+                    model.AppointmentDate.Date <= x.ToDate.Date
+                );
+
+            if (isHoliday)
+            {
+                return new Response
+                {
+                    Success = Constants.ResponseFailure,
+                    Message = "Doctor is on holiday on this date. Please choose another date."
+                };
+            }
+
             var doctorObj = await _context.DoctorAvailabilities
                 .Where(x => x.DoctorId == model.DoctorId && x.DayId == model.DayId)
                 .FirstOrDefaultAsync();

@@ -13,7 +13,7 @@ public   class VM_GetDoctorHolidayList: ListingLogFields
     public DateTime ToDate { get; set; } // Nullable for weekly off
 
     public int DayOfWeek { get; set; } // Sunday, Monday, etc.
-
+    public List<string>? DayName { get; set; }
     public string Reason { get; set; } // Optional reason for leave
 }
 

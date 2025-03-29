@@ -10,9 +10,6 @@ public   class VM_GetByIdDoctorHoliday
     public DateTime FromDate { get; set; } // Nullable for weekly off
 
     public DateTime ToDate { get; set; } // Nullable for weekly off
-
-    public int DayOfWeek { get; set; } // Sunday, Monday, etc.
-
     public string Reason { get; set; } // Optional reason for leave
 }
 

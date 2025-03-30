@@ -42,6 +42,7 @@ public class VM_GetByIdForHistoryShow_OfPateintById
     public string Cnic { get; set; }
     public string PhoneNumber { get; set; }
     public int Age { get; set; }
+    public string? TrackingNumber { get; set; }
 
     public virtual ICollection<VM_PrescriptionMedicineForView> Medicine { get; set; } = new List<VM_PrescriptionMedicineForView>();
 }

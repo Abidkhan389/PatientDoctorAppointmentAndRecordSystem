@@ -224,7 +224,7 @@ public class PatientCheckUpHistroyRepository(DocterPatiendDbContext _context, Us
                                 Cnic = patient.Cnic,
                                 City = patient_details.City,
                                 Age = patient.Age,
-
+                                
                                 // Medicines (temporarily assign null or map basic info)
                                 Medicine = pre.Medicines.Select(m => new VM_PrescriptionMedicineForView
                                 {
@@ -272,6 +272,12 @@ public class PatientCheckUpHistroyRepository(DocterPatiendDbContext _context, Us
 
         if (result != null)
         {
+            var trackPatientNumber = await FetchPatientTrackingNumberByPatientId(result.PatientId);
+
+            if (trackPatientNumber.Success) // Check if response is successful
+            {
+                result.TrackingNumber = trackPatientNumber.Data as string; // Safe casting to string
+            }
             _response.Success = Constants.ResponseSuccess;
             _response.Message = Constants.DataUpdate;
             _response.Data = result;
@@ -282,6 +288,49 @@ public class PatientCheckUpHistroyRepository(DocterPatiendDbContext _context, Us
             _response.Message = Constants.NotFound;
         }
         return _response;
+    }
+
+    public async Task<IResponse> FetchPatientTrackingNumberByPatientId(Guid PatientId)
+    {
+        var currentPatient = await _context.Patient.Where(x => x.PatientId == PatientId).FirstOrDefaultAsync();
+        if(currentPatient?.TrackingNumber is not null)
+        {
+            _response.Success = Constants.ResponseSuccess;
+            _response.Message = Constants.GetData;
+            _response.Data = currentPatient.TrackingNumber;
+        }
+        else
+        {
+            var currentDate = DateTime.Now.ToString("yyyyMMdd-HHmm"); // Format: YYYYMMDD-HHmm
+            var currentDateOnly = DateTime.Now.ToString("yyyyMMdd"); // Format: YYYYMMDD-HHmm
+
+            // Fetch the latest patient tracking number of the current date
+            var latestPatient = await _context.Patient
+                .Where(p => p.TrackingNumber.StartsWith(currentDateOnly)) // Filter by today's date
+                .OrderByDescending(p => p.TrackingNumber) // Get latest tracking number
+                .Select(p => p.TrackingNumber)
+                .FirstOrDefaultAsync();
+
+            int nextNumber = 1; // Default if no patient exists today
+
+            if (!string.IsNullOrEmpty(latestPatient))
+            {
+                // Extract the last number part and increment it
+                var lastNumberPart = latestPatient.Split('-').Last();
+                if (int.TryParse(lastNumberPart, out int lastNumber))
+                {
+                    nextNumber = lastNumber + 1;
+                }
+            }
+
+            // Construct new tracking number
+            string newTrackingNumber = $"{currentDate}-PT-{nextNumber:D3}"; // 3-digit padding (001, 002, ...)
+            _response.Success = Constants.ResponseSuccess;
+            _response.Message = Constants.GetData;
+            _response.Data = newTrackingNumber;
+        }
+        return _response;
+
     }
 }
 

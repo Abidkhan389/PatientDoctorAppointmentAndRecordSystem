@@ -26,5 +26,6 @@ namespace PatientDoctor.Application.Features.Patient.Commands.AddEditPatient
         public string? BloodType { get; set; }
         public string Cnic { get; set; }
         public string? MaritalStatus { get; set; }
+        public string? TrackingNumber { get; set; }
     }
 }

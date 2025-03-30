@@ -17,6 +17,7 @@ using PatientDoctor.Application.Features.Patient.Quries.GetDoctorSlots;
 using PatientDoctor.Application.Features.Doctor_Availability.Commands;
 using System.Globalization;
 using Newtonsoft.Json;
+using PatientDoctor.Application.Features.DoctorMedicine.Command;
 
 namespace PatientDoctor.Infrastructure.Repositories.Patient
 {
@@ -659,23 +660,49 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
         
         public async Task<IResponse> GetDoctorAppointmentsSlotsOfDay(GetDoctorTimeSlotsByDayIdAndDoctorId model)
             {
-            // 1️⃣ Check if the doctor has a holiday on the given appointment date
-            bool isHoliday = await _context.DoctorHolidays
-                .AnyAsync(x =>
-                    x.DoctorId == model.DoctorId &&
-                    x.Status == 1 && // Only consider active holidays
-                    model.AppointmentDate.Date >= x.FromDate.Date &&
-                    model.AppointmentDate.Date <= x.ToDate.Date
-                );
+            // 1️⃣ Get the start and end dates for the selected month
+            DateTime monthStart = new DateTime(model.AppointmentDate.Year, model.AppointmentDate.Month, 1);
+            DateTime monthEnd = new DateTime(model.AppointmentDate.Year, model.AppointmentDate.Month, DateTime.DaysInMonth(model.AppointmentDate.Year, model.AppointmentDate.Month));
 
-            if (isHoliday)
+            // 2️⃣ Fetch holidays that INCLUDE the appointment date
+            var holidays = await _context.DoctorHolidays
+                .Where(x => x.DoctorId == model.DoctorId &&
+                            x.Status == 1 && // Only active holidays
+                            x.FromDate.Date <= model.AppointmentDate.Date &&  // ✅ Holiday must start before or on appointment date
+                            x.ToDate.Date >= model.AppointmentDate.Date)      // ✅ Holiday must end on or after appointment date
+                .ToListAsync();
+
+            // 3️⃣ Generate list of holiday dates only if the appointment falls within a holiday
+            List<string> holidayDates = new List<string>();
+
+            foreach (var holiday in holidays)
             {
+                DateTime current = model.AppointmentDate.Date; // ✅ Start from the appointment date
+
+                while (current <= holiday.ToDate.Date && current <= monthEnd)
+                {
+                    holidayDates.Add(current.ToString("dd")); // Store only the day
+                    current = current.AddDays(1); // Move to next day
+                }
+            }
+
+            // 4️⃣ Generate response message only if holidays exist for the appointment date
+            if (holidayDates.Any())
+            {
+                var message = "Doctor is on leave on date: " + string.Join(", ", holidayDates);
+                if (holidayDates.Count > 1)
+                {
+                    message = "Doctor is on leave from dates: " + string.Join(", ", holidayDates);
+                }
+
                 return new Response
                 {
                     Success = Constants.ResponseFailure,
-                    Message = "Doctor is on holiday on this date. Please choose another date."
+                    Message = message
                 };
             }
+
+
 
             var doctorObj = await _context.DoctorAvailabilities
                 .Where(x => x.DoctorId == model.DoctorId && x.DayId == model.DayId && x.Status==1)
@@ -684,7 +711,7 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
             if (doctorObj == null || string.IsNullOrEmpty(doctorObj.TimeSlotsJson))
             {
                 _response.Success = Constants.ResponseFailure;
-                _response.Message = Constants.NotFound;
+                _response.Message = Constants.NoSlotAvaibale;
             }
             else
             {

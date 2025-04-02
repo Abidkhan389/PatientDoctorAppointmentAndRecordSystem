@@ -18,6 +18,8 @@ using Microsoft.EntityFrameworkCore;
 using PatientDoctor.Infrastructure.Repositories.GeneralServices;
 using System.Data;
 using PatientDoctor.Application.Features.Identity.Quries.GetDoctorFee.GetDoctorFeeById;
+using PatientDoctor.Application.Contracts.Persistance.IEmail;
+using PatientDoctor.Application.Helpers.EmailRequest;
 
 namespace PatientDoctor.Infrastructure.Repositories.Identity;
     public class IdentityRepository : IIdentityRepository
@@ -31,11 +33,13 @@ namespace PatientDoctor.Infrastructure.Repositories.Identity;
         private readonly RoleManager<IdentityRole> _roleManager;
         private readonly ICountResponse _countResp;
         private readonly ICryptoService _crypto;
-        public IdentityRepository(DocterPatiendDbContext context, IMapper mapper,
+        private readonly IEmailRepository _emailRepository;
+
+    public IdentityRepository(DocterPatiendDbContext context, IMapper mapper,
             IResponse response, UserManager<ApplicationUser> userManager,
             SignInManager<ApplicationUser> signInManager, IConfiguration configuration,
             RoleManager<IdentityRole> roleManager, ICountResponse countResp
-            , ICryptoService crypto)
+            , ICryptoService crypto, IEmailRepository emailRepository)
         {
             this._context = context;
             this._mapper = mapper;
@@ -47,8 +51,8 @@ namespace PatientDoctor.Infrastructure.Repositories.Identity;
             this._roleManager = roleManager;
             this._countResp = countResp;
             this._crypto = crypto;
-
-        }
+            _emailRepository = emailRepository;
+    }
         public async Task<IResponse> ActiveInActiveUser(ActiveInActiveIdentity model)
         {
             var user = await _userManager.FindByIdAsync(model.Id);
@@ -161,10 +165,17 @@ namespace PatientDoctor.Infrastructure.Repositories.Identity;
                 _response.Message = Constants.NotFound.Replace("{data}", "user");
                 return _response;
             }
-            // Get user roles
-           // var roles = await _userManager.GetRolesAsync(new ApplicationUser { Id = user.UserId });
-            // Assign roles to the user object
-            //user.Roles = roles.ToList();
+        // Get user roles
+        // var roles = await _userManager.GetRolesAsync(new ApplicationUser { Id = user.UserId });
+        // Assign roles to the user object
+        //user.Roles = roles.ToList();
+        //var emailRequest = new EmailRequest
+        //{
+        //    ToEmail= "akhan2211.se@gmail.com",
+        //    Subject= "The Testing Purpose",
+        //    BodyContent= "This is the remainder email for your appointment"
+        //};
+        //_emailRepository.SendEmailAsync(emailRequest);
             _response.Data = user;
             _response.Success = Constants.ResponseSuccess;
             _response.Message = Constants.DataSaved;

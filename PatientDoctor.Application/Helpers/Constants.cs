@@ -37,6 +37,7 @@ namespace PatientDoctor.Application.Helpers
         public const string FileNotFound = "Unable to download the required file";
         public const string UnAuthorized = "User Unauthorized";
         public const string NotFound = "{data} not found";
+        public const string NoSlotAvaibale = "No Time Slot Avaibale";
         public const string Exists = "{data} name already exits";
         public const string IdRequired = "Id is required";
         public const string TimeZone = "Time-zone";

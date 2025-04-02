@@ -17,6 +17,8 @@ using PatientDoctor.Application.Features.Patient.Quries.GetDoctorSlots;
 using PatientDoctor.Application.Features.Doctor_Availability.Commands;
 using System.Globalization;
 using Newtonsoft.Json;
+using PatientDoctor.Application.Features.DoctorMedicine.Command;
+using PatientDoctor.Application.Contracts.Persistance.IPatientCheckUpHistroy;
 
 namespace PatientDoctor.Infrastructure.Repositories.Patient
 {
@@ -28,11 +30,12 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
         private readonly ICountResponse _countResp;
         private readonly IConfiguration _configuration;
         private readonly ICryptoService _crypto;
+        private readonly IPatientCheckUpHistroyRepository _patientCheckUpHistroy;
 
         public PatientRepository(DocterPatiendDbContext context,
             IResponse response, UserManager<ApplicationUser> userManager, 
             RoleManager<IdentityRole> roleManager, ICountResponse countResp,
-            IConfiguration configurations, ICryptoService crypto)
+            IConfiguration configurations, ICryptoService crypto, IPatientCheckUpHistroyRepository patientCheckUpHistroy)
         {
             this._context = context;
             this._response = response;
@@ -40,6 +43,7 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
             this._countResp = countResp;
             this._configuration = configurations;
             this._crypto = crypto;
+            _patientCheckUpHistroy = patientCheckUpHistroy;
         }
         private IResponse CreateSuccessResponse(string message)
         {
@@ -119,17 +123,35 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
                         return CreateErrorResponse("Please choose an appointment time that is at least 10 minutes after the existing appointment from the same doctor.");
                     }
                     // Check if patient already exists
-                    var existingPatient = await (from p in _context.Patient
-                                                 join pd in _context.PatientDetails on p.PatientId equals pd.PatientId
-                                                 where p.FirstName == model.AddEditPatientObj.FirstName
-                                                       && p.LastName == model.AddEditPatientObj.LastName
-                                                       && p.Cnic == model.AddEditPatientObj.Cnic
-                                                       && p.Gender == model.AddEditPatientObj.Gender
-                                                       && pd.PhoneNumber == model.AddEditPatientObj.PhoneNumber
-                                                 select new { Patient = p, PatientDetails = pd }).FirstOrDefaultAsync();
+                    var existingPatient = await (
+                        from p in _context.Patient
+                        join pd in _context.PatientDetails on p.PatientId equals pd.PatientId
+                        where
+                            (
+                                (p.FirstName.ToLower() == model.AddEditPatientObj.FirstName.ToLower() ||
+                                 p.LastName.ToLower() == model.AddEditPatientObj.LastName.ToLower())
+                                &&
+                                p.Gender.ToLower() == model.AddEditPatientObj.Gender.ToLower()
+                                &&
+                                pd.PhoneNumber == model.AddEditPatientObj.PhoneNumber
+                            )
+                            ||
+                            (
+                                p.Cnic.ToLower() == model.AddEditPatientObj.Cnic.ToLower() &&
+                                p.TrackingNumber == model.AddEditPatientObj.TrackingNumber
+                            )
+                        select new { Patient = p, PatientDetails = pd }
+                    ).FirstOrDefaultAsync();
+
+
 
                     Guid patientId;
                     Guid patientDetailsId;
+                    existingPatient = (existingPatient != null &&
+                   existingPatient.Patient.FirstName.ToLower() == model.AddEditPatientObj.FirstName.ToLower() &&
+                   existingPatient.Patient.LastName.ToLower() == model.AddEditPatientObj.LastName.ToLower())
+                   ? existingPatient
+                   : null;
 
                     if (existingPatient == null)
                     {
@@ -302,10 +324,10 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
                             City = p_details.City,
                             BloodType = p_details.BloodType,
                             Cnic = patient.Cnic,
-                            Status = patient.Status,
+                            Status =patient.Status,
                             TimeSlot = App.TimeSlot,
                             MaritalStatus = p_details.MaritalStatus,
-                            CheckUpStatus = p_details.CheckUpStatus
+                            CheckUpStatus = Convert.ToInt16(App.CheckUpStatus),
                         }).AsQueryable();
 
             var count = data.Count();
@@ -389,17 +411,29 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
 
 
                     var patientDetails = await _context.PatientDetails.FirstOrDefaultAsync(pd => pd.PatientId == model.PatientId);
+                    var patient = await _context.Patient.FirstOrDefaultAsync(pd => pd.PatientId == model.PatientId);
                     var appointmentDetail = await _context.Appointment.FirstOrDefaultAsync(pd => pd.PatientId == model.PatientId);
 
                     if (patientDetails != null)
                     {
+
                         var patienCheckUpDescription = new Prescription(model);
-                        patientDetails.CheckUpStatus = 1; // update check status to 1, its means patient is checked
+                        if (patient?.TrackingNumber is null)
+                        {
+                            var trackPatientNumber = await _patientCheckUpHistroy.FetchPatientTrackingNumberByPatientId(patient.PatientId);
+
+                            if (trackPatientNumber.Success) // Check if response is successful
+                            {
+                                patient.TrackingNumber = trackPatientNumber.Data as string; // Safe casting to string
+                            }
+                        }
+                        //patientDetails.CheckUpStatus = 1; // update check status to 1, its means patient is checked
                         appointmentDetail.CheckUpStatus = true;
                         patientDetails.CreatedOn = DateTime.Now;
                         await _context.Prescriptions.AddAsync(patienCheckUpDescription);
                         _context.PatientDetails.Update(patientDetails);
                         _context.Appointment.Update(appointmentDetail);
+                        _context.Patient.Update(patient);
                         //var data = await (from patnt in _context.Patient
                         //                  join p_details in _context.PatientDetails on patnt.PatientId equals p_details.PatientId
                         //                  join main in _context.Users on patnt.DoctoerId equals main.Id
@@ -659,6 +693,50 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
         
         public async Task<IResponse> GetDoctorAppointmentsSlotsOfDay(GetDoctorTimeSlotsByDayIdAndDoctorId model)
             {
+            // 1️⃣ Get the start and end dates for the selected month
+            DateTime monthStart = new DateTime(model.AppointmentDate.Year, model.AppointmentDate.Month, 1);
+            DateTime monthEnd = new DateTime(model.AppointmentDate.Year, model.AppointmentDate.Month, DateTime.DaysInMonth(model.AppointmentDate.Year, model.AppointmentDate.Month));
+
+            // 2️⃣ Fetch holidays that INCLUDE the appointment date
+            var holidays = await _context.DoctorHolidays
+                .Where(x => x.DoctorId == model.DoctorId &&
+                            x.Status == 1 && // Only active holidays
+                            x.FromDate.Date <= model.AppointmentDate.Date &&  // ✅ Holiday must start before or on appointment date
+                            x.ToDate.Date >= model.AppointmentDate.Date)      // ✅ Holiday must end on or after appointment date
+                .ToListAsync();
+
+            // 3️⃣ Generate list of holiday dates only if the appointment falls within a holiday
+            List<string> holidayDates = new List<string>();
+
+            foreach (var holiday in holidays)
+            {
+                DateTime current = model.AppointmentDate.Date; // ✅ Start from the appointment date
+
+                while (current <= holiday.ToDate.Date && current <= monthEnd)
+                {
+                    holidayDates.Add(current.ToString("dd")); // Store only the day
+                    current = current.AddDays(1); // Move to next day
+                }
+            }
+
+            // 4️⃣ Generate response message only if holidays exist for the appointment date
+            if (holidayDates.Any())
+            {
+                var message = "Doctor is on leave on date: " + string.Join(", ", holidayDates);
+                if (holidayDates.Count > 1)
+                {
+                    message = "Doctor is on leave from dates: " + string.Join(", ", holidayDates);
+                }
+
+                return new Response
+                {
+                    Success = Constants.ResponseFailure,
+                    Message = message
+                };
+            }
+
+
+
             var doctorObj = await _context.DoctorAvailabilities
                 .Where(x => x.DoctorId == model.DoctorId && x.DayId == model.DayId && x.Status==1)
                 .FirstOrDefaultAsync();
@@ -666,7 +744,7 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
             if (doctorObj == null || string.IsNullOrEmpty(doctorObj.TimeSlotsJson))
             {
                 _response.Success = Constants.ResponseFailure;
-                _response.Message = Constants.NotFound;
+                _response.Message = Constants.NoSlotAvaibale;
             }
             else
             {

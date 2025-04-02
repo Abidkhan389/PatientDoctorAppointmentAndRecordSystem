@@ -120,6 +120,5 @@ public class EmailRepository : IEmailRepository
             return new Response { Success = false, Message = $"Email sending failed: {ex.Message}" };
         }
     }
-
 }
 

@@ -40,6 +40,9 @@ using PatientDoctor.Application.Contracts.Persistance.IFileRepository;
 using PatientDoctor.Infrastructure.Repositories.FileSystemStorage;
 using PatientDoctor.Application.Contracts.Persistance.IDoctorHolidayRepository;
 using PatientDoctor.Infrastructure.Repositories.DoctorHoliday;
+using PatientDoctor.Application.Features.Email;
+using PatientDoctor.Application.Contracts.Persistance.IEmail;
+using PatientDoctor.Infrastructure.Repositories.Email;
 
 namespace PatientDoctor.Infrastructure
 {
@@ -122,6 +125,11 @@ namespace PatientDoctor.Infrastructure
             services.AddScoped<IDoctorMedicineRepository, DoctorMedicineRepository>();
             services.AddScoped<IPatientCheckUpHistroyRepository, PatientCheckUpHistroyRepository>();
             services.AddScoped<IDoctorHolidayRepository, DoctorHolidayRepository>();
+            // Configure Email Settings
+            services.Configure<EmailSettings>(configuration.GetSection("EmailSettings"));
+
+            // Register Email Service
+            services.AddScoped<IEmailRepository, EmailRepository>();
             services.AddAuthorization();
             return services;
         }

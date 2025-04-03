@@ -24,6 +24,7 @@ namespace PatientDoctor.domain.Entities
         public int PatientCheckUpDayId { get; set; }
         public Guid PatientDetailsId { get; set; }
         public bool CheckUpStatus { get; set; }
+        public bool IsNotified { get; set; }
     }
 
 }

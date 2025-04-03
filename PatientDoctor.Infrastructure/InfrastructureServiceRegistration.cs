@@ -43,7 +43,10 @@ using PatientDoctor.Infrastructure.Repositories.DoctorHoliday;
 using PatientDoctor.Application.Features.Email;
 using PatientDoctor.Application.Contracts.Persistance.IEmail;
 using PatientDoctor.Infrastructure.Repositories.Email;
-
+using Hangfire;
+using PatientDoctor.Application.Contracts.Persistance.IReminderServices;
+using PatientDoctor.Application.Contracts.Persistance.ReminderService;
+using PatientDoctor.Infrastructure.Repositories.ReminderSchedulers;
 namespace PatientDoctor.Infrastructure
 {
     public static class InfrastructureServiceRegistration
@@ -59,6 +62,12 @@ namespace PatientDoctor.Infrastructure
                     sqlOptions => sqlOptions.MigrationsAssembly("PatientDoctor.Migrations")
                 );
             });
+            services.AddHangfire(config =>
+                config.SetDataCompatibilityLevel(CompatibilityLevel.Version_170)
+                .UseSimpleAssemblyNameTypeSerializer()
+                .UseRecommendedSerializerSettings()
+                .UseSqlServerStorage(configuration.GetConnectionString("HangfireConnection"))); // Using HangfireConnection from appsettings.json
+            services.AddHangfireServer();
             services.AddIdentity<ApplicationUser, IdentityRole>(options =>
             {
                 options.Password.RequiredLength = 4;
@@ -125,6 +134,9 @@ namespace PatientDoctor.Infrastructure
             services.AddScoped<IDoctorMedicineRepository, DoctorMedicineRepository>();
             services.AddScoped<IPatientCheckUpHistroyRepository, PatientCheckUpHistroyRepository>();
             services.AddScoped<IDoctorHolidayRepository, DoctorHolidayRepository>();
+
+            services.AddScoped<IReminderService, ReminderService>();
+            services.AddScoped<ReminderScheduler>();
             // Configure Email Settings
             services.Configure<EmailSettings>(configuration.GetSection("EmailSettings"));
 

@@ -2,6 +2,8 @@ using PatientDoctor.Infrastructure;
 using PatientDoctor.Application;
 using Microsoft.OpenApi.Models;
 using System.Text.Json.Serialization;
+using Hangfire;
+using PatientDoctor.Infrastructure.Repositories.ReminderSchedulers;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -71,4 +73,18 @@ app.UseAuthorization();
 app.UseStaticFiles();
 app.MapControllers();
 
+// For HangFire
+app.UseHangfireDashboard();
+// ?? Schedule Reminder Jobs at Application Start
+using (var scope = app.Services.CreateScope())
+{
+    var scheduler = scope.ServiceProvider.GetRequiredService<ReminderScheduler>();
+    scheduler.ScheduleReminders();
+}
+
+// ?? Recurring Job Setup (Jo Har Din Raat 12 Bajay Chalega)
+RecurringJob.AddOrUpdate<ReminderScheduler>(
+    "daily-reminder-scheduler",
+    x => x.ScheduleReminders(),
+    Cron.Daily);  // ? Har din 12 AM chalega
 app.Run();

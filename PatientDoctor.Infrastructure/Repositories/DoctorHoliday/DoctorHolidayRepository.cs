@@ -135,9 +135,9 @@ public class DoctorHolidayRepository(DocterPatiendDbContext _context, IResponse 
         {
 
 
-            DateTime today = DateTime.Today;
-            DateTime filterToDate = model.ToDate?.Date ?? today;
-            DateTime filterFromDate = model.FromDate?.Date ?? today;
+            //DateTime today = DateTime.Today;
+            //DateTime filterToDate = model.ToDate?.Date ?? today;
+            //DateTime filterFromDate = model.FromDate?.Date ?? today;
 
             var userInfo = await _userManager.FindByIdAsync(model.LogedInDoctorId);
             var roleName = userInfo?.RoleName ?? string.Empty;
@@ -150,8 +150,9 @@ public class DoctorHolidayRepository(DocterPatiendDbContext _context, IResponse 
                         where (
                             (string.IsNullOrEmpty(model.FirstName) || user_details.FirstName.ToLower().Contains(model.FirstName.ToLower())) &&
                             (string.IsNullOrEmpty(model.LastName) || user_details.LastName.ToLower().Contains(model.LastName.ToLower())) &&
-                            (model.FromDate == null || doctorholiday.FromDate.Date == filterFromDate) &&
-                            (model.ToDate == null || (doctorholiday.ToDate.Date == filterToDate)) &&
+                             (model.FromDate == null || model.ToDate == null ||
+        (doctorholiday.FromDate.Date <= model.ToDate.Value.Date &&
+         doctorholiday.ToDate.Date >= model.FromDate.Value.Date)) &&
                             (roleName == "SuperAdmin" || roleName == "Receptionist" || main.Id == model.LogedInDoctorId)
                         )
                         select new VM_GetDoctorHolidayList

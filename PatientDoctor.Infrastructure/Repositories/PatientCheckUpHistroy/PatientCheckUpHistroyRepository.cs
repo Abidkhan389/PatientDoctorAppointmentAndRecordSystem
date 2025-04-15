@@ -19,7 +19,7 @@ public class PatientCheckUpHistroyRepository(DocterPatiendDbContext _context, Us
     {
         
         model.Sort = model.Sort == null || model.Sort == "" ? "FirstName" : model.Sort;
-        DateTime filterDate = model.getPatientHistoryListObj.AppoitmentDate?.Date ?? DateTime.Today;
+        //DateTime filterDate = model.getPatientHistoryListObj.AppoitmentDate?.Date ?? DateTime.Today;
 
         var data = (from main in _userManager.Users
                     join per in _context.Prescriptions on main.Id equals per.DoctorId
@@ -28,13 +28,13 @@ public class PatientCheckUpHistroyRepository(DocterPatiendDbContext _context, Us
                     join patientDetails in _context.PatientDetails on patient.PatientId equals patientDetails.PatientId
                     where (
                     //(string.IsNullOrEmpty(model.DoctorId) || per.DoctorId == model.DoctorId))
-                      (string.IsNullOrEmpty(model.getPatientHistoryListObj.Cnic) || patient.Cnic.ToLower().Contains(model.getPatientHistoryListObj.Cnic))
-                     && (string.IsNullOrEmpty(model.getPatientHistoryListObj.City) || patientDetails.City.ToLower().Contains(model.getPatientHistoryListObj.City))
-                     && (string.IsNullOrEmpty(model.getPatientHistoryListObj.Plan) || per.Plan.ToLower().Contains(model.getPatientHistoryListObj.Plan))
-                     && (string.IsNullOrEmpty(model.getPatientHistoryListObj.FirstName) || patient.FirstName.ToLower().Contains(model.getPatientHistoryListObj.FirstName))
-                     && (string.IsNullOrEmpty(model.getPatientHistoryListObj.LastName) || patient.LastName.ToLower().Contains(model.getPatientHistoryListObj.LastName))
-                     && (string.IsNullOrEmpty(model.getPatientHistoryListObj.PhoneNumber) || patientDetails.PhoneNumber.ToLower().Contains(model.getPatientHistoryListObj.PhoneNumber))
-                     &&((model.getPatientHistoryListObj.AppoitmentDate == null) ||(filterDate.Date == per.CreatedAt.Date))
+                      (string.IsNullOrEmpty(model.getPatientHistoryListObj.Cnic) || patient.Cnic.ToLower().Contains(model.getPatientHistoryListObj.Cnic.ToLower()))
+                     && (string.IsNullOrEmpty(model.getPatientHistoryListObj.City) ||   patientDetails.City.ToLower().Contains(model.getPatientHistoryListObj.City.ToLower()))
+                     && (string.IsNullOrEmpty(model.getPatientHistoryListObj.Plan) || per.Plan.ToLower().Contains(model.getPatientHistoryListObj.Plan.ToLower()))
+                     && (string.IsNullOrEmpty(model.getPatientHistoryListObj.FirstName) || patient.FirstName.ToLower().Contains(model.getPatientHistoryListObj.FirstName.ToLower()))
+                     && (string.IsNullOrEmpty(model.getPatientHistoryListObj.LastName) || patient.LastName.ToLower().Contains(model.getPatientHistoryListObj.LastName.ToLower()))
+                     && (string.IsNullOrEmpty(model.getPatientHistoryListObj.PhoneNumber) || patientDetails.PhoneNumber.ToLower().Contains(model.getPatientHistoryListObj.PhoneNumber.ToLower()))
+                     &&((model.getPatientHistoryListObj.AppoitmentDate == null) ||(model.getPatientHistoryListObj.AppoitmentDate.Value.Date == per.CreatedAt.Date))
                      //&& (main.Id == model.LogedInDoctorId)
                      )
 

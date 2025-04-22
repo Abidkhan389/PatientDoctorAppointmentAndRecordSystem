@@ -291,6 +291,7 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
                     _context.Appointment.Update(existingAppointment);
 
                     await _context.SaveChangesAsync();
+
                     await transaction.CommitAsync();
                     var patientAppointmentSmsRequest = new PatientAppointmentSmsRequest
                     {

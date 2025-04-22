@@ -85,12 +85,14 @@ namespace PatientDoctor.API.Controllers
             return await identityRepository.GetAllRoles();
 
         }
+        [AllowAnonymous]
         [HttpGet]
         [Route("GetAllDoctors")]
         public async Task<object> GetAllDoctors()
         {
             return await identityRepository.GetAllDoctors();
         }
+        [AllowAnonymous]
         [HttpGet]
         [Route("GetDoctorFeeByDocotorId")]
         public async Task<object> GetDoctorFeeByDocotorId(string DoctorId)

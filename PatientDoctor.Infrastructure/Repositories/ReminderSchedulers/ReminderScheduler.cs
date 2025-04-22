@@ -21,7 +21,6 @@ public class ReminderScheduler
         var upcomingAppointments = _context.Appointment
             .Where(a => a.AppointmentDate.Date == today.AddDays(2) && !a.IsNotified && !a.CheckUpStatus)
             .ToList();
-
         foreach (var appointment in upcomingAppointments)
         {
             var reminderMessage = $"Reminder: Your appointment is on {appointment.AppointmentDate:dddd, MMM dd yyyy}. And  {appointment.TimeSlot}";

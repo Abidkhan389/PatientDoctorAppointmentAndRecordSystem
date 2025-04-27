@@ -2,6 +2,8 @@ using PatientDoctor.Infrastructure;
 using PatientDoctor.Application;
 using Microsoft.OpenApi.Models;
 using System.Text.Json.Serialization;
+using Hangfire;
+using PatientDoctor.Infrastructure.Repositories.ReminderSchedulers;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -71,4 +73,32 @@ app.UseAuthorization();
 app.UseStaticFiles();
 app.MapControllers();
 
+app.UseHangfireDashboard();
+
+// Use Hangfire Server to start processing jobs in the background
+app.UseHangfireServer();
+
+// Run reminder job once at application start
+using (var scope = app.Services.CreateScope())
+{
+    var scheduler = scope.ServiceProvider.GetRequiredService<ReminderScheduler>();
+    scheduler.ScheduleReminders();  // This will execute when the app starts
+}
+
+// Schedule the recurring job for 11:44 AM daily (you can modify the cron expression if needed)
+//RecurringJob.AddOrUpdate<ReminderSchedulerJob>(
+//    "daily-reminder-scheduler",
+//    job => job.Execute(),  // Execute method from ReminderSchedulerJob
+//    "01 12 * * *",  // Cron expression for 11:44 AM every day (modify if needed)
+//    TimeZoneInfo.FindSystemTimeZoneById("Pakistan Standard Time")  // Ensure time zone is correct
+//);
+
+RecurringJob.AddOrUpdate<ReminderScheduler>(
+    "daily-reminder-scheduler",
+    scheduler => scheduler.ScheduleReminders(),  // Make sure this is calling the correct method
+    "17 12 * * *",  // Cron expression for 11:44 AM daily
+    TimeZoneInfo.FindSystemTimeZoneById("Pakistan Standard Time")
+);
+
 app.Run();
+

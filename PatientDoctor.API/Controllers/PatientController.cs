@@ -7,6 +7,7 @@ using PatientDoctor.Application.Features.Identity.Quries;
 using PatientDoctor.Application.Features.Patient.Commands.ActiveInActive;
 using PatientDoctor.Application.Features.Patient.Commands.AddEditPatient;
 using PatientDoctor.Application.Features.Patient.Commands.AddPatientDescription;
+using PatientDoctor.Application.Features.Patient.Commands.PatientDiscount;
 using PatientDoctor.Application.Features.Patient.Quries;
 using PatientDoctor.Application.Features.Patient.Quries.GetAllPatientRecordsByDoctor;
 using PatientDoctor.Application.Features.Patient.Quries.GetDoctorSlots;
@@ -95,6 +96,12 @@ namespace PatientDoctor.API.Controllers
         }
         [HttpPost("GetDoctorAppointmentsSlotsOfDay")]
         public async Task<Object> GetDoctorAppointmentsSlotsOfDay(GetDoctorTimeSlotsByDayIdAndDoctorId model)
+        {
+            return await _mediator.Send(model);
+        }
+
+        [HttpPost("PatientDiscount")]
+        public async Task<Object> PatientDiscount(PatientDiscount model)
         {
             return await _mediator.Send(model);
         }

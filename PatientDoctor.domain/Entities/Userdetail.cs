@@ -19,6 +19,8 @@ namespace PatientDoctor.domain.Entities
         public string LastName { get; set; }
         public string City { get; set; }
         public int? Fee { get; set; }
+        public bool? IsNotified { get; set; }
+
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
         public Userdetail()
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.

@@ -20,6 +20,7 @@ using Newtonsoft.Json;
 using PatientDoctor.Application.Contracts.Persistance.IPatientCheckUpHistroy;
 using PatientDoctor.Application.Contracts.Persistance.ISmsRepository;
 using PatientDoctor.Application.Helpers.AppointmentSms;
+using PatientDoctor.Application.Features.Patient.Commands.PatientDiscount;
 
 namespace PatientDoctor.Infrastructure.Repositories.Patient
 {
@@ -830,6 +831,38 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
             return TimeSpan.TryParse(time, out TimeSpan parsedTime)
                 ? DateTime.Today.Add(parsedTime).ToString("hh:mm tt", CultureInfo.InvariantCulture)
                 : time;
+        }
+
+        public async Task<IResponse> patientDiscount(PatientDiscount model)
+        {
+            try
+            {
+                var patient = await _context.Appointment.Where(x=>x.PatientId == model.PatientId && x.DoctorId == model.DoctorId).FirstOrDefaultAsync();
+                if (patient == null)
+                {
+                    _response.Message = Constants.NotFound.Replace("{data}", "patient");
+                    _response.Success = Constants.ResponseFailure;
+                }
+                if(model.DiscountFee <= patient.DoctorFee)
+                {
+                    patient.DoctorFee = patient.DoctorFee - model.DiscountFee;
+                    _context.Appointment.Update(patient);
+                    await _context.SaveChangesAsync();
+                    _response.Success = Constants.ResponseSuccess;
+                    _response.Message = Constants.DataUpdate;
+                }
+                else
+                {
+                    _response.Success = Constants.ResponseFailure;
+                    _response.Message = Constants.DiscountGreaterThanFee;
+                }
+            }
+            catch (Exception ex)
+            {
+                _response.Message = ex.Message;
+                _response.Success = Constants.ResponseFailure;
+            }
+            return _response;
         }
 
     }

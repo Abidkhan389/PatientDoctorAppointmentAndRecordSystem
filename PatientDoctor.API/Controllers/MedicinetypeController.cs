@@ -9,6 +9,7 @@ using PatientDoctor.Application.Features.Medicinetype.Quries;
 using PatientDoctor.Application.Features.Patient.Commands.AddEditPatient;
 using PatientDoctor.Application.Features.Patient.Quries;
 using PatientDoctor.Application.Helpers;
+using PatientDoctor.domain.Entities;
 using PatientDoctor.Infrastructure.Repositories.GeneralServices;
 using System.Security.Claims;
 
@@ -49,11 +50,13 @@ namespace PatientDoctor.API.Controllers
         {
             return await _mediator.Send(model);
         }
-        [HttpPost]
+        [HttpGet]
         [Route("GetMedicineTypeById")]
-        public async Task<object> GetMedicineTypeById(GetMedicineTypeById MedicineTypeId)
+        public async Task<object> GetMedicineTypeById([FromQuery] Guid Id )
         {
-            return await _mediator.Send(MedicineTypeId);
+            var getMedicineTypeByIdObject = new GetMedicineTypeById();
+            getMedicineTypeByIdObject.Id = Id;
+            return await _mediator.Send(getMedicineTypeByIdObject);
         }
         [HttpPost]
         [Route("GetAllMeDicineType")]

@@ -47,6 +47,8 @@ using Hangfire;
 using PatientDoctor.Application.Contracts.Persistance.IReminderServices;
 using PatientDoctor.Application.Contracts.Persistance.ReminderService;
 using PatientDoctor.Infrastructure.Repositories.ReminderSchedulers;
+using PatientDoctor.Application.Contracts.Persistance.ISmsRepository;
+using PatientDoctor.Infrastructure.Repositories.SmsRepository;
 namespace PatientDoctor.Infrastructure
 {
     public static class InfrastructureServiceRegistration
@@ -134,7 +136,8 @@ namespace PatientDoctor.Infrastructure
             services.AddScoped<IDoctorMedicineRepository, DoctorMedicineRepository>();
             services.AddScoped<IPatientCheckUpHistroyRepository, PatientCheckUpHistroyRepository>();
             services.AddScoped<IDoctorHolidayRepository, DoctorHolidayRepository>();
-
+            services.AddScoped<IPatientAppointmentSmsRepository, PatientAppointmentSmsRepository>();
+            
             services.AddScoped<IReminderService, ReminderService>();
             services.AddScoped<ReminderScheduler>();
             // Configure Email Settings
@@ -143,6 +146,7 @@ namespace PatientDoctor.Infrastructure
             // Register Email Service
             services.AddScoped<IEmailRepository, EmailRepository>();
             services.AddAuthorization();
+            services.AddHttpClient();
             return services;
         }
         private static string GenerateJwtSecretKey()

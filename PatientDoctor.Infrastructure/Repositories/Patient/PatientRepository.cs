@@ -17,14 +17,17 @@ using PatientDoctor.Application.Features.Patient.Quries.GetDoctorSlots;
 using PatientDoctor.Application.Features.Doctor_Availability.Commands;
 using System.Globalization;
 using Newtonsoft.Json;
-using PatientDoctor.Application.Features.DoctorMedicine.Command;
 using PatientDoctor.Application.Contracts.Persistance.IPatientCheckUpHistroy;
+using PatientDoctor.Application.Contracts.Persistance.ISmsRepository;
+using PatientDoctor.Application.Helpers.AppointmentSms;
+using PatientDoctor.Application.Features.Patient.Commands.PatientDiscount;
 
 namespace PatientDoctor.Infrastructure.Repositories.Patient
 {
     public class PatientRepository : IPatientRepository
     {
         private readonly DocterPatiendDbContext _context;
+        private readonly IPatientAppointmentSmsRepository _patientAppointmentSmsRepository;
         private readonly IResponse _response;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly ICountResponse _countResp;
@@ -32,12 +35,13 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
         private readonly ICryptoService _crypto;
         private readonly IPatientCheckUpHistroyRepository _patientCheckUpHistroy;
 
-        public PatientRepository(DocterPatiendDbContext context,
+        public PatientRepository(DocterPatiendDbContext context, IPatientAppointmentSmsRepository patientAppointmentSmsRepository,
             IResponse response, UserManager<ApplicationUser> userManager, 
             RoleManager<IdentityRole> roleManager, ICountResponse countResp,
             IConfiguration configurations, ICryptoService crypto, IPatientCheckUpHistroyRepository patientCheckUpHistroy)
         {
             this._context = context;
+            _patientAppointmentSmsRepository = patientAppointmentSmsRepository;
             this._response = response;
             this._userManager = userManager;
             this._countResp = countResp;
@@ -213,7 +217,17 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
 
                     await _context.SaveChangesAsync();
                     await transaction.CommitAsync();
-
+                    var patientAppointmentSmsRequest = new PatientAppointmentSmsRequest
+                    {
+                        PatientMobileNumber = model.AddEditPatientObj.PhoneNumber,
+                        DoctorName = await _context.Userdetail
+                                    .Where(x => x.UserId == model.AddEditPatientObj.DoctorId)
+                                    .Select(y => y.FirstName + " " + y.LastName)
+                                    .FirstOrDefaultAsync(),
+                        AppointmentDate= model.AddEditPatientObj.AppoitmentDate,
+                        TimeSlot = model.AddEditPatientObj.TimeSlot,
+                    };
+                    _patientAppointmentSmsRepository.SendSmsAsync(patientAppointmentSmsRequest);
                     return CreateSuccessResponse(Constants.DataSaved);
                 }
                 else
@@ -279,7 +293,17 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
 
                     await _context.SaveChangesAsync();
                     await transaction.CommitAsync();
-
+                    var patientAppointmentSmsRequest = new PatientAppointmentSmsRequest
+                    {
+                        PatientMobileNumber = model.AddEditPatientObj.PhoneNumber,
+                        DoctorName = await _context.Userdetail
+                                   .Where(x => x.UserId == model.AddEditPatientObj.DoctorId)
+                                   .Select(y => y.FirstName + " " + y.LastName)
+                                   .FirstOrDefaultAsync(),
+                        AppointmentDate = model.AddEditPatientObj.AppoitmentDate,
+                        TimeSlot = model.AddEditPatientObj.TimeSlot,
+                    };
+                    _patientAppointmentSmsRepository.SendSmsAsync(patientAppointmentSmsRequest);
                     return CreateSuccessResponse(Constants.DataUpdate);
 
                 }
@@ -807,6 +831,38 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
             return TimeSpan.TryParse(time, out TimeSpan parsedTime)
                 ? DateTime.Today.Add(parsedTime).ToString("hh:mm tt", CultureInfo.InvariantCulture)
                 : time;
+        }
+
+        public async Task<IResponse> patientDiscount(PatientDiscount model)
+        {
+            try
+            {
+                var patient = await _context.Appointment.Where(x=>x.PatientId == model.PatientId && x.DoctorId == model.DoctorId).FirstOrDefaultAsync();
+                if (patient == null)
+                {
+                    _response.Message = Constants.NotFound.Replace("{data}", "patient");
+                    _response.Success = Constants.ResponseFailure;
+                }
+                if(model.DiscountFee <= patient.DoctorFee)
+                {
+                    patient.DoctorFee = patient.DoctorFee - model.DiscountFee;
+                    _context.Appointment.Update(patient);
+                    await _context.SaveChangesAsync();
+                    _response.Success = Constants.ResponseSuccess;
+                    _response.Message = Constants.DataUpdate;
+                }
+                else
+                {
+                    _response.Success = Constants.ResponseFailure;
+                    _response.Message = Constants.DiscountGreaterThanFee;
+                }
+            }
+            catch (Exception ex)
+            {
+                _response.Message = ex.Message;
+                _response.Success = Constants.ResponseFailure;
+            }
+            return _response;
         }
 
     }

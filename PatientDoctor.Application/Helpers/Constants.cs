@@ -47,6 +47,7 @@ namespace PatientDoctor.Application.Helpers
         public const string Register = "User Register successfully";
         public const string RegisterFailed = "User Register Failed";
         public const string ErrorWhileGettingData = "Error while getting data ";
+        public const string DiscountGreaterThanFee = "Discount is greater than doctor Fee";
 
         public static partial class ActionMethods
         {

@@ -73,18 +73,32 @@ app.UseAuthorization();
 app.UseStaticFiles();
 app.MapControllers();
 
-// For HangFire
 app.UseHangfireDashboard();
-// ?? Schedule Reminder Jobs at Application Start
+
+// Use Hangfire Server to start processing jobs in the background
+app.UseHangfireServer();
+
+// Run reminder job once at application start
 using (var scope = app.Services.CreateScope())
 {
     var scheduler = scope.ServiceProvider.GetRequiredService<ReminderScheduler>();
-    scheduler.ScheduleReminders();
+    scheduler.ScheduleReminders();  // This will execute when the app starts
 }
 
-// ?? Recurring Job Setup (Jo Har Din Raat 12 Bajay Chalega)
+// Schedule the recurring job for 11:44 AM daily (you can modify the cron expression if needed)
+//RecurringJob.AddOrUpdate<ReminderSchedulerJob>(
+//    "daily-reminder-scheduler",
+//    job => job.Execute(),  // Execute method from ReminderSchedulerJob
+//    "01 12 * * *",  // Cron expression for 11:44 AM every day (modify if needed)
+//    TimeZoneInfo.FindSystemTimeZoneById("Pakistan Standard Time")  // Ensure time zone is correct
+//);
+
 RecurringJob.AddOrUpdate<ReminderScheduler>(
     "daily-reminder-scheduler",
-    x => x.ScheduleReminders(),
-    Cron.Daily);  // ? Har din 12 AM chalega
+    scheduler => scheduler.ScheduleReminders(),  // Make sure this is calling the correct method
+    "17 12 * * *",  // Cron expression for 11:44 AM daily
+    TimeZoneInfo.FindSystemTimeZoneById("Pakistan Standard Time")
+);
+
 app.Run();
+

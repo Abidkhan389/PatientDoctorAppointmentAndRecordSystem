@@ -38,11 +38,14 @@ namespace PatientDoctor.API.Controllers
             model.UserId = UserId.ToString();
             return await _mediator.Send(model);
         }
-        [HttpPost]
+        [HttpGet]
         [Route("GetByIdDoctorAvaibality")]
-        public async Task<object> GetByIdDoctorAvaibality(GetByIdDoctorAvailabiliteis model)
+        public async Task<IActionResult> GetByIdDoctorAvaibality([FromQuery] Guid Id)
         {
-            return await _mediator.Send(model);
+            var doctorAvaibalityObje = new GetByIdDoctorAvailabiliteis { Id = Id };
+            var result = await _mediator.Send(doctorAvaibalityObje);
+            return Ok(result);
         }
+
     }
 }

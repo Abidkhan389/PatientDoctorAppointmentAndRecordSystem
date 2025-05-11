@@ -47,7 +47,8 @@ public class DoctorAvailabilityRepository(DocterPatiendDbContext _context, IResp
                         existingAvailability.TimeSlots = doctorTimeSlots;
                         existingAvailability.TimeSlotsJson = JsonConvert.SerializeObject(doctorTimeSlots);
                         existingAvailability.CreatedAt = DateTime.Now;
-
+                        existingAvailability.CreatedOn = DateTime.Now;
+                        existingAvailability.CreatedBy = model.UserId;
                         _context.DoctorAvailabilities.Update(existingAvailability);
                     }
                     else
@@ -62,7 +63,9 @@ public class DoctorAvailabilityRepository(DocterPatiendDbContext _context, IResp
                             TimeSlotsJson = JsonConvert.SerializeObject(doctorTimeSlots),
                             AppointmentDurationMinutes = model.AddEditDoctorAvailabilityObj.AppointmentDurationMinutes,
                             CreatedAt = DateTime.Now,
-                            Status = 1
+                            Status = 1,
+                            CreatedOn = DateTime.Now,
+                            CreatedBy = model.UserId
                         };
 
                         DoctorAvailabilitiesList.Add(newAvailability);

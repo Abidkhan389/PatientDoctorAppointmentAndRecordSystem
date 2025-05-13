@@ -42,8 +42,7 @@ namespace PatientDoctor.API.Controllers
         [Route("GetByIdDoctorAvaibality")]
         public async Task<IActionResult> GetByIdDoctorAvaibality([FromQuery] Guid Id)
         {
-            var doctorAvaibalityObje = new GetByIdDoctorAvailabiliteis { Id = Id };
-            var result = await _mediator.Send(doctorAvaibalityObje);
+            var result = await _mediator.Send(new GetByIdDoctorAvailabiliteis(Id));
             return Ok(result);
         }
 

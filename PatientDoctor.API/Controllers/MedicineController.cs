@@ -51,17 +51,17 @@ namespace PatientDoctor.API.Controllers
             var result= await _mediator.Send(model);
             return result;
         }
-        [HttpPost]
+        [HttpGet]
         [Route("GetMedicineById")]
-        public async Task<object> GetMedicineById(GetMedicineById MedicineId)
+        public async Task<object> GetMedicineById([FromQuery] Guid Id)
         {
-            return await _mediator.Send(MedicineId);
+            return await _mediator.Send(new GetMedicineById(Id));
         }
         [HttpGet]
         [Route("GetMedicinePotencyByMedicineTypeId")]
-        public async Task<object> GetMedicinePotencyByMedicineTypeId([FromQuery]  GetAllMedicinePotencyByMedicineTypeId MedicineId)
+        public async Task<object> GetMedicinePotencyByMedicineTypeId([FromQuery]   Guid Id)
         {
-            return await _mediator.Send(MedicineId);
+            return await _mediator.Send(new GetAllMedicinePotencyByMedicineTypeId(Id));
         }
         [HttpGet]
         [Route("GetMedicineTypesList")]

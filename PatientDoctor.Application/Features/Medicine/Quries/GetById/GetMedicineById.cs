@@ -6,5 +6,9 @@ namespace PatientDoctor.Application.Features.Medicine.Quries.GetById
     public class GetMedicineById : IRequest<IResponse>
     {
         public Guid Id { get; set; }
+        public GetMedicineById(Guid id)
+        {
+            this.Id = id;
+        }
     }
 }

@@ -69,7 +69,8 @@ public class DoctorMedicineRepository(DocterPatiendDbContext _context, IResponse
                 {
                     var newEntity = new DoctorMedicines
                     {
-                        DoctorId = item.DoctorId // Assuming ClassRoomId needs to be set
+                        DoctorId = item.DoctorId, // Assuming ClassRoomId needs to be set
+                        MedicineId=model.MedicineId
                         
                     };
                     doctorMedicineToAdd.Add(newEntity);

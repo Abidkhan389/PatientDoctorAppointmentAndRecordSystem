@@ -54,9 +54,7 @@ namespace PatientDoctor.API.Controllers
         [Route("GetMedicineTypeById")]
         public async Task<object> GetMedicineTypeById([FromQuery] Guid Id )
         {
-            var getMedicineTypeByIdObject = new GetMedicineTypeById();
-            getMedicineTypeByIdObject.Id = Id;
-            return await _mediator.Send(getMedicineTypeByIdObject);
+            return await _mediator.Send(new GetMedicineTypeById(Id));
         }
         [HttpPost]
         [Route("GetAllMeDicineType")]

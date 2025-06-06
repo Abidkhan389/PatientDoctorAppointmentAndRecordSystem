@@ -48,6 +48,8 @@ namespace PatientDoctor.Application.Helpers
         public const string RegisterFailed = "User Register Failed";
         public const string ErrorWhileGettingData = "Error while getting data ";
         public const string DiscountGreaterThanFee = "Discount is greater than doctor Fee";
+        public const string PatientAppointmentSuccessful = "Your appointment with Dr. {0} for patient {1} on {2} at {3} has been successfully scheduled.";
+
 
         public static partial class ActionMethods
         {

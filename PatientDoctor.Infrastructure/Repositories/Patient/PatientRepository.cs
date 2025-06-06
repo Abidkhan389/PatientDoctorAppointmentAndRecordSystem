@@ -21,6 +21,8 @@ using PatientDoctor.Application.Contracts.Persistance.IPatientCheckUpHistroy;
 using PatientDoctor.Application.Contracts.Persistance.ISmsRepository;
 using PatientDoctor.Application.Helpers.AppointmentSms;
 using PatientDoctor.Application.Features.Patient.Commands.PatientDiscount;
+using PatientDoctor.Application.Contracts.Persistance.IEmail;
+using PatientDoctor.Application.Helpers.EmailRequest;
 
 namespace PatientDoctor.Infrastructure.Repositories.Patient
 {
@@ -30,13 +32,14 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
         private readonly IPatientAppointmentSmsRepository _patientAppointmentSmsRepository;
         private readonly IResponse _response;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly IEmailRepository _mailRepository;
         private readonly ICountResponse _countResp;
         private readonly IConfiguration _configuration;
         private readonly ICryptoService _crypto;
         private readonly IPatientCheckUpHistroyRepository _patientCheckUpHistroy;
 
         public PatientRepository(DocterPatiendDbContext context, IPatientAppointmentSmsRepository patientAppointmentSmsRepository,
-            IResponse response, UserManager<ApplicationUser> userManager, 
+            IResponse response, UserManager<ApplicationUser> userManager,IEmailRepository mailRepository,
             RoleManager<IdentityRole> roleManager, ICountResponse countResp,
             IConfiguration configurations, ICryptoService crypto, IPatientCheckUpHistroyRepository patientCheckUpHistroy)
         {
@@ -44,6 +47,7 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
             _patientAppointmentSmsRepository = patientAppointmentSmsRepository;
             this._response = response;
             this._userManager = userManager;
+            _mailRepository = mailRepository;
             this._countResp = countResp;
             this._configuration = configurations;
             this._crypto = crypto;
@@ -217,18 +221,53 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
 
                     await _context.SaveChangesAsync();
                     await transaction.CommitAsync();
-                    var patientAppointmentSmsRequest = new PatientAppointmentSmsRequest
+
+                    //-------------- for patient sms on patient appointment-------------
+
+                    //var patientAppointmentSmsRequest = new PatientAppointmentSmsRequest
+                    //{
+                    //    PatientMobileNumber = model.AddEditPatientObj.PhoneNumber,
+                    //    DoctorName = await _context.Userdetail
+                    //                .Where(x => x.UserId == model.AddEditPatientObj.DoctorId)
+                    //                .Select(y => y.FirstName + " " + y.LastName)
+                    //                .FirstOrDefaultAsync(),
+                    //    AppointmentDate = model.AddEditPatientObj.AppoitmentDate,
+                    //    TimeSlot = model.AddEditPatientObj.TimeSlot,
+                    //};
+
+                    // --------------- Email To Doctor For Paitient Appointment---------
+
+                    var doctorDataForEmail = await (from main in _context.Users
+                                             join userDetails in _context.Userdetail on main.Id equals userDetails.UserId
+                                             where main.Id == model.AddEditPatientObj.DoctorId
+                                             select new
+                                             {
+                                                 main.Email,
+                                                 userDetails.FirstName,
+                                                 userDetails.LastName
+                                             }).FirstOrDefaultAsync();
+                    var emailToDoctorForPatientAppointment = new EmailRequest
                     {
-                        PatientMobileNumber = model.AddEditPatientObj.PhoneNumber,
-                        DoctorName = await _context.Userdetail
-                                    .Where(x => x.UserId == model.AddEditPatientObj.DoctorId)
-                                    .Select(y => y.FirstName + " " + y.LastName)
-                                    .FirstOrDefaultAsync(),
-                        AppointmentDate= model.AddEditPatientObj.AppoitmentDate,
-                        TimeSlot = model.AddEditPatientObj.TimeSlot,
+                        FromEmail = _configuration["EmailSettings:FromEmail"],
+                        Subject = "New Patient Appointment",
+                        BodyContent = $"Dear Doctor,\n\n" +
+                                      $"A new appointment has been scheduled with {model.AddEditPatientObj.FirstName} {model.AddEditPatientObj.LastName} " +
+                                      $"on {model.AddEditPatientObj.AppoitmentDate:dd MMM yyyy} at {model.AddEditPatientObj.TimeSlot}.\n" +
+                                      $"Patient Phone Number: {model.AddEditPatientObj.PhoneNumber}.\n\n" +
+                                      "Please check your dashboard for more details.\n\n" +
+                                      "Regards,\n" +
+                                      "Your Medical Portal",
+                        ToEmail = "Abidullahkhan.se@gmail.com" //doctorDataForEmail.Email
+
                     };
-                    _patientAppointmentSmsRepository.SendSmsAsync(patientAppointmentSmsRequest);
-                    return CreateSuccessResponse(Constants.DataSaved);
+                    await _mailRepository.SendEmailAsync(emailToDoctorForPatientAppointment);
+                    var patientFullName = $"{model.AddEditPatientObj.FirstName} {model.AddEditPatientObj.LastName}";
+                    var appointmentDate = model.AddEditPatientObj.AppoitmentDate.ToString("dd MMM yyyy");
+                    var appointmentTime = model.AddEditPatientObj.TimeSlot;
+                    //_patientAppointmentSmsRepository.SendSmsAsync(patientAppointmentSmsRequest);
+                    var successMessage = string.Format(Constants.PatientAppointmentSuccessful, $"{doctorDataForEmail.FirstName} {doctorDataForEmail.LastName}", patientFullName, appointmentDate, appointmentTime);
+
+                    return CreateSuccessResponse(successMessage);
                 }
                 else
                 {
@@ -293,19 +332,54 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
 
                     await _context.SaveChangesAsync();
                     await transaction.CommitAsync();
-                    var patientAppointmentSmsRequest = new PatientAppointmentSmsRequest
-                    {
-                        PatientMobileNumber = model.AddEditPatientObj.PhoneNumber,
-                        DoctorName = await _context.Userdetail
-                                   .Where(x => x.UserId == model.AddEditPatientObj.DoctorId)
-                                   .Select(y => y.FirstName + " " + y.LastName)
-                                   .FirstOrDefaultAsync(),
-                        AppointmentDate = model.AddEditPatientObj.AppoitmentDate,
-                        TimeSlot = model.AddEditPatientObj.TimeSlot,
-                    };
-                    _patientAppointmentSmsRepository.SendSmsAsync(patientAppointmentSmsRequest);
-                    return CreateSuccessResponse(Constants.DataUpdate);
 
+                    //-------------- for patient sms on patient appointment-------------
+
+                    //var patientAppointmentSmsRequest = new PatientAppointmentSmsRequest
+                    //{
+                    //    PatientMobileNumber = model.AddEditPatientObj.PhoneNumber,
+                    //    DoctorName = await _context.Userdetail
+                    //               .Where(x => x.UserId == model.AddEditPatientObj.DoctorId)
+                    //               .Select(y => y.FirstName + " " + y.LastName)
+                    //               .FirstOrDefaultAsync(),
+                    //    AppointmentDate = model.AddEditPatientObj.AppoitmentDate,
+                    //    TimeSlot = model.AddEditPatientObj.TimeSlot,
+                    //};
+                    //_patientAppointmentSmsRepository.SendSmsAsync(patientAppointmentSmsRequest);
+
+                    // --------------- Email To Doctor For Paitient Appointment---------
+
+                    var doctorDataForEmail = await (from main in _context.Users
+                                                    join userDetails in _context.Userdetail on main.Id equals userDetails.UserId
+                                                    where main.Id == model.AddEditPatientObj.DoctorId
+                                                    select new
+                                                    {
+                                                        main.Email,
+                                                        userDetails.FirstName,
+                                                        userDetails.LastName
+                                                    }).FirstOrDefaultAsync();
+                    var emailToDoctorForPatientAppointment = new EmailRequest
+                    {
+                        FromEmail = _configuration["EmailSettings:FromEmail"],
+                        Subject = "New Patient Appointment",
+                        BodyContent = $"Dear Doctor,\n\n" +
+                                      $"A new appointment has been scheduled with {model.AddEditPatientObj.FirstName} {model.AddEditPatientObj.LastName} " +
+                                      $"on {model.AddEditPatientObj.AppoitmentDate:dd MMM yyyy} at {model.AddEditPatientObj.TimeSlot}.\n" +
+                                      $"Patient Phone Number: {model.AddEditPatientObj.PhoneNumber}.\n\n" +
+                                      "Please check your dashboard for more details.\n\n" +
+                                      "Regards,\n" +
+                                      "Your Medical Portal",
+                        ToEmail = "Abidullahkhan.se@gmail.com" //doctorEmail
+
+                    };
+                    await _mailRepository.SendEmailAsync(emailToDoctorForPatientAppointment);
+                    var patientFullName = $"{model.AddEditPatientObj.FirstName} {model.AddEditPatientObj.LastName}";
+                    var appointmentDate = model.AddEditPatientObj.AppoitmentDate.ToString("dd MMM yyyy");
+                    var appointmentTime = model.AddEditPatientObj.TimeSlot;
+                    //_patientAppointmentSmsRepository.SendSmsAsync(patientAppointmentSmsRequest);
+                    var successMessage = string.Format(Constants.PatientAppointmentSuccessful, $"{doctorDataForEmail.FirstName} {doctorDataForEmail.LastName}", patientFullName, appointmentDate, appointmentTime);
+
+                    return CreateSuccessResponse(successMessage);
                 }
             }
             catch (Exception ex)

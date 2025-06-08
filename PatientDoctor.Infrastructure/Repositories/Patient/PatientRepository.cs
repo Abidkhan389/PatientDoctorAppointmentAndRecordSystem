@@ -250,14 +250,14 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
                     {
                         FromEmail = _configuration["EmailSettings:FromEmail"],
                         Subject = "New Patient Appointment",
-                        BodyContent = $"Dear Doctor,\n\n" +
-                                      $"A new appointment has been scheduled with {model.AddEditPatientObj.FirstName} {model.AddEditPatientObj.LastName} " +
-                                      $"on {model.AddEditPatientObj.AppoitmentDate:dd MMM yyyy} at {model.AddEditPatientObj.TimeSlot}.\n" +
-                                      $"Patient Phone Number: {model.AddEditPatientObj.PhoneNumber}.\n\n" +
-                                      "Please check your dashboard for more details.\n\n" +
-                                      "Regards,\n" +
-                                      "Your Medical Portal",
-                        ToEmail = "Abidullahkhan.se@gmail.com" //doctorDataForEmail.Email
+                        BodyContent = $"Dear {doctorDataForEmail.FirstName} {doctorDataForEmail.LastName},<br><br>" +
+                                     $"A new appointment has been scheduled with {model.AddEditPatientObj.FirstName} {model.AddEditPatientObj.LastName} " +
+                                     $"on {model.AddEditPatientObj.AppoitmentDate:dd MMM yyyy} at {model.AddEditPatientObj.TimeSlot}.<br>" +
+                                     $"Patient Phone Number: {model.AddEditPatientObj.PhoneNumber}.<br><br>" +
+                                     "Please check your dashboard for more details.<br><br>" +
+                                     "Regards,<br>" +
+                                     "Your Medical Portal",
+                        ToEmail = doctorDataForEmail.Email//doctorDataForEmail.Email
 
                     };
                     await _mailRepository.SendEmailAsync(emailToDoctorForPatientAppointment);
@@ -362,14 +362,14 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
                     {
                         FromEmail = _configuration["EmailSettings:FromEmail"],
                         Subject = "New Patient Appointment",
-                        BodyContent = $"Dear Doctor,\n\n" +
-                                      $"A new appointment has been scheduled with {model.AddEditPatientObj.FirstName} {model.AddEditPatientObj.LastName} " +
-                                      $"on {model.AddEditPatientObj.AppoitmentDate:dd MMM yyyy} at {model.AddEditPatientObj.TimeSlot}.\n" +
-                                      $"Patient Phone Number: {model.AddEditPatientObj.PhoneNumber}.\n\n" +
-                                      "Please check your dashboard for more details.\n\n" +
-                                      "Regards,\n" +
-                                      "Your Medical Portal",
-                        ToEmail = "Abidullahkhan.se@gmail.com" //doctorEmail
+                        BodyContent = $"Dear {doctorDataForEmail.FirstName} {doctorDataForEmail.LastName},<br><br>" +
+                 $"A new appointment has been scheduled with {model.AddEditPatientObj.FirstName} {model.AddEditPatientObj.LastName} " +
+                 $"on {model.AddEditPatientObj.AppoitmentDate:dd MMM yyyy} at {model.AddEditPatientObj.TimeSlot}.<br>" +
+                 $"Patient Phone Number: {model.AddEditPatientObj.PhoneNumber}.<br><br>" +
+                 "Please check your dashboard for more details.<br><br>" +
+                 "Regards,<br>" +
+                 "Your Medical Portal",
+                        ToEmail = doctorDataForEmail.Email
 
                     };
                     await _mailRepository.SendEmailAsync(emailToDoctorForPatientAppointment);

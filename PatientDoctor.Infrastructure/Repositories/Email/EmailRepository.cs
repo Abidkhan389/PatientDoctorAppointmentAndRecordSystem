@@ -94,15 +94,14 @@ public class EmailRepository : IEmailRepository
             </head>
             <body>
                 <div class='container'>
-                    <div class='header'>Eye Care Clinic</div>
+                    <div class='header'>Alaya Eye Care(AEC)</div>
                     <div class='content'>
-                        <p>Dear User,</p>
                         <p>{emailRequest.BodyContent}</p>
                         <p>We appreciate your time and look forward to serving you!</p>
                         <a href='https://yourwebsite.com' class='btn'>Visit Our Website</a>
                     </div>
                     <div class='footer'>
-                        &copy; {DateTime.Now.Year} Eye Care Clinic. All rights reserved.
+                        &copy; {DateTime.Now.Year} Alaya Eye Care(AEC). All rights reserved.
                     </div>
                 </div>
             </body>

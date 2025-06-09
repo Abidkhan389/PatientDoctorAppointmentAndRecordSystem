@@ -424,7 +424,7 @@ namespace PatientDoctor.Infrastructure.Repositories.Identity;
                            select new
                            {
                                u.Id,
-                               u.UserName,
+                               UserName = ud.FirstName + " " + ud.LastName + "(" + u.Email + ")",
                                ud.Fee
                            }).ToListAsync();
         _response.Data=users;

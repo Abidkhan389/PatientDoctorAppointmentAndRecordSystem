@@ -20,6 +20,7 @@ using System.Data;
 using PatientDoctor.Application.Features.Identity.Quries.GetDoctorFee.GetDoctorFeeById;
 using PatientDoctor.Application.Contracts.Persistance.IEmail;
 using PatientDoctor.Application.Helpers.EmailRequest;
+using PatientDoctor.Application.Features.Identity.Quries.GetAllRoles;
 
 namespace PatientDoctor.Infrastructure.Repositories.Identity;
     public class IdentityRepository : IIdentityRepository
@@ -392,28 +393,36 @@ namespace PatientDoctor.Infrastructure.Repositories.Identity;
             }
         }
 
-        public async Task<IResponse> GetAllRoles()
+    public async Task<IResponse> GetAllRoles()
+    {
+        List<GetAllRoles> getAllRoles = new List<GetAllRoles>();
+        var roles = _roleManager.Roles;
+
+        if (roles == null || !roles.Any()) // Check if roles is null or empty
         {
-            List<GetAllRoles> getAllRoles = new List<GetAllRoles>();
-            var roles = _roleManager.Roles;
-            if (roles == null)
+            _response.Success = Constants.ResponseFailure;
+            _response.Message = Constants.NotFound.Replace("{data}", "roles");
+            return _response;
+        }
+
+        foreach (var role in roles)
+        {
+            if (!string.IsNullOrEmpty(role.Name)) // Ensure role.Name is not null or empty before assignment
             {
-                _response.Success = Constants.ResponseFailure;
-                _response.Message = Constants.NotFound.Replace("{data}", "{roles}");
-            }
-            foreach(var role in roles)
-            {
-                GetAllRoles obj = new GetAllRoles();
-                obj.Name = role.Name;
-                obj.Id = role.Id;   
+                GetAllRoles obj = new GetAllRoles
+                {
+                    Name = role.Name,
+                    Id = role.Id
+                };
                 getAllRoles.Add(obj);
             }
-            _response.Data = getAllRoles;
-            _response.Success = Constants.ResponseSuccess;
-            _response.Message = Constants.GetData;
-            return _response;
-
         }
+
+        _response.Data = getAllRoles;
+        _response.Success = Constants.ResponseSuccess;
+        _response.Message = Constants.GetData;
+        return _response;
+    }
 
         public async Task<IResponse> GetAllDoctors()
         {

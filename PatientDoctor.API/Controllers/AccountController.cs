@@ -7,6 +7,7 @@ using PatientDoctor.Application.Features.Identity.Commands.ActiveInActive;
 using PatientDoctor.Application.Features.Identity.Commands.LoginUser;
 using PatientDoctor.Application.Features.Identity.Commands.RegisterUser;
 using PatientDoctor.Application.Features.Identity.Quries;
+using PatientDoctor.Application.Features.Identity.Quries.GetAllRoles;
 using PatientDoctor.Application.Features.Identity.Quries.GetDoctorFee.GetDoctorFeeById;
 using PatientDoctor.Application.Features.Patient.Quries;
 using PatientDoctor.Application.Helpers;
@@ -82,8 +83,7 @@ namespace PatientDoctor.API.Controllers
         [Route("GetAllRoles")]
         public async Task<object> GetAllRoles()
         {
-            return await identityRepository.GetAllRoles();
-
+            return await _mediator.Send(new GetAllRolesQuery());
         }
         [AllowAnonymous]
         [HttpGet]

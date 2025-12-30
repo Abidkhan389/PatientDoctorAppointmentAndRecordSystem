@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using PatientDoctor.Application.Contracts.Persistance.IIdentityRepository;
 using PatientDoctor.Application.Helpers;
+using PatientDoctor.Application.Helpers.General.Exceptions;
 
 namespace PatientDoctor.Application.Features.Identity.Quries
 {
@@ -15,6 +16,8 @@ namespace PatientDoctor.Application.Features.Identity.Quries
         public async Task<IResponse> Handle(GetUserById request, CancellationToken cancellationToken)
         {
             var user = await _identityRepository.GetUserById(request);
+            if (user.Data == null)
+                throw new NotFoundException($"User with Id {request.id} not found.");
             return user;
         }
     }

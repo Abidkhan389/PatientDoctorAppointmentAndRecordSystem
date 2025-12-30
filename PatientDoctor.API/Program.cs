@@ -1,9 +1,10 @@
-using PatientDoctor.Infrastructure;
-using PatientDoctor.Application;
-using Microsoft.OpenApi.Models;
-using System.Text.Json.Serialization;
 using Hangfire;
+using Microsoft.OpenApi.Models;
+using PatientDoctor.API.Middleware;
+using PatientDoctor.Application;
+using PatientDoctor.Infrastructure;
 using PatientDoctor.Infrastructure.Repositories.ReminderSchedulers;
+using System.Text.Json.Serialization;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -72,7 +73,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.UseStaticFiles();
 app.MapControllers();
-
+app.UseMiddleware<GlobalExceptionMiddleware>();
 app.UseHangfireDashboard();
 
 // Use Hangfire Server to start processing jobs in the background

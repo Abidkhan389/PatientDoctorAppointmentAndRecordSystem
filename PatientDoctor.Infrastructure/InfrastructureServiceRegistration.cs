@@ -1,54 +1,57 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Hangfire;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using PatientDoctor.domain.Entities;
-using System.Reflection;
-using PatientDoctor.Infrastructure.Persistance;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
-using System.Text;
-using PatientDoctor.Application.Contracts.Persistance.IIdentityRepository;
-using PatientDoctor.Infrastructure.Repositories.Identity;
-using PatientDoctor.Application.Contracts.Persistance.Patient;
-using PatientDoctor.Infrastructure.Repositories.Patient;
-using PatientDoctor.Application.Helpers;
-using PatientDoctor.Application.Contracts.Security;
-using PatientDoctor.Infrastructure.Repositories.CryptoService;
-using System.Security.Cryptography;
 using PatientDoctor.Application.Contracts.Persistance.Dashboard;
-using PatientDoctor.Infrastructure.Repositories.Dashboard;
-using PatientDoctor.Application.Contracts.Persistance.ISecurity;
-using PatientDoctor.Infrastructure.Repositories.SecurityRepository;
 using PatientDoctor.Application.Contracts.Persistance.IAdministratorRepository;
-using PatientDoctor.Infrastructure.Repositories.Administrator;
-using PatientDoctor.Application.Contracts.Persistance.IMedicineType;
-using PatientDoctor.Infrastructure.Repositories.MedicineType;
-using PatientDoctor.Application.Contracts.Persistance.IMedicine;
-using PatientDoctor.Infrastructure.Repositories.Medicine;
-using PatientDoctor.Application.Contracts.Persistance.IDoctorCheckUpFeeRepository;
-using PatientDoctor.Infrastructure.Repositories.DoctorFeeCheckUpFee;
 using PatientDoctor.Application.Contracts.Persistance.IDoctorAvailability;
-using PatientDoctor.Infrastructure.Repositories.DoctorAvailability;
-using PatientDoctor.Application.Contracts.Persistance.IDoctorMedicine;
-using PatientDoctor.Infrastructure.Repositories.DoctorMedicine;
-using PatientDoctor.Infrastructure.Repositories.PatientCheckUpHistroy;
-using PatientDoctor.Application.Contracts.Persistance.IPatientCheckUpHistroy;
-using PatientDoctor.Application.Contracts.Persistance.IFileStorage;
-using PatientDoctor.Infrastructure.Repositories.FileUploaders;
-using PatientDoctor.Application.Contracts.Persistance.IFileRepository;
-using PatientDoctor.Infrastructure.Repositories.FileSystemStorage;
+using PatientDoctor.Application.Contracts.Persistance.IDoctorCheckUpFeeRepository;
 using PatientDoctor.Application.Contracts.Persistance.IDoctorHolidayRepository;
-using PatientDoctor.Infrastructure.Repositories.DoctorHoliday;
-using PatientDoctor.Application.Features.Email;
+using PatientDoctor.Application.Contracts.Persistance.IDoctorMedicine;
 using PatientDoctor.Application.Contracts.Persistance.IEmail;
-using PatientDoctor.Infrastructure.Repositories.Email;
-using Hangfire;
+using PatientDoctor.Application.Contracts.Persistance.IException;
+using PatientDoctor.Application.Contracts.Persistance.IFileRepository;
+using PatientDoctor.Application.Contracts.Persistance.IFileStorage;
+using PatientDoctor.Application.Contracts.Persistance.IIdentityRepository;
+using PatientDoctor.Application.Contracts.Persistance.IMedicine;
+using PatientDoctor.Application.Contracts.Persistance.IMedicineType;
+using PatientDoctor.Application.Contracts.Persistance.IPatientCheckUpHistroy;
 using PatientDoctor.Application.Contracts.Persistance.IReminderServices;
-using PatientDoctor.Application.Contracts.Persistance.ReminderService;
-using PatientDoctor.Infrastructure.Repositories.ReminderSchedulers;
+using PatientDoctor.Application.Contracts.Persistance.ISecurity;
 using PatientDoctor.Application.Contracts.Persistance.ISmsRepository;
+using PatientDoctor.Application.Contracts.Persistance.Patient;
+using PatientDoctor.Application.Contracts.Persistance.ReminderService;
+using PatientDoctor.Application.Contracts.Security;
+using PatientDoctor.Application.Features.Email;
+using PatientDoctor.Application.Helpers;
+using PatientDoctor.domain.Entities;
+using PatientDoctor.Infrastructure.Persistance;
+using PatientDoctor.Infrastructure.Repositories.Administrator;
+using PatientDoctor.Infrastructure.Repositories.CryptoService;
+using PatientDoctor.Infrastructure.Repositories.Dashboard;
+using PatientDoctor.Infrastructure.Repositories.DoctorAvailability;
+using PatientDoctor.Infrastructure.Repositories.DoctorFeeCheckUpFee;
+using PatientDoctor.Infrastructure.Repositories.DoctorHoliday;
+using PatientDoctor.Infrastructure.Repositories.DoctorMedicine;
+using PatientDoctor.Infrastructure.Repositories.Email;
+using PatientDoctor.Infrastructure.Repositories.ExceptionLog;
+using PatientDoctor.Infrastructure.Repositories.FileSystemStorage;
+using PatientDoctor.Infrastructure.Repositories.FileUploaders;
+using PatientDoctor.Infrastructure.Repositories.Identity;
+using PatientDoctor.Infrastructure.Repositories.Medicine;
+using PatientDoctor.Infrastructure.Repositories.MedicineType;
+using PatientDoctor.Infrastructure.Repositories.Patient;
+using PatientDoctor.Infrastructure.Repositories.PatientCheckUpHistroy;
+using PatientDoctor.Infrastructure.Repositories.ReminderSchedulers;
+using PatientDoctor.Infrastructure.Repositories.SecurityRepository;
 using PatientDoctor.Infrastructure.Repositories.SmsRepository;
+using PatientDoctor.Infrastructure.Utalities.ExceptionLoggers;
+using System.Reflection;
+using System.Security.Cryptography;
+using System.Text;
 namespace PatientDoctor.Infrastructure
 {
     public static class InfrastructureServiceRegistration
@@ -91,8 +94,8 @@ namespace PatientDoctor.Infrastructure
                       .SetIsOriginAllowed((host) => true)
                       .AllowCredentials();
            }));
-            var jwtSecretKey = GenerateJwtSecretKey();
-            configuration["JWT:Secret"] = jwtSecretKey;
+            //var jwtSecretKey = GenerateJwtSecretKey();
+            //configuration["JWT:Secret"] = jwtSecretKey;
             services.AddAuthentication(options =>
              {
                  options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -109,8 +112,8 @@ namespace PatientDoctor.Infrastructure
                  {
                      ValidateIssuer = true,
                      ValidateAudience = true,
-                     //ValidateIssuer = false,
-                     //ValidateAudience = false, 
+                     ValidateLifetime = true,            
+                     ValidateIssuerSigningKey = true,  
                      ValidAudience = configuration["JWT:ValidAudience"],
                      ValidIssuer = configuration["JWT:ValidIssuer"],
                      IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["JWT:Secret"]))
@@ -145,6 +148,8 @@ namespace PatientDoctor.Infrastructure
 
             // Register Email Service
             services.AddScoped<IEmailRepository, EmailRepository>();
+            services.AddScoped<IExceptionLogRepository, ExceptionLogRepository>();
+            services.AddSingleton<IExceptionLogger, ExceptionLogger>();
             services.AddAuthorization();
             services.AddHttpClient();
             return services;

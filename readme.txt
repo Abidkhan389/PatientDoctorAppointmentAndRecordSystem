@@ -10,7 +10,9 @@ Update-Database -Project PatientDoctor.Migrations -StartupProject PatientDoctor.
 Add-Migration thirdMigration -Project PatientDoctor.Migrations -StartupProject PatientDoctor.API
 Update-Database -Project PatientDoctor.Migrations -StartupProject PatientDoctor.API
 
-
+======= Default Super Admin User =========
+User=Superadmin@gmail.com
+Password=SuperAdmin123@!
 ===================
 Province Insertion
 

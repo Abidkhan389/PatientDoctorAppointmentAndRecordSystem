@@ -454,35 +454,45 @@ namespace PatientDoctor.Infrastructure.Repositories.Identity;
         return _response;
     }
 
-    public async Task<UserRefreshTokenDto> GetRefreshTokenAsync(string token)
+    public async Task<UserRefreshTokenDto?> GetRefreshTokenAsync(string refreshToken)
     {
-        var entity = await _context.UserRefreshTokens
-            .FirstOrDefaultAsync(x =>
-                x.Token == token &&
-                !x.Revoked &&
-                x.Expires > DateTime.UtcNow);
-        if (entity == null) return null;
+        // Sirf valid candidates lao (DB level filtering)
+        var candidates = await _context.UserRefreshTokens
+            .Where(x =>
+                !x.IsUsed &&
+                !x.IsRevoked &&
+                x.Expires > DateTime.UtcNow)
+            .ToListAsync();
 
+        // Hash verify (memory level)
+        var entity = candidates.FirstOrDefault(x =>
+            BCrypt.Net.BCrypt.Verify(refreshToken, x.TokenHash));
+
+        if (entity == null)
+            return null;
+
+        //  DTO return
         return new UserRefreshTokenDto
         {
-            Token = entity.Token,
+            UserId = entity.UserId,
             Expires = entity.Expires,
-            Revoked = entity.Revoked,
-            UserId = entity.UserId
+            IsUsed = entity.IsUsed,
+            IsRevoked = entity.IsRevoked
         };
-
-
     }
-    public async Task RevokeRefreshTokenAsync(string token)
-    {
-        var entity = await _context.UserRefreshTokens
-            .FirstOrDefaultAsync(x => x.Token == token);
 
-        if (entity != null)
+    public async Task RevokeAllTokensAsync(string userId)
+    {
+        var tokens = await _context.UserRefreshTokens
+            .Where(x => x.UserId == userId)
+            .ToListAsync();
+
+        foreach (var token in tokens)
         {
-            entity.Revoked = true;
-            await _context.SaveChangesAsync();
+            token.IsRevoked = true;
         }
+
+        await _context.SaveChangesAsync();
     }
     public async Task<AuthTokenResultDto> GenerateTokensAsync(string userId)
     {
@@ -506,7 +516,7 @@ namespace PatientDoctor.Infrastructure.Repositories.Identity;
         var jwt = new JwtSecurityToken(
             issuer: _configuration["JWT:ValidIssuer"],
             audience: _configuration["JWT:ValidAudience"],
-            expires: DateTime.UtcNow.AddHours(4),
+            expires: DateTime.UtcNow.AddMinutes(1),
             claims: claims,
             signingCredentials:
                 new SigningCredentials(key, SecurityAlgorithms.HmacSha256)
@@ -514,11 +524,12 @@ namespace PatientDoctor.Infrastructure.Repositories.Identity;
 
         var refreshToken =
             Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
-        
+        var tokenHash = BCrypt.Net.BCrypt.HashPassword(refreshToken);
+
         _context.UserRefreshTokens.Add(new UserRefreshToken
         {
             UserId = user.Id,
-            Token = refreshToken,
+            TokenHash = tokenHash,
             Expires = DateTime.UtcNow.AddDays(7)
         });
 
@@ -530,5 +541,30 @@ namespace PatientDoctor.Infrastructure.Repositories.Identity;
             RefreshToken = refreshToken
         };
     }
+    public async Task MarkTokenAsUsedAsync(string refreshToken)
+    {
+        var tokens = await _context.UserRefreshTokens
+            .Where(x => !x.IsUsed && !x.IsRevoked)
+            .ToListAsync();
+
+        var entity = tokens.FirstOrDefault(x =>
+            BCrypt.Net.BCrypt.Verify(refreshToken, x.TokenHash));
+
+        if (entity != null)
+        {
+            entity.IsUsed = true;
+            await _context.SaveChangesAsync();
+        }
+    }
+    public async Task<string?> GetUserIdByRefreshTokenAsync(string refreshToken)
+    {
+        var tokens = await _context.UserRefreshTokens.ToListAsync();
+
+        var token = tokens.FirstOrDefault(x =>
+            BCrypt.Net.BCrypt.Verify(refreshToken, x.TokenHash));
+
+        return token?.UserId;
+    }
+
 }
 

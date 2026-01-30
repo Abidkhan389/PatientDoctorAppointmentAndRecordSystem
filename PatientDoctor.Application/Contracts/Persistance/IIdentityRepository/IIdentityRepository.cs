@@ -25,9 +25,12 @@ namespace PatientDoctor.Application.Contracts.Persistance.IIdentityRepository
         Task<IResponse> GetAllDoctors();
         Task<IResponse> AddEditUser(AddEditUserWithCreatedOrUpdatedById model);
 
-        Task<UserRefreshTokenDto> GetRefreshTokenAsync(string token);
-        Task RevokeRefreshTokenAsync(string token);
+        Task<UserRefreshTokenDto> GetRefreshTokenAsync(string refreshToken);
+        Task RevokeAllTokensAsync(string userId);
+
 
         Task<AuthTokenResultDto> GenerateTokensAsync(string userId);
+        Task MarkTokenAsUsedAsync(string refreshToken);
+        Task<string?> GetUserIdByRefreshTokenAsync(string refreshToken);
     }
 }

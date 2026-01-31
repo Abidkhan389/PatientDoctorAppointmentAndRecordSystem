@@ -516,7 +516,7 @@ namespace PatientDoctor.Infrastructure.Repositories.Identity;
         var jwt = new JwtSecurityToken(
             issuer: _configuration["JWT:ValidIssuer"],
             audience: _configuration["JWT:ValidAudience"],
-            expires: DateTime.UtcNow.AddMinutes(1),
+            expires: DateTime.UtcNow.AddHours(18),
             claims: claims,
             signingCredentials:
                 new SigningCredentials(key, SecurityAlgorithms.HmacSha256)

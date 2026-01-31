@@ -253,3 +253,42 @@ INSERT INTO [Admin].City VALUES
 (NEWID(),'Hub','5EEE3FE4-DF14-4A9F-9CDA-EFE3EAB19811',1,null, getdate(),null,null),
 (NEWID(),'Usta Muhammad','5EEE3FE4-DF14-4A9F-9CDA-EFE3EAB19811',1,null, getdate(),null,null),
 (NEWID(),'Surab','5EEE3FE4-DF14-4A9F-9CDA-EFE3EAB19811',1,null, getdate(),null,null);
+
+
+
+
+public interface ICommand : ICommand<IResponse> { }
+
+public interface ICommand<out TResponse> : IRequest<TResponse>
+    where TResponse : IResponse
+{
+}
+
+public record CreateProductCommand(...) : ICommand<IResponse>;
+
+public class CreateProductHandler
+    : ICommandHandler<CreateProductCommand, IResponse>
+{
+    public async Task<IResponse> Handle(CreateProductCommand request, CancellationToken ct)
+    {
+        return new Response
+        {
+            Success = true,
+            Message = "Product created",
+            Data = request
+        };
+    }
+}
+
+public interface ICommandHandler<in TCommand>
+    : ICommandHandler<TCommand, IResponse>
+    where TCommand : ICommand<IResponse>
+{
+}
+
+public interface ICommandHandler<in TCommand, TResponse>
+    : IRequestHandler<TCommand, TResponse>
+    where TCommand : ICommand<TResponse>
+    where TResponse : IResponse
+{
+}

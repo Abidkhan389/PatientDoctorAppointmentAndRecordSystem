@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using PatientDoctor.Application.Contracts.Persistance.IIdentityRepository;
 using PatientDoctor.Application.Features.Identity.Commands.ActiveInActive;
 using PatientDoctor.Application.Features.Identity.Commands.LoginUser;
+using PatientDoctor.Application.Features.Identity.Commands.RefreshToken;
 using PatientDoctor.Application.Features.Identity.Commands.RegisterUser;
 using PatientDoctor.Application.Features.Identity.Quries;
 using PatientDoctor.Application.Features.Identity.Quries.GetAllRoles;
@@ -98,6 +99,12 @@ namespace PatientDoctor.API.Controllers
         public async Task<object> GetDoctorFeeByDocotorId(string DoctorId)
         {
             return await _mediator.Send(new GetDoctorFee(DoctorId));
+        }
+        [AllowAnonymous]
+        [HttpPost("refreshToken")]
+        public async Task<object> RefreshToken(RefreshTokenCommand command)
+        {
+            return await _mediator.Send(command);
         }
     }
 }

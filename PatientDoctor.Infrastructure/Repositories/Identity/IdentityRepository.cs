@@ -1,26 +1,27 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.IdentityModel.Tokens;
+using PatientDoctor.Application.Contracts.Persistance.IEmail;
 using PatientDoctor.Application.Contracts.Persistance.IIdentityRepository;
 using PatientDoctor.Application.Contracts.Security;
-using PatientDoctor.Application.Helpers;
-using PatientDoctor.domain.Entities;
-using System.Text;
-using PatientDoctor.Infrastructure.Persistance;
+using PatientDoctor.Application.Features.Identity.Commands.ActiveInActive;
 using PatientDoctor.Application.Features.Identity.Commands.LoginUser;
 using PatientDoctor.Application.Features.Identity.Commands.RegisterUser;
-using PatientDoctor.Application.Features.Identity.Commands.ActiveInActive;
-using Microsoft.IdentityModel.Tokens;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using Microsoft.Extensions.Configuration;
 using PatientDoctor.Application.Features.Identity.Quries;
-using Microsoft.EntityFrameworkCore;
+using PatientDoctor.Application.Features.Identity.Quries.GetAllRoles;
+using PatientDoctor.Application.Features.Identity.Quries.GetDoctorFee.GetDoctorFeeById;
+using PatientDoctor.Application.Helpers;
+using PatientDoctor.Application.Helpers.General.Dtos.Auth;
+using PatientDoctor.domain.Entities;
+using PatientDoctor.Infrastructure.Persistance;
 using PatientDoctor.Infrastructure.Repositories.GeneralServices;
 using System.Data;
-using PatientDoctor.Application.Features.Identity.Quries.GetDoctorFee.GetDoctorFeeById;
-using PatientDoctor.Application.Contracts.Persistance.IEmail;
-using PatientDoctor.Application.Helpers.EmailRequest;
-using PatientDoctor.Application.Features.Identity.Quries.GetAllRoles;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace PatientDoctor.Infrastructure.Repositories.Identity;
     public class IdentityRepository : IIdentityRepository
@@ -184,47 +185,32 @@ namespace PatientDoctor.Infrastructure.Repositories.Identity;
         }
         public async Task<IResponse> LoginUserAsync(LoginUserCommand model)
         {
-           
             var user = await _userManager.FindByEmailAsync(model.Email);
 
-            if (user == null)
+            // Fix: Ensure PasswordHash and PasswordSalt are not null before calling CheckKey
+            if (user != null 
+                && !string.IsNullOrEmpty(user.PasswordHash) 
+                && !string.IsNullOrEmpty(user.PasswordSalt) 
+                && this._crypto.CheckKey(user.PasswordHash, user.PasswordSalt, model.Password))
             {
-               // _logger.LogWarning($"User not found for email: {model.Email}");
-               // return Unauthorized(new { message = "Invalid email or password" });
-            }
+                // ✅ Generate JWT + refresh token
+                var tokens = await GenerateTokensAsync(user.Id);
 
-            if (user != null && this._crypto.CheckKey(user.PasswordHash, user.PasswordSalt, model.Password))
-            {
-                var userRoles = await _userManager.GetRolesAsync(user);
-                var authClaims = new List<Claim>
-                {
-                    new Claim(ClaimTypes.Name, user.UserName),
-                    new Claim(ClaimTypes.Email, user.Email),
-                    new Claim(ClaimTypes.NameIdentifier, user.Id), // Use ClaimTypes.NameIdentifier for user Id
-                    new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                };
-
-                authClaims.AddRange(userRoles.Select(role => new Claim(ClaimTypes.Role, role)));
-
-                var authSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JWT:Secret"]));
-                var token = new JwtSecurityToken(
-                    issuer: _configuration["JWT:ValidIssuer"],
-                    audience: _configuration["JWT:ValidAudience"],
-                    expires: DateTime.UtcNow.AddHours(5),
-                    claims: authClaims,
-                    signingCredentials: new SigningCredentials(authSigningKey, SecurityAlgorithms.HmacSha256)
-                );
-                var userdetailsObj = await _context.Userdetail.Where(x => x.UserId == user.Id).FirstOrDefaultAsync();
-                
+                var userdetailsObj = await _context.Userdetail
+                    .Where(x => x.UserId == user.Id)
+                    .FirstOrDefaultAsync();
                 var authenticatedUser = new 
                 {
-                    Token = new JwtSecurityTokenHandler().WriteToken(token),
-                    User = user,
+                    Token = tokens.Token,
+                    RefreshToken = tokens.RefreshToken,
+                    ProfilePicture = user.ProfilePicture,
+                    Id= user.Id,
+                    Email= user.Email,
+                    //User = user,
                     FirstName = userdetailsObj.FirstName,
-                    LastName=userdetailsObj.LastName,
-                    Roles = userRoles,
+                    LastName = userdetailsObj.LastName,
+                    Roles = await _userManager.GetRolesAsync(user),
                 };
-               
 
                 _response.Data = authenticatedUser;
                 _response.Message = Constants.Login;
@@ -467,5 +453,118 @@ namespace PatientDoctor.Infrastructure.Repositories.Identity;
         }
         return _response;
     }
+
+    public async Task<UserRefreshTokenDto?> GetRefreshTokenAsync(string refreshToken)
+    {
+        // Sirf valid candidates lao (DB level filtering)
+        var candidates = await _context.UserRefreshTokens
+            .Where(x =>
+                !x.IsUsed &&
+                !x.IsRevoked &&
+                x.Expires > DateTime.UtcNow)
+            .ToListAsync();
+
+        // Hash verify (memory level)
+        var entity = candidates.FirstOrDefault(x =>
+            BCrypt.Net.BCrypt.Verify(refreshToken, x.TokenHash));
+
+        if (entity == null)
+            return null;
+
+        //  DTO return
+        return new UserRefreshTokenDto
+        {
+            UserId = entity.UserId,
+            Expires = entity.Expires,
+            IsUsed = entity.IsUsed,
+            IsRevoked = entity.IsRevoked
+        };
+    }
+
+    public async Task RevokeAllTokensAsync(string userId)
+    {
+        var tokens = await _context.UserRefreshTokens
+            .Where(x => x.UserId == userId)
+            .ToListAsync();
+
+        foreach (var token in tokens)
+        {
+            token.IsRevoked = true;
+        }
+
+        await _context.SaveChangesAsync();
+    }
+    public async Task<AuthTokenResultDto> GenerateTokensAsync(string userId)
+    {
+        var user = await _userManager.FindByIdAsync(userId);
+        var roles = await _userManager.GetRolesAsync(user);
+
+        var claims = new List<Claim>
+        {
+            new Claim(ClaimTypes.NameIdentifier, user.Id),
+            new Claim(ClaimTypes.Email, user.Email),
+            new Claim(ClaimTypes.Name, user.UserName),
+            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+        };
+
+        claims.AddRange(roles.Select(r => new Claim(ClaimTypes.Role, r)));
+
+        var key = new SymmetricSecurityKey(
+            Encoding.UTF8.GetBytes(_configuration["JWT:Secret"])
+        );
+
+        var jwt = new JwtSecurityToken(
+            issuer: _configuration["JWT:ValidIssuer"],
+            audience: _configuration["JWT:ValidAudience"],
+            expires: DateTime.UtcNow.AddHours(18),
+            claims: claims,
+            signingCredentials:
+                new SigningCredentials(key, SecurityAlgorithms.HmacSha256)
+        );
+
+        var refreshToken =
+            Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
+        var tokenHash = BCrypt.Net.BCrypt.HashPassword(refreshToken);
+
+        _context.UserRefreshTokens.Add(new UserRefreshToken
+        {
+            UserId = user.Id,
+            TokenHash = tokenHash,
+            Expires = DateTime.UtcNow.AddDays(7)
+        });
+
+        await _context.SaveChangesAsync();
+
+        return new AuthTokenResultDto
+        {
+            Token = new JwtSecurityTokenHandler().WriteToken(jwt),
+            RefreshToken = refreshToken
+        };
+    }
+    public async Task MarkTokenAsUsedAsync(string refreshToken)
+    {
+        var tokens = await _context.UserRefreshTokens
+            .Where(x => !x.IsUsed && !x.IsRevoked)
+            .ToListAsync();
+
+        var entity = tokens.FirstOrDefault(x =>
+            BCrypt.Net.BCrypt.Verify(refreshToken, x.TokenHash));
+
+        if (entity != null)
+        {
+            entity.IsUsed = true;
+            await _context.SaveChangesAsync();
+        }
+    }
+    public async Task<string?> GetUserIdByRefreshTokenAsync(string refreshToken)
+    {
+        var tokens = await _context.UserRefreshTokens.ToListAsync();
+
+        var token = tokens.FirstOrDefault(x =>
+            BCrypt.Net.BCrypt.Verify(refreshToken, x.TokenHash));
+
+        return token?.UserId;
+    }
+
 }
 

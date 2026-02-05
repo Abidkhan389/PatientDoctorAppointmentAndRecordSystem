@@ -52,7 +52,7 @@ builder.Services.AddSwaggerGen(c =>
         }
     });
 });
-
+builder.Services.AddExceptionHandler<CustomExceptionHandler>();
 builder.Services.AddInfrastructureServices(builder.Configuration);
 builder.Services.AddApplicationServices();
 
@@ -73,8 +73,9 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.UseStaticFiles();
 app.MapControllers();
-app.UseMiddleware<GlobalExceptionMiddleware>();
-app.UseHangfireDashboard();
+//app.UseMiddleware<GlobalExceptionMiddleware>(); // use here custom middleware
+app.UseExceptionHandler(); //user here buuilt-in exception handler
+app.UseHangfireDashboard(); 
 
 // Use Hangfire Server to start processing jobs in the background
 app.UseHangfireServer();

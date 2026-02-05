@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿
 using PatientDoctor.Application.Contracts.Persistance.IException;
 using PatientDoctor.Application.Helpers.General.Exceptions.Models;
 using PatientDoctor.domain.Entities;

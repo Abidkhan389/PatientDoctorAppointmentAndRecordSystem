@@ -151,6 +151,7 @@ namespace PatientDoctor.Infrastructure
             services.AddScoped<IEmailRepository, EmailRepository>();
             services.AddScoped<IExceptionLogRepository, ExceptionLogRepository>();
             services.AddSingleton<IExceptionLogger, ExceptionLogger>();
+            services.AddProblemDetails();
             services.AddAuthorization();
             services.AddHttpClient();
             return services;

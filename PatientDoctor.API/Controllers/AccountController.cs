@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using PatientDoctor.Application.Contracts.Persistance.IIdentityRepository;
 using PatientDoctor.Application.Features.Identity.Commands.ActiveInActive;
 using PatientDoctor.Application.Features.Identity.Commands.LoginUser;
@@ -61,6 +62,7 @@ namespace PatientDoctor.API.Controllers
         }
         [AllowAnonymous]
         [HttpPost]
+        [EnableRateLimiting("auth")]
         [Route("Login")]
         public async Task<object> Login(LoginUserCommand model)
         {

@@ -20,6 +20,7 @@ using PatientDoctor.Application.Contracts.Persistance.IMedicine;
 using PatientDoctor.Application.Contracts.Persistance.IMedicineType;
 using PatientDoctor.Application.Contracts.Persistance.IPatientCheckUpHistroy;
 using PatientDoctor.Application.Contracts.Persistance.IReminderServices;
+using PatientDoctor.Application.Contracts.Persistance.IReports;
 using PatientDoctor.Application.Contracts.Persistance.ISecurity;
 using PatientDoctor.Application.Contracts.Persistance.ISmsRepository;
 using PatientDoctor.Application.Contracts.Persistance.Patient;
@@ -46,6 +47,7 @@ using PatientDoctor.Infrastructure.Repositories.MedicineType;
 using PatientDoctor.Infrastructure.Repositories.Patient;
 using PatientDoctor.Infrastructure.Repositories.PatientCheckUpHistroy;
 using PatientDoctor.Infrastructure.Repositories.ReminderSchedulers;
+using PatientDoctor.Infrastructure.Repositories.Reports;
 using PatientDoctor.Infrastructure.Repositories.SecurityRepository;
 using PatientDoctor.Infrastructure.Repositories.SmsRepository;
 using PatientDoctor.Infrastructure.Utalities.ExceptionLoggers;
@@ -143,6 +145,8 @@ namespace PatientDoctor.Infrastructure
             services.AddScoped<IPatientAppointmentSmsRepository, PatientAppointmentSmsRepository>();
             
             services.AddScoped<IReminderService, ReminderService>();
+            services.AddScoped<IReports, ReportsRepository>();
+
             services.AddScoped<ReminderScheduler>();
             // Configure Email Settings
             services.Configure<EmailSettings>(configuration.GetSection("EmailSettings"));

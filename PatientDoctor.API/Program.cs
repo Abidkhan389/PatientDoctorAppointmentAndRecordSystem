@@ -4,6 +4,7 @@ using PatientDoctor.API.Middleware;
 using PatientDoctor.Application;
 using PatientDoctor.Infrastructure;
 using PatientDoctor.Infrastructure.Repositories.ReminderSchedulers;
+using PatientDoctor.Infrastructure.Web.Extensions;
 using System.Text.Json.Serialization;
 var builder = WebApplication.CreateBuilder(args);
 
@@ -55,7 +56,7 @@ builder.Services.AddSwaggerGen(c =>
 builder.Services.AddExceptionHandler<CustomExceptionHandler>();
 builder.Services.AddInfrastructureServices(builder.Configuration);
 builder.Services.AddApplicationServices();
-
+builder.Services.AddCustomRateLimiting();
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 
 var app = builder.Build();
@@ -75,8 +76,9 @@ app.UseStaticFiles();
 app.MapControllers();
 //app.UseMiddleware<GlobalExceptionMiddleware>(); // use here custom middleware
 app.UseExceptionHandler(); //user here buuilt-in exception handler
-app.UseHangfireDashboard(); 
-
+app.UseHangfireDashboard();
+app.MapControllers()
+   .RequireRateLimiting("global"); // default for all
 // Use Hangfire Server to start processing jobs in the background
 app.UseHangfireServer();
 

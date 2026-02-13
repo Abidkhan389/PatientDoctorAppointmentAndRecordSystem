@@ -36,16 +36,18 @@ namespace PatientDoctor.Infrastructure.Persistance
         public virtual DbSet<DoctorHolidays> DoctorHolidays { get; set; } = null!;
         public DbSet<GlobalExceptionLog> GlobalExceptionLogs { get; set; } = null!;
         public DbSet<UserRefreshToken> UserRefreshTokens { get; set; } = null!;
+        public DbSet<UserLogin> UserLogin { get; set; } = null!;
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder); // Always keep this line first
 
             // Configure PrescriptionMedicine relationships with CASCADE
             modelBuilder.Entity<PrescriptionMedicine>()
-     .HasOne(pm => pm.Prescription)
-     .WithMany(p => p.Medicines)
-     .HasForeignKey(pm => pm.PrescriptionId)
-     .OnDelete(DeleteBehavior.Cascade); // ✅ Keep this Cascade
+                 .HasOne(pm => pm.Prescription)
+                 .WithMany(p => p.Medicines)
+                 .HasForeignKey(pm => pm.PrescriptionId)
+                 .OnDelete(DeleteBehavior.Cascade); // ✅ Keep this Cascade
 
             modelBuilder.Entity<PrescriptionMedicine>()
                 .HasOne(pm => pm.Medicine)
@@ -58,7 +60,22 @@ namespace PatientDoctor.Infrastructure.Persistance
                 .WithMany()
                 .HasForeignKey(pm => pm.PotencyId)
                 .OnDelete(DeleteBehavior.Restrict); // ✅ Change to Restrict or NoAction
+            modelBuilder.Entity<UserLogin>(entity =>
+            {
+                entity.HasKey(x => x.Id);
 
+                entity.HasOne(x => x.User)
+                      .WithMany(x => x.Logins)
+                      .HasForeignKey(x => x.UserId)
+                      .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasIndex(x => new { x.Provider, x.ProviderKey })
+                      .IsUnique();
+
+                entity.Property(x => x.ProviderKey)
+                      .IsRequired()
+                      .HasMaxLength(200);
+            });
         }
 
 

@@ -9,7 +9,7 @@ namespace PatientDoctor.domain.Entities
 {
     public class ApplicationUser: IdentityUser
     {
-        public string PasswordSalt { get; set; }
+        public string? PasswordSalt { get; set; }
         public bool IsSuperAdmin { get; set; }
         public int Status { get; set; }
         public string RoleName { get; set; }
@@ -23,5 +23,7 @@ namespace PatientDoctor.domain.Entities
         }
         public ICollection<DoctorMedicines> DoctorMedicines { get; set; } = new List<DoctorMedicines>();
         public virtual ICollection<Prescription> Prescriptions { get; set; } = new List<Prescription>();
+        // Navigation
+        public ICollection<UserLogin> Logins { get; set; } = new List<UserLogin>();
     }
 }

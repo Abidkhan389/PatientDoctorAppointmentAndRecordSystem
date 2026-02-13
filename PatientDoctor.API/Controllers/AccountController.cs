@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using PatientDoctor.Application.Contracts.Persistance.IIdentityRepository;
 using PatientDoctor.Application.Features.Identity.Commands.ActiveInActive;
+using PatientDoctor.Application.Features.Identity.Commands.GoogleLogin;
 using PatientDoctor.Application.Features.Identity.Commands.LoginUser;
 using PatientDoctor.Application.Features.Identity.Commands.RefreshToken;
 using PatientDoctor.Application.Features.Identity.Commands.RegisterUser;
@@ -65,6 +66,13 @@ namespace PatientDoctor.API.Controllers
         [EnableRateLimiting("auth")]
         [Route("Login")]
         public async Task<object> Login(LoginUserCommand model)
+        {
+            return await _mediator.Send(model);
+        }
+        [AllowAnonymous]
+        [HttpPost]
+        [Route("GoogleLogin")]
+        public async Task<object> GoogleLogin(GoogleLoginCommand model)
         {
             return await _mediator.Send(model);
         }

@@ -32,5 +32,7 @@ namespace PatientDoctor.Application.Contracts.Persistance.IIdentityRepository
         Task<AuthTokenResultDto> GenerateTokensAsync(string userId);
         Task MarkTokenAsUsedAsync(string refreshToken);
         Task<string?> GetUserIdByRefreshTokenAsync(string refreshToken);
+        Task<IResponse> GoogleLoginAsync(string email, string name, string providerKey, CancellationToken cancellationToken);
+
     }
 }

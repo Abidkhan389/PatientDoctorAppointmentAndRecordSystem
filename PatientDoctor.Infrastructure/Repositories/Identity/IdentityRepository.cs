@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using BuildingBlocks;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -566,5 +567,126 @@ namespace PatientDoctor.Infrastructure.Repositories.Identity;
         return token?.UserId;
     }
 
+    public async Task<IResponse> GoogleLoginAsync(string email, string name, string providerKey, CancellationToken cancellationToken)
+    {
+
+        if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(providerKey))
+            return CreateErrorResponse("Invalid Google login data.");
+
+        await using var transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
+        try
+        {
+            var parts = name.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            var firstName = parts.FirstOrDefault();
+            var lastName = parts.Length > 1 ? string.Join(" ", parts.Skip(1)) : "";
+
+            var userLogin = await _context.UserLogin
+                .Include(x => x.User)
+                .FirstOrDefaultAsync(x => x.Provider == AuthProvider.Google && x.ProviderKey == providerKey, cancellationToken);
+
+            ApplicationUser user;
+
+            if (userLogin == null)
+            {
+                // Try to reuse an existing user with the same email
+                user = await _userManager.FindByEmailAsync(email);
+
+                if (user == null)
+                {
+                    user = new ApplicationUser
+                    {
+                        Email = email,
+                        UserName = email,
+                        RoleName = "Receptionist",
+                        Status = 1,
+                        // Optionally set additional properties, e.g. ProfilePicture from 'name' if available
+                    };
+
+                    var role = await _roleManager.FindByNameAsync(user.RoleName);
+                    if (role == null)
+                    {
+                        _response.Success = Constants.ResponseFailure;
+                        _response.Message = Constants.NotFound.Replace("{data}", "role");
+                        return _response;
+                    }
+
+                    var createResult = await _userManager.CreateAsync(user);
+                    if (!createResult.Succeeded)
+                    {
+                        var errors = string.Join("; ", createResult.Errors.Select(e => e.Description));
+                        return CreateErrorResponse($"User creation failed: {errors}");
+                    }
+
+                    var addRoleResult = await _userManager.AddToRoleAsync(user, role.Name);
+                    if (!addRoleResult.Succeeded)
+                    {
+                        var errors = string.Join("; ", addRoleResult.Errors.Select(e => e.Description));
+                        return CreateErrorResponse($"Role assignment failed: {errors}");
+                    }
+
+                    await _context.SaveChangesAsync(cancellationToken);
+                }
+
+                // Create the external login mapping
+                var login = new UserLogin
+                {
+                    Provider = AuthProvider.Google,
+                    ProviderKey = providerKey,
+                    UserId = user.Id
+                };
+                var userdetails = new Userdetail
+                {
+                    UserId = user.Id,
+                    FirstName = firstName,
+                    LastName = lastName,
+                    City = "",
+                    Cnic = "",
+                    Fee = null
+                };
+                await _context.Userdetail.AddAsync(userdetails, cancellationToken);
+                await _context.UserLogin.AddAsync(login, cancellationToken);
+                await _context.SaveChangesAsync(cancellationToken);
+            }
+            else
+            {
+                user = userLogin.User ?? throw new InvalidOperationException("Mapped user not found for the login record.");
+            }
+
+            var tokens = await GenerateTokensAsync(user.Id);
+            var roles = await _userManager.GetRolesAsync(user);
+
+            var authenticatedUser = new
+            {
+                Token = tokens.Token,
+                RefreshToken = tokens.RefreshToken,
+                ProfilePicture = user.ProfilePicture,
+                Id = user.Id,
+                Email = user.Email,
+                FirstName = firstName,
+                LastName = lastName,
+                Roles = roles
+            };
+
+            await transaction.CommitAsync(cancellationToken);
+
+            _response.Data = authenticatedUser;
+            _response.Message = Constants.Login;
+            _response.Success = Constants.ResponseSuccess;
+            return _response;
+        }
+        catch (Exception ex)
+        {
+            try
+            {
+                await transaction.RollbackAsync(cancellationToken);
+            }
+            catch
+            {
+                // swallow rollback exceptions - we'll return the original error below
+            }
+
+            return CreateErrorResponse(ex.Message);
+        }
+    }
 }
 

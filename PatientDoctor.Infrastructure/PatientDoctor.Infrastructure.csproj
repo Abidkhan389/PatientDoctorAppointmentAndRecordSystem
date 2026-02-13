@@ -29,6 +29,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\BuildingBlocks\BuildingBlocks.csproj" />
     <ProjectReference Include="..\PatientDoctor.Application\PatientDoctor.Application.csproj" />
     <ProjectReference Include="..\PatientDoctor.domain\PatientDoctor.domain.csproj" />
   </ItemGroup>

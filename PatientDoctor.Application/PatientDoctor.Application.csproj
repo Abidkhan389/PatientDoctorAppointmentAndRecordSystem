@@ -38,4 +38,7 @@
     <Folder Include="Features\DoctorCheckUpFee\Quries\GetAllByProc\" />
     <Folder Include="Contracts\Persistance\IDoctorCheckUpFeeRepository\" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\BuildingBlocks\BuildingBlocks.csproj" />
+  </ItemGroup>
 </Project>

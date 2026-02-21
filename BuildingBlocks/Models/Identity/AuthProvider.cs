@@ -1,5 +1,4 @@
-﻿
-namespace BuildingBlocks;
+﻿namespace BuildingBlocks.Models.Identity;
 public enum AuthProvider
 {
     Google = 1,

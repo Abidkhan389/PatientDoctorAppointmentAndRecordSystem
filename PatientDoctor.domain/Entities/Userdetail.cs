@@ -14,6 +14,7 @@ namespace PatientDoctor.domain.Entities
         [Key]
         public Guid UserDetailId { get; set; }
         public string UserId { get; set; }
+        public ApplicationUser User { get; set; }  // Navigation
         public string Cnic { get; set; }
         public string FirstName { get; set; }
         public string LastName { get; set; }

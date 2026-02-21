@@ -1,5 +1,5 @@
 ﻿using AutoMapper;
-using BuildingBlocks;
+using BuildingBlocks.Models.Identity;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -16,6 +16,7 @@ using PatientDoctor.Application.Features.Identity.Quries.GetDoctorFee.GetDoctorF
 using PatientDoctor.Application.Helpers;
 using PatientDoctor.Application.Helpers.General.Dtos.Auth;
 using PatientDoctor.domain.Entities;
+using PatientDoctor.domain.Entities.Public;
 using PatientDoctor.Infrastructure.Persistance;
 using PatientDoctor.Infrastructure.Repositories.GeneralServices;
 using System.Data;
@@ -23,6 +24,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace PatientDoctor.Infrastructure.Repositories.Identity;
     public class IdentityRepository : IIdentityRepository
@@ -143,6 +145,8 @@ namespace PatientDoctor.Infrastructure.Repositories.Identity;
                               join userdetail in _context.Userdetail on main.Id equals userdetail.UserId
                               join userRoles in _context.UserRoles on main.Id equals userRoles.UserId
                               join roles in _context.Roles on userRoles.RoleId equals roles.Id // ✅ Join with Roles Table
+                              join da in _context.DoctorAssistants on main.Id equals da.AssistantId into daGroup
+                              from da in daGroup.DefaultIfEmpty() // Left join to include users without doctor-assistant mapping
                               where (main.Status == 1 && main.Id == model.id)
                               select new VM_User
                               {
@@ -156,7 +160,8 @@ namespace PatientDoctor.Infrastructure.Repositories.Identity;
                                   Cnic = userdetail.Cnic,
                                   RoleId = roles.Id, // ✅ RoleId from Roles table
                                   RoleName = roles.Name, // ✅ Fetch Role Name
-                                  Fee = userdetail.Fee ?? 0 // ✅ Fetch Role Name
+                                  Fee = userdetail.Fee ?? 0 ,
+                                  DoctorId = da.DoctorId // ✅ Include DoctorId if user is an assistant
                               }).FirstOrDefaultAsync();
 
 
@@ -284,7 +289,12 @@ namespace PatientDoctor.Infrastructure.Repositories.Identity;
                         _response.Message = "Role assignment failed.";
                         return _response;
                     }
-                    await _context.SaveChangesAsync();
+                // After role assignment success
+                var mappingResponse = await HandleDoctorAssistantMappingAsync(
+                                     user.Id,exitrole.Name,model.addEditUsermodel.DoctorId);
+                if (mappingResponse != null)
+                    return mappingResponse;
+                await _context.SaveChangesAsync();
 
                     await transaction.CommitAsync();
                     _response.Success = Constants.ResponseSuccess;
@@ -365,8 +375,13 @@ namespace PatientDoctor.Infrastructure.Repositories.Identity;
                         return _response;
                     }
                     await _userManager.UpdateAsync(existUser);
-                          _context.Userdetail.Update(existinguserdetails);
-                    await _context.SaveChangesAsync();
+                         _context.Userdetail.Update(existinguserdetails);
+                // Check if user was previously assistant
+                var mappingResponse = await HandleDoctorAssistantMappingAsync(
+                                existUser.Id,exitrole.Name,model.addEditUsermodel.DoctorId);
+                if (mappingResponse != null)
+                    return mappingResponse;
+                await _context.SaveChangesAsync();
                     await transaction.CommitAsync();
                     _response.Success = Constants.ResponseSuccess;
                     _response.Message = Constants.DataUpdate;
@@ -687,6 +702,50 @@ namespace PatientDoctor.Infrastructure.Repositories.Identity;
 
             return CreateErrorResponse(ex.Message);
         }
+    }
+
+    private async Task<IResponse?> HandleDoctorAssistantMappingAsync(
+    string userId,
+    string roleName,
+    string? doctorId)
+    {
+        var existingMapping = await _context.DoctorAssistants
+            .FirstOrDefaultAsync(x => x.AssistantId == userId);
+
+        if (roleName == Roles.DoctorAssistant)
+        {
+            if (string.IsNullOrEmpty(doctorId))
+                return CreateErrorResponse("Doctor must be selected.");
+
+            var doctorExist = await _userManager.FindByIdAsync(doctorId);
+            if (doctorExist == null)
+                return CreateErrorResponse("Selected doctor does not exist.");
+
+            if (existingMapping == null)
+            {
+                var mapping = new DoctorAssistant
+                {
+                    AssistantId = userId,
+                    DoctorId = doctorId
+                };
+
+                await _context.DoctorAssistants.AddAsync(mapping);
+            }
+            else
+            {
+                existingMapping.DoctorId = doctorId;
+                _context.DoctorAssistants.Update(existingMapping);
+            }
+        }
+        else
+        {
+            if (existingMapping != null)
+            {
+                _context.DoctorAssistants.Remove(existingMapping);
+            }
+        }
+
+        return null; // Means everything ok
     }
 }
 

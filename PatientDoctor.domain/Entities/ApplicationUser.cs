@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using PatientDoctor.domain.Entities.Public;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -25,5 +26,8 @@ namespace PatientDoctor.domain.Entities
         public virtual ICollection<Prescription> Prescriptions { get; set; } = new List<Prescription>();
         // Navigation
         public ICollection<UserLogin> Logins { get; set; } = new List<UserLogin>();
+        public virtual ICollection<DoctorAssistant> Assistants { get; set; }   // If Doctor
+        public virtual ICollection<DoctorAssistant> AssignedDoctor { get; set; } // // If Assistant
+        public virtual Userdetail UserDetails { get; set; }
     }
 }

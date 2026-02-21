@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using PatientDoctor.domain.Entities;
+using PatientDoctor.domain.Entities.Public;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -37,30 +38,30 @@ namespace PatientDoctor.Infrastructure.Persistance
         public DbSet<GlobalExceptionLog> GlobalExceptionLogs { get; set; } = null!;
         public DbSet<UserRefreshToken> UserRefreshTokens { get; set; } = null!;
         public DbSet<UserLogin> UserLogin { get; set; } = null!;
-
-        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        public DbSet<DoctorAssistant> DoctorAssistants { get; set; }
+        protected override void OnModelCreating(ModelBuilder builder)
         {
-            base.OnModelCreating(modelBuilder); // Always keep this line first
+            base.OnModelCreating(builder); // Always keep this line first
 
             // Configure PrescriptionMedicine relationships with CASCADE
-            modelBuilder.Entity<PrescriptionMedicine>()
+            builder.Entity<PrescriptionMedicine>()
                  .HasOne(pm => pm.Prescription)
                  .WithMany(p => p.Medicines)
                  .HasForeignKey(pm => pm.PrescriptionId)
                  .OnDelete(DeleteBehavior.Cascade); // ✅ Keep this Cascade
 
-            modelBuilder.Entity<PrescriptionMedicine>()
+            builder.Entity<PrescriptionMedicine>()
                 .HasOne(pm => pm.Medicine)
                 .WithMany()
                 .HasForeignKey(pm => pm.MedicineId)
                 .OnDelete(DeleteBehavior.Restrict); // ✅ Change to Restrict or NoAction
 
-            modelBuilder.Entity<PrescriptionMedicine>()
+            builder.Entity<PrescriptionMedicine>()
                 .HasOne(pm => pm.MedicinePotency)
                 .WithMany()
                 .HasForeignKey(pm => pm.PotencyId)
                 .OnDelete(DeleteBehavior.Restrict); // ✅ Change to Restrict or NoAction
-            modelBuilder.Entity<UserLogin>(entity =>
+            builder.Entity<UserLogin>(entity =>
             {
                 entity.HasKey(x => x.Id);
 
@@ -76,6 +77,26 @@ namespace PatientDoctor.Infrastructure.Persistance
                       .IsRequired()
                       .HasMaxLength(200);
             });
+            // DoctorAssistant Relation
+            builder.Entity<DoctorAssistant>()
+                .HasOne(da => da.Doctor)
+                .WithMany(u=> u.Assistants)
+                .HasForeignKey(da => da.DoctorId)
+                .OnDelete(DeleteBehavior.Restrict);
+            builder.Entity<DoctorAssistant>()
+                .HasOne(da => da.Assistant)
+                .WithMany(u => u.AssignedDoctor)
+                .HasForeignKey(da => da.AssistantId)
+                .OnDelete(DeleteBehavior.Cascade);
+            // Prevent Duplication Mapping
+            builder.Entity<DoctorAssistant>()
+                .HasIndex(da => new { da.DoctorId, da.AssistantId })
+                .IsUnique();
+            builder.Entity<Userdetail>()
+                .HasOne(ud => ud.User)
+                .WithOne(u => u.UserDetails)
+                .HasForeignKey<Userdetail>(ud => ud.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
 
 

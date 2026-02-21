@@ -1,10 +1,4 @@
-﻿using MediatR;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using PatientDoctor.Application.Features.Dashboard.Quries;
-using PatientDoctor.Application.Features.Patient.Quries;
-using PatientDoctor.Application.Helpers;
+﻿
 
 namespace PatientDoctor.API.Controllers
 {

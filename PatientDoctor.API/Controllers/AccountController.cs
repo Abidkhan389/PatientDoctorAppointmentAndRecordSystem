@@ -1,23 +1,4 @@
-﻿using MediatR;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.RateLimiting;
-using PatientDoctor.Application.Contracts.Persistance.IIdentityRepository;
-using PatientDoctor.Application.Features.Identity.Commands.ActiveInActive;
-using PatientDoctor.Application.Features.Identity.Commands.GoogleLogin;
-using PatientDoctor.Application.Features.Identity.Commands.LoginUser;
-using PatientDoctor.Application.Features.Identity.Commands.RefreshToken;
-using PatientDoctor.Application.Features.Identity.Commands.RegisterUser;
-using PatientDoctor.Application.Features.Identity.Quries;
-using PatientDoctor.Application.Features.Identity.Quries.GetAllRoles;
-using PatientDoctor.Application.Features.Identity.Quries.GetDoctorFee.GetDoctorFeeById;
-using PatientDoctor.Application.Features.Patient.Quries;
-using PatientDoctor.Application.Helpers;
-using PatientDoctor.Infrastructure.Repositories.GeneralServices;
-using System.Security.Claims;
-
-namespace PatientDoctor.API.Controllers
+﻿namespace PatientDoctor.API.Controllers
 {
     [Authorize]
     [Route("api/[controller]")]
@@ -38,12 +19,7 @@ namespace PatientDoctor.API.Controllers
         [Route("ActiveInactive")]
         public async Task<object> ActiveInActive([FromBody] ActiveInActiveIdentity model)
         {
-            if (!ModelState.IsValid)
-            {
-                _response.Success = Constants.ResponseFailure;
-                _response.Message = Constants.ModelStateStateIsInvalid;
-                return Ok(_response);
-            }
+            
             return await _mediator.Send(model);
 
         }
@@ -51,12 +27,7 @@ namespace PatientDoctor.API.Controllers
         [Route("AddEditUser")]
         public async Task<object> AddEditUser(AddEditUserCommands model)
         {
-            if (!ModelState.IsValid)
-            {
-                _response.Success = Constants.ResponseFailure;
-                _response.Message = Constants.ModelStateStateIsInvalid;
-                return Ok(_response);
-            }
+            
             var UserId = HelperStatic.GetUserIdFromClaims((ClaimsIdentity)User.Identity);
 
             return await _mediator.Send(new AddEditUserWithCreatedOrUpdatedById(model, UserId));

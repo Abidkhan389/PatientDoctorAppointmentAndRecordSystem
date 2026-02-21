@@ -6,6 +6,8 @@ using PatientDoctor.Infrastructure;
 using PatientDoctor.Infrastructure.Repositories.ReminderSchedulers;
 using PatientDoctor.Infrastructure.Web.Extensions;
 using System.Text.Json.Serialization;
+using Carter;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -57,6 +59,7 @@ builder.Services.AddExceptionHandler<CustomExceptionHandler>();
 builder.Services.AddInfrastructureServices(builder.Configuration);
 builder.Services.AddApplicationServices();
 builder.Services.AddCustomRateLimiting();
+builder.Services.AddCarter();
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 
 var app = builder.Build();
@@ -72,10 +75,13 @@ app.UseCors("CorsPolicy");
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.MapCarter();
+
 app.UseStaticFiles();
 app.MapControllers();
 //app.UseMiddleware<GlobalExceptionMiddleware>(); // use here custom middleware
-app.UseExceptionHandler(); //user here buuilt-in exception handler
+app.UseExceptionHandler(); //user here built-in exception handler
 app.UseHangfireDashboard();
 app.MapControllers()
    .RequireRateLimiting("global"); // default for all

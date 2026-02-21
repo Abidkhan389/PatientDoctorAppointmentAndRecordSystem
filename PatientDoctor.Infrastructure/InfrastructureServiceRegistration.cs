@@ -1,4 +1,5 @@
-﻿using Hangfire;
+﻿using BuildingBlocks.Models.Identity;
+using Hangfire;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -54,6 +55,7 @@ using PatientDoctor.Infrastructure.Repositories.SecurityRepository;
 using PatientDoctor.Infrastructure.Repositories.SmsRepository;
 using PatientDoctor.Infrastructure.Utalities.ExceptionLoggers;
 using System.Reflection;
+using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 namespace PatientDoctor.Infrastructure
@@ -100,31 +102,39 @@ namespace PatientDoctor.Infrastructure
            }));
             //var jwtSecretKey = GenerateJwtSecretKey();
             //configuration["JWT:Secret"] = jwtSecretKey;
-            services.AddAuthentication(options =>
-             {
-                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-                 options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-                 options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
-             })
-             //Adding JWT Bearer 
-             .AddJwtBearer(options =>
-             {
-                 //options.SaveToken = false;
-                 options.SaveToken = true;
-                 options.RequireHttpsMetadata = false;
-                 options.TokenValidationParameters = new TokenValidationParameters()
+                services.AddAuthentication(options =>
                  {
-                     ValidateIssuer = true,
-                     ValidateAudience = true,
-                     ValidateLifetime = true,            
-                     ValidateIssuerSigningKey = true,
-                     ClockSkew = TimeSpan.Zero, 
-                     ValidAudience = configuration["JWT:ValidAudience"],
-                     ValidIssuer = configuration["JWT:ValidIssuer"],
-                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["JWT:Secret"]))
-                 };
-             })
-             .AddCookie();
+                     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                     options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+                 })
+                 //Adding JWT Bearer 
+                 .AddJwtBearer(options =>
+                 {
+                     //options.SaveToken = false;
+                     options.SaveToken = true;
+                     options.RequireHttpsMetadata = false;
+                     options.TokenValidationParameters = new TokenValidationParameters()
+                     {
+                         ValidateIssuer = true,
+                         ValidateAudience = true,
+                         ValidateLifetime = true,            
+                         ValidateIssuerSigningKey = true,
+                         ClockSkew = TimeSpan.Zero, 
+                         ValidAudience = configuration["JWT:ValidAudience"],
+                         ValidIssuer = configuration["JWT:ValidIssuer"],
+                         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["JWT:Secret"])),
+                         // THIS IS KEY: Map role claim type
+                         RoleClaimType = "http://schemas.microsoft.com/ws/2008/06/identity/claims/role",
+                         NameClaimType = ClaimTypes.NameIdentifier
+
+                     };
+                 });
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("DoctorAssistantOrDoctor", policy =>
+                    policy.RequireRole(Roles.DoctorAssistant, Roles.Doctor));
+            });
             services.AddAutoMapper(Assembly.GetExecutingAssembly());
             services.AddScoped<IIdentityRepository, IdentityRepository>();
             services.AddScoped<IPatientRepository, PatientRepository>();

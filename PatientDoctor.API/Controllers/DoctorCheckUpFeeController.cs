@@ -1,14 +1,4 @@
-﻿using MediatR;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using PatientDoctor.Application.Features.DoctorCheckUpFee.Command.ActiveInActive;
-using PatientDoctor.Application.Features.DoctorCheckUpFee.Command.AddEditDoctorCheckFees;
-using PatientDoctor.Application.Features.DoctorCheckUpFee.Quries.GetAllByProc;
-using PatientDoctor.Application.Features.DoctorCheckUpFee.Quries.GetById;
-using PatientDoctor.Application.Helpers;
-using PatientDoctor.Infrastructure.Repositories.GeneralServices;
-using System.Security.Claims;
-
+﻿
 namespace PatientDoctor.API.Controllers
 {
     [Authorize]

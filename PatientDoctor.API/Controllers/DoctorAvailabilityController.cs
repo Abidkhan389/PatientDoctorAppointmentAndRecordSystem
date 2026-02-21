@@ -1,16 +1,4 @@
-﻿using MediatR;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using PatientDoctor.Application.Features.Doctor_Availability.ActiveInActive;
-using PatientDoctor.Application.Features.Doctor_Availability.Commands;
-using PatientDoctor.Application.Features.Doctor_Availability.Quries.GetAllByProc;
-using PatientDoctor.Application.Features.Doctor_Availability.Quries.GetById;
-using PatientDoctor.Application.Helpers;
-using PatientDoctor.Infrastructure.Repositories.GeneralServices;
-using System.Security.Claims;
-
-namespace PatientDoctor.API.Controllers
+﻿namespace PatientDoctor.API.Controllers
 {
     [Authorize]
     [Route("api/[controller]")]

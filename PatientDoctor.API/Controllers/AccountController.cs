@@ -19,12 +19,7 @@
         [Route("ActiveInactive")]
         public async Task<object> ActiveInActive([FromBody] ActiveInActiveIdentity model)
         {
-            if (!ModelState.IsValid)
-            {
-                _response.Success = Constants.ResponseFailure;
-                _response.Message = Constants.ModelStateStateIsInvalid;
-                return Ok(_response);
-            }
+            
             return await _mediator.Send(model);
 
         }
@@ -32,12 +27,7 @@
         [Route("AddEditUser")]
         public async Task<object> AddEditUser(AddEditUserCommands model)
         {
-            if (!ModelState.IsValid)
-            {
-                _response.Success = Constants.ResponseFailure;
-                _response.Message = Constants.ModelStateStateIsInvalid;
-                return Ok(_response);
-            }
+            
             var UserId = HelperStatic.GetUserIdFromClaims((ClaimsIdentity)User.Identity);
 
             return await _mediator.Send(new AddEditUserWithCreatedOrUpdatedById(model, UserId));

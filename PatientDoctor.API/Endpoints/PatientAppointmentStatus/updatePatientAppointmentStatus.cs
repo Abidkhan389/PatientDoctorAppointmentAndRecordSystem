@@ -5,12 +5,14 @@ public class updatePatientAppointmentStatus : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
+
         // Create a route group for all patient-related endpoints
         var patientGroup = app.MapGroup("/api/Patient"); // Apply global auth for patient endpoints
 
         // POST: /api/Patient/updatePatientAppointmentStatus
-        patientGroup.MapPost("/UpdatePatientAppointmentStatus", async (UpdatePatientAppointmentStatusCommand command, IMediator mediator) =>
+        patientGroup.MapPost("/UpdatePatientAppointmentStatus", async (UpdatePatientAppointmentStatusCommand command, IMediator mediator, HttpContext httpContext) =>
         {
+            command.UserId = HelperStatic.GetUserIdFromClaims((ClaimsIdentity)httpContext.User.Identity);
             // Mediator sends command and gets IResponse
             IResponse response = await mediator.Send(command);
 

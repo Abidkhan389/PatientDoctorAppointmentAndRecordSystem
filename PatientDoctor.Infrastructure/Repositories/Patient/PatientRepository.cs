@@ -553,7 +553,7 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
                 // Update patient details
                 appointmentDetail.CheckUpStatus = true;
                 patientDetails.CreatedOn = DateTime.UtcNow;
-               
+                patientDetails.CreatedBy = model.UserId;
                 _context.Patient.Update(patient);
                 _context.PatientDetails.Update(patientDetails);
                 _context.Appointment.Update(appointmentDetail);

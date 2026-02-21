@@ -1,21 +1,5 @@
-﻿using MediatR;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using PatientDoctor.Application.Features.DoctorMedicine.Command;
-using PatientDoctor.Application.Features.DoctorMedicine.Query;
-using PatientDoctor.Application.Features.Medicine.Commands.ActiveInActive;
-using PatientDoctor.Application.Features.Medicine.Commands.AddEditMedicine;
-using PatientDoctor.Application.Features.Medicine.Quries.GetAllByProc;
-using PatientDoctor.Application.Features.Medicine.Quries.GetAllMedicine;
-using PatientDoctor.Application.Features.Medicine.Quries.GetAllMedicinePotency;
-using PatientDoctor.Application.Features.Medicine.Quries.GetAllMedicineTypes;
-using PatientDoctor.Application.Features.Medicine.Quries.GetById;
-using PatientDoctor.Application.Features.Medicine.Quries.GetDoctorMedicine;
-using PatientDoctor.Application.Features.Medicine.Quries.GetDoctorMedicinePotency;
-using PatientDoctor.Application.Features.Medicinetype.Quries;
-using PatientDoctor.Application.Helpers;
-using PatientDoctor.Infrastructure.Repositories.GeneralServices;
-using System.Security.Claims;
+﻿
+
 
 namespace PatientDoctor.API.Controllers
 {

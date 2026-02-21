@@ -1,7 +1,4 @@
-﻿using MediatR;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using PatientDoctor.Application.Features.Reports.Quries.GetCheckedPatientHistoryByDoctor;
+﻿
 
 namespace PatientDoctor.API.Controllers;
 [Authorize(Roles = "SuperAdmin")]

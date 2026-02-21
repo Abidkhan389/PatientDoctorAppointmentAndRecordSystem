@@ -23,6 +23,7 @@ using PatientDoctor.Application.Helpers.AppointmentSms;
 using PatientDoctor.Application.Features.Patient.Commands.PatientDiscount;
 using PatientDoctor.Application.Contracts.Persistance.IEmail;
 using PatientDoctor.Application.Helpers.EmailRequest;
+using BuildingBlocks.Models.Identity;
 
 namespace PatientDoctor.Infrastructure.Repositories.Patient
 {
@@ -395,6 +396,15 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
             var roleName = userInfo?.RoleName;
             DateTime filterDate = model.getPatientListObj.appoitmentDate?.Date ?? DateTime.Today;
             model.Sort = model.Sort == null || model.Sort == "" ? "FirstName" : model.Sort;
+            // DoctorAssistant ka assigned doctorId fetch karo
+            string? assisantDoctorId = null;
+            if(roleName ==Roles.DoctorAssistant)
+            {
+                assisantDoctorId = await _context.DoctorAssistants
+                                   .Where(x => x.AssistantId == model.UserId)
+                                   .Select(x => x.DoctorId)
+                                   .FirstOrDefaultAsync();
+            }
             var data = (from patient in _context.Patient
                         join main in _context.Users on patient.DoctoerId equals main.Id
                         join p_details in _context.PatientDetails on patient.PatientId equals p_details.PatientId
@@ -406,7 +416,12 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
                              && (string.IsNullOrEmpty(model.getPatientListObj.Cnic) || patient.Cnic.ToLower().Contains(model.getPatientListObj.Cnic))
                              && (string.IsNullOrEmpty(model.getPatientListObj.MobileNumber) || p_details.PhoneNumber.ToLower().Contains(model.getPatientListObj.MobileNumber.ToLower()))
                               && App.AppointmentDate.Date == filterDate.Date
-                              && (roleName == "SuperAdmin" || roleName == "Receptionist" || patient.DoctoerId == model.UserId)
+                              && (
+                            roleName == Roles.SuperAdmin
+                            || roleName == Roles.Receptionist
+                            || (roleName == Roles.DoctorAssistant && patient.DoctoerId == assisantDoctorId)
+                            || patient.DoctoerId == model.UserId // Doctor sees own patients
+                           )
                               )
                         select new VM_Patient
                         {

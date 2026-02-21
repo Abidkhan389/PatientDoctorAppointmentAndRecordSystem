@@ -1,15 +1,4 @@
-﻿using MediatR;
-using Microsoft.AspNetCore.Mvc;
-using PatientDoctor.Application.Contracts.Persistance.IIdentityRepository;
-using PatientDoctor.Application.Features.DoctorHoliday.Quries.GetDoctorHolidaysByDoctorIdForPatientAppointment;
-using PatientDoctor.Application.Features.Identity.Quries.GetDoctorFee.GetDoctorFeeById;
-using PatientDoctor.Application.Features.Patient.Commands.AddEditPatient;
-using PatientDoctor.Application.Features.Patient.Quries.GetDoctorSlots;
-using PatientDoctor.Application.Helpers;
-using PatientDoctor.Infrastructure.Repositories.GeneralServices;
-using System.Security.Claims;
-
-namespace PatientDoctor.API.Controllers
+﻿namespace PatientDoctor.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]

@@ -1,13 +1,4 @@
-﻿using MediatR;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using PatientDoctor.Application.Features.Administrator.Commands.Register;
-using PatientDoctor.Application.Features.Administrator.Commands.UserProfile;
-using PatientDoctor.Application.Features.Administrator.Quries;
-using PatientDoctor.Infrastructure.Repositories.GeneralServices;
-using System.Security.Claims;
-
-namespace PatientDoctor.API.Controllers
+﻿namespace PatientDoctor.API.Controllers
 {
     [Authorize]
     [Route("api/[controller]")]

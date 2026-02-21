@@ -1,14 +1,8 @@
 ﻿using MediatR;
 using PatientDoctor.Application.Contracts.Persistance.Patient;
 using PatientDoctor.Application.Helpers;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace PatientDoctor.Application.Features.Patient.Commands.AddPatientDescription
-{
+namespace PatientDoctor.Application.Features.Patient.Commands.AddPatientDescription;
     public class AddPatientDescriptionCommandHandler : IRequestHandler<AddPatientDescriptionCommand, IResponse>
     {
         private readonly IPatientRepository _patientRepository;
@@ -21,4 +15,4 @@ namespace PatientDoctor.Application.Features.Patient.Commands.AddPatientDescript
             return _patientRepository.AddEditPatientDescription(request);
         }
     }
-}
+

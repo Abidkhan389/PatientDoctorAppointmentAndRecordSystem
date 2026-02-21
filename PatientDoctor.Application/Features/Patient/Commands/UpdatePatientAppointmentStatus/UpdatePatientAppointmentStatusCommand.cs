@@ -5,8 +5,9 @@ using PatientDoctor.Application.Helpers;
 namespace PatientDoctor.Application.Features.Patient.Commands.UpdatePatientAppointmentStatus;
 public record UpdatePatientAppointmentStatusCommand : IRequest<IResponse>
 {
-    public string PatientId { get; set; }
+    public Guid PatientId { get; set; }
     public string DoctorId { get; set; }
+    public string? UserId { get; set; }
 }
 public class UpdatePatientAppointmentStatusCommandValidator : AbstractValidator<UpdatePatientAppointmentStatusCommand>
 {

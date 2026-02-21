@@ -24,6 +24,7 @@ using PatientDoctor.Application.Features.Patient.Commands.PatientDiscount;
 using PatientDoctor.Application.Contracts.Persistance.IEmail;
 using PatientDoctor.Application.Helpers.EmailRequest;
 using BuildingBlocks.Models.Identity;
+using PatientDoctor.Application.Features.Patient.Commands.UpdatePatientAppointmentStatus;
 
 namespace PatientDoctor.Infrastructure.Repositories.Patient
 {
@@ -514,6 +515,68 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
 
         }
 
+        public async Task<IResponse> UpdatePatientAppointmentStatus(UpdatePatientAppointmentStatusCommand model, CancellationToken cancellationToken)
+        {
+            using var transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
+
+            try
+            {
+                // Fetch all related data in parallel (or sequentially if needed)
+                var patient = await _context.Patient
+                    .FirstOrDefaultAsync(p => p.PatientId == model.PatientId, cancellationToken);
+
+                var patientDetails = await _context.PatientDetails
+                    .FirstOrDefaultAsync(pd => pd.PatientId == model.PatientId, cancellationToken);
+
+                var appointmentDetail = await _context.Appointment
+                    .FirstOrDefaultAsync(a => a.PatientId == model.PatientId, cancellationToken);
+
+                if (patient == null || patientDetails == null || appointmentDetail == null)
+                {
+                    return new Response
+                    {
+                        Success = Constants.ResponseFailure,
+                        Message = "Patient or related data not found."
+                    };
+                }
+
+                // Ensure TrackingNumber exists
+                if (string.IsNullOrWhiteSpace(patient.TrackingNumber))
+                {
+                    var trackPatientNumberResult = await _patientCheckUpHistroy.FetchPatientTrackingNumberByPatientId(patient.PatientId);
+                    if (trackPatientNumberResult.Success && trackPatientNumberResult.Data is string trackingNumber)
+                    {
+                        patient.TrackingNumber = trackingNumber;
+                    }
+                }
+
+                // Update patient details
+                appointmentDetail.CheckUpStatus = true;
+                patientDetails.CreatedOn = DateTime.UtcNow;
+               
+                _context.Patient.Update(patient);
+                _context.PatientDetails.Update(patientDetails);
+                _context.Appointment.Update(appointmentDetail);
+
+                await _context.SaveChangesAsync(cancellationToken);
+                await transaction.CommitAsync(cancellationToken);
+
+
+                _response.Success = Constants.ResponseSuccess;
+                _response.Message = Constants.DataSaved;
+                _response.Data = Constants.ResponseSuccess;
+
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync(cancellationToken);
+                // Log exception here if you have a logging service
+                _response.Success = Constants.ResponseFailure;
+                _response.Message = ex.Message;
+                _response.Data = Constants.ResponseFailure;
+            }
+            return _response;
+        }
         public async Task<IResponse> AddEditPatientDescription(AddPatientDescriptionCommand model)
         {
             using var transaction = _context.Database.BeginTransaction();
@@ -954,5 +1017,6 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
             return _response;
         }
 
+       
     }
 }

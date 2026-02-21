@@ -59,7 +59,6 @@ global using PatientDoctor.Application.Features.Patient.Quries.GetAllPatientReco
 global using PatientDoctor.Application.Features.Patient.Quries.GetDoctorSlots;
 global using PatientDoctor.Application.Features.Patient.Quries.GetPatientDetailForPdf;
 global using PatientDoctor.Application.Features.Reports.Quries.GetCheckedPatientHistoryByDoctor;
-global using BuildingBlocks.Models.Identity;
 global using Carter;
 global using PatientDoctor.Application.Features.Patient.Commands.UpdatePatientAppointmentStatus;
 

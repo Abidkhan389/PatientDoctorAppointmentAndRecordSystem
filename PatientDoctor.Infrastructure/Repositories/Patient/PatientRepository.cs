@@ -522,6 +522,7 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
             try
             {
                 // Fetch all related data in parallel (or sequentially if needed)
+                
                 var patient = await _context.Patient
                     .FirstOrDefaultAsync(p => p.PatientId == model.PatientId, cancellationToken);
 
@@ -554,13 +555,14 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
                 appointmentDetail.CheckUpStatus = true;
                 patientDetails.CreatedOn = DateTime.UtcNow;
                 patientDetails.CreatedBy = model.UserId;
+                var prescription = new Prescription { DoctorId = model.DoctorId, PatientId = model.PatientId,Status=1 };
                 _context.Patient.Update(patient);
                 _context.PatientDetails.Update(patientDetails);
                 _context.Appointment.Update(appointmentDetail);
+                _context.Prescriptions.Add(prescription);
 
                 await _context.SaveChangesAsync(cancellationToken);
                 await transaction.CommitAsync(cancellationToken);
-
 
                 _response.Success = Constants.ResponseSuccess;
                 _response.Message = Constants.DataSaved;

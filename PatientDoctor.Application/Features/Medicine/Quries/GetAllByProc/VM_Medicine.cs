@@ -1,10 +1,4 @@
-﻿using PatientDoctor.Application.Helpers.General;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
+﻿ 
 namespace PatientDoctor.Application.Features.Medicine.Quries.GetAllByProc
 {
     public class VM_Medicine : ListingLogFields

@@ -1,9 +1,4 @@
 ﻿
-using MediatR;
-using PatientDoctor.Application.Contracts.Persistance.IDoctorAvailability;
-using PatientDoctor.Application.Features.Medicine.Commands.ActiveInActive;
-using PatientDoctor.Application.Helpers;
-
 namespace PatientDoctor.Application.Features.Doctor_Availability.ActiveInActive;
 public class ActiveInActiveDoctorAvailabilityHandler : IRequestHandler<ActiveInActiveDoctorAvailability, IResponse>
 {

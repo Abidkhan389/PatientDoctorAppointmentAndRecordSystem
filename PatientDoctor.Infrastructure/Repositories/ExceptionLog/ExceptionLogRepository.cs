@@ -1,9 +1,4 @@
 ﻿
-using PatientDoctor.Application.Contracts.Persistance.IException;
-using PatientDoctor.Application.Helpers.General.Exceptions.Models;
-using PatientDoctor.domain.Entities;
-using PatientDoctor.Infrastructure.Persistance;
-
 namespace PatientDoctor.Infrastructure.Repositories.ExceptionLog;
 public class ExceptionLogRepository : IExceptionLogRepository
 {

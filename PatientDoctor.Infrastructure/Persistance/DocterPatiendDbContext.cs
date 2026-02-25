@@ -1,15 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore;
-using PatientDoctor.domain.Entities;
-using PatientDoctor.domain.Entities.Public;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace PatientDoctor.Infrastructure.Persistance
-{
+﻿
+namespace PatientDoctor.Infrastructure.Persistance;
     public class DocterPatiendDbContext: IdentityDbContext<ApplicationUser>
     {
         public DocterPatiendDbContext(DbContextOptions<DocterPatiendDbContext> options)
@@ -101,4 +91,4 @@ namespace PatientDoctor.Infrastructure.Persistance
 
 
     }
-}
+

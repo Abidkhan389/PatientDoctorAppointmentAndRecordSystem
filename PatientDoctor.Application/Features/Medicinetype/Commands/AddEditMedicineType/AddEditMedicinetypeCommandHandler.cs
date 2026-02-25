@@ -1,9 +1,5 @@
-﻿using MediatR;
-using PatientDoctor.Application.Contracts.Persistance.IMedicineType;
-using PatientDoctor.Application.Helpers;
-
-namespace PatientDoctor.Application.Features.Medicinetype.Commands.AddEditMedicineType
-{
+﻿
+namespace PatientDoctor.Application.Features.Medicinetype.Commands.AddEditMedicineType;
     public class AddEditMedicinetypeCommandHandler : IRequestHandler<AddEditMedicineTypeWithUserId, IResponse>
     {
         private readonly IMedicinetypeRepository _medicinetypeRepository;
@@ -18,4 +14,4 @@ namespace PatientDoctor.Application.Features.Medicinetype.Commands.AddEditMedici
             return medicinetype;
         }
     }
-}
+

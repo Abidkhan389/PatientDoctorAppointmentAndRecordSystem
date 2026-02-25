@@ -1,8 +1,4 @@
 ﻿
-using MediatR;
-using PatientDoctor.Application.Contracts.Persistance.Patient;
-using PatientDoctor.Application.Helpers;
-
 namespace PatientDoctor.Application.Features.Patient.Quries.GetDoctorSlots;
 public class GetDoctorTimeSlotByDayIdAndDoctorIdHandler : IRequestHandler<GetDoctorTimeSlotsByDayIdAndDoctorId, IResponse>
 {

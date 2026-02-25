@@ -1,4 +1,4 @@
-﻿using FluentValidation;
+﻿
 namespace PatientDoctor.Application.Features.Administrator.Commands.UserProfile;
 public class UserProfileCommandValidation : AbstractValidator<UserProfileCommand>
 {

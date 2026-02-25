@@ -1,6 +1,4 @@
-﻿using PatientDoctor.domain.Entities.Public;
-using System.ComponentModel.DataAnnotations.Schema;
-
+﻿
 namespace PatientDoctor.domain.Entities;
     [Table("City", Schema = "Admin")]
     public class City : LogFields

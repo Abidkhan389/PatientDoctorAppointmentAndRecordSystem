@@ -1,4 +1,4 @@
-﻿using Google.Apis.Auth;
+﻿
 namespace PatientDoctor.Application.Contracts.Persistance.GoogeLogin;
 public interface IGoogleTokenValidator
 {   

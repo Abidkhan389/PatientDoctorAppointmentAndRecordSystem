@@ -1,9 +1,4 @@
-﻿using System;
-using MediatR;
-using PatientDoctor.Application.Contracts.Persistance.IDoctorCheckUpFeeRepository;
-using PatientDoctor.Application.Contracts.Persistance.IMedicineType;
-using PatientDoctor.Application.Helpers;
-
+﻿
 namespace PatientDoctor.Application.Features.DoctorCheckUpFee.Command.ActiveInActive
 {
 	public class ActiveInActiveDoctorCheckUpHandlerQuery : IRequestHandler<ActiveInActiveDoctorCheckupFee, IResponse>

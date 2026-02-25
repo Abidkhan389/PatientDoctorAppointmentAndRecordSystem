@@ -1,6 +1,4 @@
 ﻿
-using FluentValidation;
-
 namespace PatientDoctor.Application.Features.DoctorHoliday.Command.AddEditDoctorHoliday;
 public class AddEditDoctorHolidayValidation : AbstractValidator<AddEditDoctorHolidayCommand>
 {

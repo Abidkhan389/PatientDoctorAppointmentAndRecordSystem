@@ -1,9 +1,5 @@
-﻿using FluentValidation;
-using MediatR;
-using Microsoft.Extensions.DependencyInjection;
-using System.Reflection; 
-namespace PatientDoctor.Application
-{
+﻿ 
+namespace PatientDoctor.Application;
     public static class ApplicationServiceRegistration
     {
         public static IServiceCollection AddApplicationServices(this IServiceCollection services)
@@ -13,4 +9,4 @@ namespace PatientDoctor.Application
             return services;
         }
     }
-}
+

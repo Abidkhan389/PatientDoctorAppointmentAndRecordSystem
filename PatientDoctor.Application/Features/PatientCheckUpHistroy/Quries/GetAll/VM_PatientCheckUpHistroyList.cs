@@ -1,6 +1,4 @@
 ﻿
-using PatientDoctor.Application.Helpers.General;
-
 namespace PatientDoctor.Application.Features.PatientCheckUpHistroy.Quries.GetAll;
    public class VM_PatientCheckUpHistroyList : ListingLogFields
 {

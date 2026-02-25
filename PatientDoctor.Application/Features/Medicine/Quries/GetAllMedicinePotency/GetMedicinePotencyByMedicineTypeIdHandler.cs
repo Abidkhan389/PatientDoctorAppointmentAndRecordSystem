@@ -1,7 +1,4 @@
-﻿using MediatR;
-using PatientDoctor.Application.Contracts.Persistance.IMedicine;
-using PatientDoctor.Application.Helpers;
-
+﻿ 
 namespace PatientDoctor.Application.Features.Medicine.Quries.GetAllMedicinePotency;
 public class GetMedicinePotencyByMedicineTypeIdHandlerIRequestHandler : IRequestHandler<GetAllMedicinePotencyByMedicineTypeId, IResponse>
 {

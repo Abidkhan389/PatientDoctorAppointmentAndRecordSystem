@@ -1,10 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-using PatientDoctor.Application.Features.DoctorCheckUpFee.Command.AddEditDoctorCheckFees;
-using PatientDoctor.domain.Entities.Public;
-
-namespace PatientDoctor.domain.Entities
-{
+﻿
+namespace PatientDoctor.domain.Entities;
 	[Table("DoctorCheckUpFeeDetails",Schema = "Admin")]
 	public class DoctorCheckUpFeeDetails : LogFields
 	{
@@ -27,5 +22,5 @@ namespace PatientDoctor.domain.Entities
 		public string DoctorId { get; set; }
         public int Status { get; set; }
     }
-}
+
 

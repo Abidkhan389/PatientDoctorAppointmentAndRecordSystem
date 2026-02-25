@@ -1,5 +1,4 @@
-﻿using BuildingBlocks.Models.Identity;
-
+﻿
 namespace PatientDoctor.domain.Entities;
 public class UserLogin
 {

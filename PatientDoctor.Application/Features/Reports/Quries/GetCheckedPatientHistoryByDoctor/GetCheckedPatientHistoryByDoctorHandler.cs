@@ -1,9 +1,4 @@
 ﻿
-using MediatR;
-using PatientDoctor.Application.Contracts.Persistance.IReports;
-using PatientDoctor.Application.Helpers;
-using PatientDoctor.Application.Helpers.General.Exceptions;
-
 namespace PatientDoctor.Application.Features.Reports.Quries.GetCheckedPatientHistoryByDoctor;
 public class GetCheckedPatientHistoryByDoctorHandler : IRequestHandler<GetCheckedPatientHistoryByDoctorQuery, IResponse>
 {

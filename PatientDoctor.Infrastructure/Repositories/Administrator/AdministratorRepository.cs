@@ -1,18 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
-using PatientDoctor.Application.Contracts.Persistance.IAdministratorRepository;
-using PatientDoctor.Application.Contracts.Persistance.IFileRepository;
-using PatientDoctor.Application.Contracts.Persistance.ISecurity;
-using PatientDoctor.Application.Contracts.Security;
-using PatientDoctor.Application.Features.Administrator.Commands.Register;
-using PatientDoctor.Application.Features.Administrator.Commands.UserProfile;
-using PatientDoctor.Application.Features.Administrator.Quries;
-using PatientDoctor.Application.Helpers;
-using PatientDoctor.Application.Helpers.Auth;
-using PatientDoctor.domain.Entities;
-using PatientDoctor.Infrastructure.Persistance;
-using System.Threading.Tasks.Dataflow;
-
+﻿
 namespace PatientDoctor.Infrastructure.Repositories.Administrator;
     public class AdministratorRepository : IAdministratorRepository
     {

@@ -1,10 +1,5 @@
-﻿using PatientDoctor.Application.Features.Patient.Commands.AddPatientDescription.PatientCheckedUpFeeHistroy;
-using PatientDoctor.domain.Entities.Public;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-
-namespace PatientDoctor.domain.Entities
-{
+﻿
+namespace PatientDoctor.domain.Entities;
     [Table("PatientCheckedUpFeeHistroy", Schema = "Admin")]
     public class PatientCheckedUpFeeHistroy : LogFields
     {
@@ -39,4 +34,4 @@ namespace PatientDoctor.domain.Entities
         public string PatientCnic {  get; set; }
         public int CheckUpFee { get; set; }
     }
-}
+

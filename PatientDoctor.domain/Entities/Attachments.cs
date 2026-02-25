@@ -1,9 +1,5 @@
-﻿using PatientDoctor.domain.Entities.Public;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-
-namespace PatientDoctor.domain.Entities
-{
+﻿
+namespace PatientDoctor.domain.Entities;
     [Table("Attachments", Schema = "Admin")]
     public class Attachments
     {
@@ -19,5 +15,5 @@ namespace PatientDoctor.domain.Entities
         public bool IsArchived { get; set; }
         public string HashChecksum { get; set; } = string.Empty;
     }
-}
+
 

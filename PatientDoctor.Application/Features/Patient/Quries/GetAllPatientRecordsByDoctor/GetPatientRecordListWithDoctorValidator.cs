@@ -1,7 +1,5 @@
-﻿using FluentValidation;
-
-namespace PatientDoctor.Application.Features.Patient.Quries.GetAllPatientRecordsByDoctor
-{
+﻿
+namespace PatientDoctor.Application.Features.Patient.Quries.GetAllPatientRecordsByDoctor;
     public class GetPatientRecordListWithDoctorValidator : AbstractValidator<GetPatientRecordListWithDoctor>
     {
         public GetPatientRecordListWithDoctorValidator()
@@ -34,4 +32,4 @@ namespace PatientDoctor.Application.Features.Patient.Quries.GetAllPatientRecords
         }
     
     }
-}
+

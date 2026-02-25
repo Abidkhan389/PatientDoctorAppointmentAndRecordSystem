@@ -1,6 +1,4 @@
 ﻿
-using PatientDoctor.Application.Helpers.General;
-
 namespace PatientDoctor.Application.Features.DoctorHoliday.Quries.GetAllByProc;
 public   class VM_GetDoctorHolidayList: ListingLogFields
 {

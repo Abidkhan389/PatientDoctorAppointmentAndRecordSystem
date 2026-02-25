@@ -1,9 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity;
-using PatientDoctor.Application.Contracts.Persistance.ISecurity;
-using PatientDoctor.Application.Contracts.Security;
-using PatientDoctor.domain.Entities;
-using PatientDoctor.Infrastructure.Persistance;
-
+﻿
 namespace PatientDoctor.Infrastructure.Repositories.SecurityRepository;
     //public interface IUserRepository : ILocalAuthenticationRepository, IEntityRepository<ApplicationUser> { }
     public class UserRepository : ILocalAuthenticationRepository

@@ -1,5 +1,4 @@
-﻿using PatientDoctor.Application.Helpers.EmailRequest;
-
+﻿
 namespace PatientDoctor.Application.Contracts.Persistance.IReminderServices;
 public interface IReminderService
 {

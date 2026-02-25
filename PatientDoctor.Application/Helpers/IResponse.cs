@@ -1,5 +1,4 @@
-﻿namespace PatientDoctor.Application.Helpers
-{
+﻿namespace PatientDoctor.Application.Helpers;
     public interface IResponse
     {
         bool Success { get; set; }
@@ -11,4 +10,4 @@
         int TotalCount { get; set; }
         object DataList { get; set; }
     }
-}
+

@@ -1,5 +1,4 @@
-﻿using FluentValidation;
-
+﻿
 namespace PatientDoctor.Application.Features.Administrator.Commands.Register;
     public class UserRegisterValidation : AbstractValidator<UserRegisterCommand>
     {

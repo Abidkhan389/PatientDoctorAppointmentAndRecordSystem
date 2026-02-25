@@ -1,33 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
-using PatientDoctor.Application.Contracts.Persistance.Patient;
-using PatientDoctor.Application.Contracts.Security;
-using PatientDoctor.Application.Helpers;
-using PatientDoctor.domain.Entities;
-using Microsoft.Extensions.Configuration;
-using PatientDoctor.Infrastructure.Persistance;
-using PatientDoctor.Application.Features.Patient.Quries;
-using Microsoft.EntityFrameworkCore;
-using PatientDoctor.Infrastructure.Repositories.GeneralServices;
-using PatientDoctor.Application.Features.Patient.Commands.ActiveInActive;
-using PatientDoctor.Application.Features.Patient.Commands.AddEditPatient;
-using PatientDoctor.Application.Features.Patient.Commands.AddPatientDescription;
-using PatientDoctor.Application.Features.Patient.Quries.GetAllPatientRecordsByDoctor;
-using PatientDoctor.Application.Features.Patient.Quries.GetPatientDetailForPdf;
-using PatientDoctor.Application.Features.Patient.Quries.GetDoctorSlots;
-using PatientDoctor.Application.Features.Doctor_Availability.Commands;
-using System.Globalization;
-using Newtonsoft.Json;
-using PatientDoctor.Application.Contracts.Persistance.IPatientCheckUpHistroy;
-using PatientDoctor.Application.Contracts.Persistance.ISmsRepository;
-using PatientDoctor.Application.Helpers.AppointmentSms;
-using PatientDoctor.Application.Features.Patient.Commands.PatientDiscount;
-using PatientDoctor.Application.Contracts.Persistance.IEmail;
-using PatientDoctor.Application.Helpers.EmailRequest;
-using BuildingBlocks.Models.Identity;
-using PatientDoctor.Application.Features.Patient.Commands.UpdatePatientAppointmentStatus;
-
-namespace PatientDoctor.Infrastructure.Repositories.Patient
-{
+﻿
+namespace PatientDoctor.Infrastructure.Repositories.Patient;
     public class PatientRepository : IPatientRepository
     {
         private readonly DocterPatiendDbContext _context;
@@ -1021,4 +993,4 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
 
        
     }
-}
+

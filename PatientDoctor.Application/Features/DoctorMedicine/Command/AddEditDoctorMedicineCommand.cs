@@ -1,9 +1,4 @@
 ﻿
-
-using MediatR;
-using PatientDoctor.Application.Helpers;
-using PatientDoctor.Application.Helpers.General;
-
 namespace PatientDoctor.Application.Features.DoctorMedicine.Command;
 public class AddEditDoctorMedicineCommand : IRequest<IResponse>
 {

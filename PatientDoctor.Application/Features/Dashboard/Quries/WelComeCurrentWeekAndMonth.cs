@@ -1,8 +1,4 @@
 ﻿
-
-using MediatR;
-using PatientDoctor.Application.Helpers;
-
 namespace PatientDoctor.Application.Features.Dashboard.Quries;
 public class WelComeCurrentWeekAndMonth : IRequest<IResponse>
 {

@@ -1,5 +1,4 @@
-﻿namespace PatientDoctor.Application.Features.Patient.Quries.GetPatientDetailForPdf
-{
+﻿namespace PatientDoctor.Application.Features.Patient.Quries.GetPatientDetailForPdf;
     #nullable disable
     public class VM_GetPatientDetailForPdf
     {
@@ -12,4 +11,4 @@
         public string DoctorName { get; set; }
         public string DoctorEmail { get; set; }
     }
-}
+

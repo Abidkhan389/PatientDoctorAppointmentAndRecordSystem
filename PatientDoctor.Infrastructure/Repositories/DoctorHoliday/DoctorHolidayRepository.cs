@@ -1,20 +1,4 @@
 ﻿
-using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
-using PatientDoctor.Application.Contracts.Persistance.IDoctorHolidayRepository;
-using PatientDoctor.Application.Features.DoctorHoliday.Command.ActiveInActive;
-using PatientDoctor.Application.Features.DoctorHoliday.Command.AddEditDoctorHoliday;
-using PatientDoctor.Application.Features.DoctorHoliday.Quries.GetAllByProc;
-using PatientDoctor.Application.Features.DoctorHoliday.Quries.GetDoctorHolidayById;
-using PatientDoctor.Application.Features.DoctorHoliday.Quries.GetDoctorHolidaysByDoctorIdForPatientAppointment;
-using PatientDoctor.Application.Features.DoctorMedicine.Command;
-using PatientDoctor.Application.Features.Patient.Quries;
-using PatientDoctor.Application.Helpers;
-using PatientDoctor.domain.Entities;
-using PatientDoctor.Infrastructure.Persistance;
-using PatientDoctor.Infrastructure.Repositories.GeneralServices;
-using System.Linq.Expressions;
-
 namespace PatientDoctor.Infrastructure.Repositories.DoctorHoliday;
 public class DoctorHolidayRepository(DocterPatiendDbContext _context, IResponse _response, ICountResponse _countResp, UserManager<ApplicationUser> _userManager) : IDoctorHolidayRepository
 {

@@ -1,6 +1,4 @@
-﻿using MediatR;
-using PatientDoctor.Application.Helpers;
-
+﻿
 namespace PatientDoctor.Application.Features.Identity.Quries
 {
     public class GetUserById : IRequest<IResponse>

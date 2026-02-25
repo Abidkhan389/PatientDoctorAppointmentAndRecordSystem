@@ -1,6 +1,4 @@
-﻿using MediatR;
-using PatientDoctor.Application.Contracts.Persistance.IPatientCheckUpHistroy;
-using PatientDoctor.Application.Helpers;
+﻿
 namespace PatientDoctor.Application.Features.PatientCheckUpHistroy.Quries.GetAll;
 public class GetPatientCheckUpHistryListHandler(IPatientCheckUpHistroyRepository _patientCheckUpHistroyRepository) : IRequestHandler<GetAllPatientCheckUpHistroyByDoctor, IResponse>
 {

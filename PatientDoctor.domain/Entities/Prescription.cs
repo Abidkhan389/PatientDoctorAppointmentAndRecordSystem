@@ -1,16 +1,5 @@
-﻿using PatientDoctor.Application.Features.Patient.Commands.AddPatientDescription;
-using PatientDoctor.domain.Entities.Public;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq;
-using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace PatientDoctor.domain.Entities
-{
+﻿
+namespace PatientDoctor.domain.Entities;
     [Table("Prescription", Schema = "Admin")]
     public class Prescription : LogFields
     {
@@ -105,4 +94,4 @@ namespace PatientDoctor.domain.Entities
         }
     }
 
-}
+

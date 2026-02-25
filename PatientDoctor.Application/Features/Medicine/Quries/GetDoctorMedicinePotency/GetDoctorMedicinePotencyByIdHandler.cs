@@ -1,8 +1,4 @@
-﻿
-using MediatR;
-using PatientDoctor.Application.Contracts.Persistance.IMedicine;
-using PatientDoctor.Application.Helpers;
-
+﻿ 
 namespace PatientDoctor.Application.Features.Medicine.Quries.GetDoctorMedicinePotency;
 public class GetDoctorMedicinePotencyByIdHandler : IRequestHandler<GetDoctorMedicinePotencyById, IResponse>
 {

@@ -1,13 +1,4 @@
 ﻿
-using MediatR;
-using PatientDoctor.Application.Contracts.Persistance.IIdentityRepository;
-using PatientDoctor.Application.Helpers;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
 namespace PatientDoctor.Application.Features.Identity.Quries
 {
     public class GetUserListQueryHandler : IRequestHandler<GetUserList, IResponse>

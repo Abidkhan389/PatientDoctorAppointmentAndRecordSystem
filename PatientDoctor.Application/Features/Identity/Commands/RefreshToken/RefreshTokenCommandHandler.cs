@@ -1,9 +1,4 @@
 ﻿
-using MediatR;
-using PatientDoctor.Application.Contracts.Persistance.IIdentityRepository;
-using PatientDoctor.Application.Helpers;
-using PatientDoctor.Application.Helpers.General.Dtos.Auth;
-
 namespace PatientDoctor.Application.Features.Identity.Commands.RefreshToken;
 public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, IResponse>
 {

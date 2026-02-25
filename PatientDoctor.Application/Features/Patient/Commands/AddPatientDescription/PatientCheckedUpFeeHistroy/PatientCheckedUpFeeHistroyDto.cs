@@ -1,6 +1,5 @@
 ﻿
-namespace PatientDoctor.Application.Features.Patient.Commands.AddPatientDescription.PatientCheckedUpFeeHistroy
-{
+namespace PatientDoctor.Application.Features.Patient.Commands.AddPatientDescription.PatientCheckedUpFeeHistroy;
     public class PatientCheckedUpFeeHistroyDto
     {
         public PatientCheckedUpFeeHistroyDto()
@@ -17,4 +16,4 @@ namespace PatientDoctor.Application.Features.Patient.Commands.AddPatientDescript
         public string PatientCnic { get; set; }
         public int CheckUpFee { get; set; }
     }
-}
+

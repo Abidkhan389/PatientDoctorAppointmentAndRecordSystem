@@ -1,6 +1,4 @@
 ﻿
-using PatientDoctor.Application.Helpers.General.Exceptions.Models;
-
 namespace PatientDoctor.domain.Entities;
 public class GlobalExceptionLog
 {

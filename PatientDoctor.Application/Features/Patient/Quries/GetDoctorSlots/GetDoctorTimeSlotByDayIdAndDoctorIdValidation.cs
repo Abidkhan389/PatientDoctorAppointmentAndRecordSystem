@@ -1,8 +1,4 @@
 ﻿
-
-using FluentValidation;
-using PatientDoctor.Application.Features.Medicinetype.Commands.AddEditMedicineType;
-
 namespace PatientDoctor.Application.Features.Patient.Quries.GetDoctorSlots;
 public class GetDoctorTimeSlotByDayIdAndDoctorIdValidation : AbstractValidator<GetDoctorTimeSlotsByDayIdAndDoctorId>
 {

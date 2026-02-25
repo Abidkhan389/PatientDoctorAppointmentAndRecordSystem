@@ -1,5 +1,4 @@
-﻿using FluentValidation;
-
+﻿
 namespace PatientDoctor.Application.Features.Identity.Commands.GoogleLogin;
 public class GoogleLoginValidation : AbstractValidator<GoogleLoginCommand>
 {

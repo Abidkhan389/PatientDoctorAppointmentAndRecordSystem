@@ -1,14 +1,5 @@
-﻿using PatientDoctor.Application.Features.Medicinetype.Commands.AddEditMedicineType;
-using PatientDoctor.domain.Entities.Public;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace PatientDoctor.domain.Entities
-{
+﻿
+namespace PatientDoctor.domain.Entities;
     [Table("MedicineType", Schema = "Admin")]
     public class MedicineType : LogFields
     {
@@ -38,4 +29,4 @@ namespace PatientDoctor.domain.Entities
         }
     }
 
-}
+

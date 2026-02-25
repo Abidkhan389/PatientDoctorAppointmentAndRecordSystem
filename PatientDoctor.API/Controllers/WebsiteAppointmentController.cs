@@ -1,5 +1,4 @@
-﻿namespace PatientDoctor.API.Controllers
-{
+﻿namespace PatientDoctor.API.Controllers;
     [Route("api/[controller]")]
     [ApiController]
     public class WebsiteAppointmentController : ControllerBase
@@ -45,4 +44,4 @@
             return await _mediator.Send(model);
         }
     }
-}
+

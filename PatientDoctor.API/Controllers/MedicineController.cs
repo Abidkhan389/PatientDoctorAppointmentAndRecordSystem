@@ -1,8 +1,4 @@
-﻿
-
-
-namespace PatientDoctor.API.Controllers
-{
+﻿namespace PatientDoctor.API.Controllers;
     [Authorize]
     [Route("api/[controller]")]
     [ApiController]
@@ -87,4 +83,4 @@ namespace PatientDoctor.API.Controllers
             return await _mediator.Send(model);
         }
     }
-}
+

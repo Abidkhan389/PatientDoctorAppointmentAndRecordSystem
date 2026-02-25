@@ -1,6 +1,4 @@
 ﻿
-using Microsoft.AspNetCore.Http;
-
 namespace PatientDoctor.Application.Contracts.Persistance.IException;
 public interface IExceptionLogger
 {

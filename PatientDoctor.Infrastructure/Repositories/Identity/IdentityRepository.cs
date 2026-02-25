@@ -1,31 +1,4 @@
-﻿using AutoMapper;
-using BuildingBlocks.Models.Identity;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Microsoft.IdentityModel.Tokens;
-using PatientDoctor.Application.Contracts.Persistance.IEmail;
-using PatientDoctor.Application.Contracts.Persistance.IIdentityRepository;
-using PatientDoctor.Application.Contracts.Security;
-using PatientDoctor.Application.Features.Identity.Commands.ActiveInActive;
-using PatientDoctor.Application.Features.Identity.Commands.LoginUser;
-using PatientDoctor.Application.Features.Identity.Commands.RegisterUser;
-using PatientDoctor.Application.Features.Identity.Quries;
-using PatientDoctor.Application.Features.Identity.Quries.GetAllRoles;
-using PatientDoctor.Application.Features.Identity.Quries.GetDoctorFee.GetDoctorFeeById;
-using PatientDoctor.Application.Helpers;
-using PatientDoctor.Application.Helpers.General.Dtos.Auth;
-using PatientDoctor.domain.Entities;
-using PatientDoctor.domain.Entities.Public;
-using PatientDoctor.Infrastructure.Persistance;
-using PatientDoctor.Infrastructure.Repositories.GeneralServices;
-using System.Data;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Security.Cryptography;
-using System.Text;
-using static System.Runtime.InteropServices.JavaScript.JSType;
-
+﻿
 namespace PatientDoctor.Infrastructure.Repositories.Identity;
     public class IdentityRepository : IIdentityRepository
     {

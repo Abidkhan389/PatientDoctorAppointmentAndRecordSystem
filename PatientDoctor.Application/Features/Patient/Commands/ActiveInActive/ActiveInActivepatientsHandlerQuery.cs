@@ -1,10 +1,5 @@
-﻿using MediatR;
-using PatientDoctor.Application.Contracts.Persistance.Patient;
-using PatientDoctor.Application.Helpers;
-
-
-namespace PatientDoctor.Application.Features.Patient.Commands.ActiveInActive
-{
+﻿
+namespace PatientDoctor.Application.Features.Patient.Commands.ActiveInActive;
     public class ActiveInActivepatientsHandlerQuery : IRequestHandler<ActiveInActivePatients, IResponse>
     {
         private readonly IPatientRepository _ipatientRepository;
@@ -19,4 +14,4 @@ namespace PatientDoctor.Application.Features.Patient.Commands.ActiveInActive
             return user;
         }
     }
-}
+

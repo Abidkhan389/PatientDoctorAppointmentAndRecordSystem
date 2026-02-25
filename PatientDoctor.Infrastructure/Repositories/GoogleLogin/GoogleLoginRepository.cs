@@ -1,8 +1,4 @@
 ﻿
-using Google.Apis.Auth;
-using Microsoft.Extensions.Configuration;
-using PatientDoctor.Application.Contracts.Persistance.GoogeLogin;
-
 namespace PatientDoctor.Infrastructure.Repositories.GoogleLogin;
 public class GoogleLoginRepository : IGoogleTokenValidator
 {

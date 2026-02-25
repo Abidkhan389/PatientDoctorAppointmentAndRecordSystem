@@ -4,9 +4,17 @@ namespace PatientDoctor.Application;
     {
         public static IServiceCollection AddApplicationServices(this IServiceCollection services)
         {
-            services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()));
-            services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
-            return services;
+        var assembly = Assembly.GetExecutingAssembly();
+
+        services.AddMediatR(config =>
+        {
+            config.RegisterServicesFromAssembly(assembly);
+            //config.AddOpenBehavior(typeof(ValidationBehavior<,>));
+            //config.AddOpenBehavior(typeof(LoggingBehavior<,>));
+        });
+
+        services.AddValidatorsFromAssembly(assembly);
+        return services;
         }
     }
 

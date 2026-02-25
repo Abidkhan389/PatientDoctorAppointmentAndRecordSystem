@@ -1,6 +1,4 @@
-﻿
-
-namespace PatientDoctor.Application.Contracts.Persistance.IAdministratorRepository;
+﻿namespace PatientDoctor.Application.Contracts.Persistance.IAdministratorRepository;
 public interface IAdministratorRepository
 {
     Task<IResponse> UpdateUserProfile(UserProfileCommand model);

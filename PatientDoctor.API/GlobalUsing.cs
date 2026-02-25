@@ -61,6 +61,6 @@ global using PatientDoctor.Application.Features.Patient.Quries.GetPatientDetailF
 global using PatientDoctor.Application.Features.Reports.Quries.GetCheckedPatientHistoryByDoctor;
 global using Carter;
 global using PatientDoctor.Application.Features.Patient.Commands.UpdatePatientAppointmentStatus;
-
+global using BuildingBlocks.Common.Response.Response;
 
 

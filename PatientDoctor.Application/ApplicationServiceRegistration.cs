@@ -1,4 +1,4 @@
-﻿ 
+﻿
 namespace PatientDoctor.Application;
     public static class ApplicationServiceRegistration
     {
@@ -9,8 +9,8 @@ namespace PatientDoctor.Application;
         services.AddMediatR(config =>
         {
             config.RegisterServicesFromAssembly(assembly);
-            //config.AddOpenBehavior(typeof(ValidationBehavior<,>));
-            //config.AddOpenBehavior(typeof(LoggingBehavior<,>));
+            config.AddOpenBehavior(typeof(ValidationBehavior<,>));
+            config.AddOpenBehavior(typeof(LoggingBehavior<,>));
         });
 
         services.AddValidatorsFromAssembly(assembly);

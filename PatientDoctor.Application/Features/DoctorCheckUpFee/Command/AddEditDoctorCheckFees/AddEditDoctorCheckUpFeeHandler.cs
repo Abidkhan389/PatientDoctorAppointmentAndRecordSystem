@@ -1,8 +1,4 @@
-﻿using System;
-using MediatR;
-using PatientDoctor.Application.Contracts.Persistance.IDoctorCheckUpFeeRepository;
-using PatientDoctor.Application.Helpers;
-
+﻿
 namespace PatientDoctor.Application.Features.DoctorCheckUpFee.Command.AddEditDoctorCheckFees
 {
 	public class AddEditDoctorCheckUpFeeHandler :IRequestHandler<DoctorCheckUpFeeWithUserId, IResponse>

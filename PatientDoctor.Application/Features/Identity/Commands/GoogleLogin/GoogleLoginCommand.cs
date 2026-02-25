@@ -1,5 +1,4 @@
-﻿using MediatR;
-using PatientDoctor.Application.Helpers;
+﻿ 
 namespace PatientDoctor.Application.Features.Identity.Commands.GoogleLogin;
 public record GoogleLoginCommand :IRequest<IResponse>
 {

@@ -1,5 +1,4 @@
-﻿namespace PatientDoctor.API.Controllers
-{
+﻿namespace PatientDoctor.API.Controllers;
     [Authorize]
     [Route("api/[controller]")]
     [ApiController]
@@ -35,4 +34,4 @@
         }
 
     }
-}
+

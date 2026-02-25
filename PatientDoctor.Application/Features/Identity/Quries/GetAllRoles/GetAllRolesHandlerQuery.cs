@@ -1,7 +1,4 @@
-﻿using MediatR;
-using PatientDoctor.Application.Contracts.Persistance.IIdentityRepository;
-using PatientDoctor.Application.Helpers;
-
+﻿
 namespace PatientDoctor.Application.Features.Identity.Quries.GetAllRoles
 {
     internal class GetAllRolesHandlerQuery : IRequestHandler<GetAllRolesQuery, IResponse>

@@ -1,7 +1,4 @@
-﻿
-using PatientDoctor.Application.Contracts.Persistance.IFileStorage;
-using System.Security.Cryptography;
-
+﻿ 
 namespace PatientDoctor.Infrastructure.Repositories.FileSystemStorage;
 public class FileSystemStorageRepository : IFileStorageRepository
 {

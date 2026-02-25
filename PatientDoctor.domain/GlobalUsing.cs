@@ -1,0 +1,16 @@
+﻿global using System.ComponentModel.DataAnnotations.Schema;
+global using Microsoft.AspNetCore.Identity;
+global using PatientDoctor.domain.Entities.Public;
+global using System.ComponentModel.DataAnnotations;
+global using Newtonsoft.Json;
+global using PatientDoctor.Application.Features.Doctor_Availability.Commands;
+global using PatientDoctor.Application.Features.DoctorCheckUpFee.Command.AddEditDoctorCheckFees;
+global using PatientDoctor.Application.Features.DoctorHoliday.Command.AddEditDoctorHoliday;
+global using PatientDoctor.Application.Features.DoctorMedicine.Command;
+global using PatientDoctor.Application.Helpers.General.Exceptions.Models;
+global using PatientDoctor.Application.Features.Medicine.Commands.AddEditMedicine;
+global using PatientDoctor.Application.Features.Medicinetype.Commands.AddEditMedicineType;
+global using PatientDoctor.Application.Features.Patient.Commands.AddPatientDescription.PatientCheckedUpFeeHistroy;
+global using PatientDoctor.Application.Features.Patient.Commands.AddPatientDescription;
+global using PatientDoctor.Application.Features.Identity.Commands.RegisterUser;
+global using BuildingBlocks.Models.Identity;

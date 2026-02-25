@@ -1,14 +1,5 @@
-﻿using PatientDoctor.domain.Entities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Security.Claims;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace PatientDoctor.Infrastructure.Repositories.GeneralServices
-{
+﻿
+namespace PatientDoctor.Infrastructure.Repositories.GeneralServices;
     public static class HelperStatic
     {
         private static DateTime currentDate = DateTime.Now;
@@ -52,4 +43,4 @@ namespace PatientDoctor.Infrastructure.Repositories.GeneralServices
             return Patientcount;
         }
     }
-}
+

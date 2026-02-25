@@ -1,6 +1,4 @@
-﻿using PatientDoctor.Application.Helpers.General;
-namespace PatientDoctor.Application.Features.Patient.Quries.GetAllPatientRecordsByDoctor
-{
+﻿namespace PatientDoctor.Application.Features.Patient.Quries.GetAllPatientRecordsByDoctor;
     #nullable enable
     public class VM_PatientRecordListWithDoctor : ListingLogFields
     {
@@ -13,4 +11,4 @@ namespace PatientDoctor.Application.Features.Patient.Quries.GetAllPatientRecords
         public string DoctorEmail { get; set; }
         public string DoctorId { get; set; }
     }
-}
+

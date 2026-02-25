@@ -1,15 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
-using PatientDoctor.Application.Contracts.Persistance.IDoctorMedicine;
-using PatientDoctor.Application.Features.DoctorMedicine.Command;
-using PatientDoctor.Application.Features.DoctorMedicine.Query;
-using PatientDoctor.Application.Features.Medicine.Commands.AddEditMedicine;
-using PatientDoctor.Application.Helpers;
-using PatientDoctor.domain.Entities;
-using PatientDoctor.Infrastructure.Persistance;
-using PatientDoctor.Infrastructure.Repositories.GeneralServices;
-using System.Security.Claims;
-
+﻿using VM_DoctorMedicine = PatientDoctor.Application.Features.DoctorMedicine.Query.VM_DoctorMedicine;
 namespace PatientDoctor.Infrastructure.Repositories.DoctorMedicine;
 public class DoctorMedicineRepository(DocterPatiendDbContext _context, IResponse _response, ICountResponse _countResp, UserManager<ApplicationUser> _userManager) : IDoctorMedicineRepository
 {

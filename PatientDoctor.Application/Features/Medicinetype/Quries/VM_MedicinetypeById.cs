@@ -1,11 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace PatientDoctor.Application.Features.Medicinetype.Quries
-{
+﻿
+namespace PatientDoctor.Application.Features.Medicinetype.Quries;
     public class VM_MedicinetypeById
     {
         public string TypeName { get; set; }
@@ -13,4 +7,4 @@ namespace PatientDoctor.Application.Features.Medicinetype.Quries
         public List<string>? MedicinePotency { get; set; } = new List<string>(); // Optional
 
     }
-}
+

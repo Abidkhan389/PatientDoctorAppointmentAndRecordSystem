@@ -1,6 +1,4 @@
-﻿using MediatR;
-using PatientDoctor.Application.Contracts.Persistance.IAdministratorRepository;
-using PatientDoctor.Application.Helpers;
+﻿
 namespace PatientDoctor.Application.Features.Administrator.Commands.UserProfile;
 public class UserProfileCommandHandler(IAdministratorRepository _administratorRepository) : IRequestHandler<UserProfileCommand, IResponse>
 {

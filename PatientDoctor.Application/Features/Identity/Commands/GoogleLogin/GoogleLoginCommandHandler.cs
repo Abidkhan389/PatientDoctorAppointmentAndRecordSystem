@@ -1,12 +1,4 @@
-﻿
-using MediatR;
-using PatientDoctor.Application.Contracts.Persistance.GoogeLogin;
-using PatientDoctor.Application.Contracts.Persistance.IIdentityRepository;
-using PatientDoctor.Application.Helpers;
-using PatientDoctor.Application.Helpers.Auth;
-using PatientDoctor.Application.Helpers.General.Exceptions;
-
-namespace PatientDoctor.Application.Features.Identity.Commands.GoogleLogin;
+﻿namespace PatientDoctor.Application.Features.Identity.Commands.GoogleLogin;
 public class GoogleLoginCommandHandler : IRequestHandler<GoogleLoginCommand, IResponse>
 {
     private readonly IIdentityRepository _identityRepository;

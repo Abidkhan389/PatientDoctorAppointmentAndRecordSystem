@@ -1,7 +1,4 @@
 ﻿
-using MediatR;
-using PatientDoctor.Application.Helpers;
-
 namespace PatientDoctor.Application.Features.Reports.Quries.GetCheckedPatientHistoryByDoctor;
 public class GetCheckedPatientHistoryByDoctorQuery :IRequest<IResponse>
 {

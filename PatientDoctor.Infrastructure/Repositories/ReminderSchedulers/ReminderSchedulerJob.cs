@@ -1,9 +1,4 @@
-﻿using Hangfire;
-using Microsoft.Extensions.DependencyInjection;
-using PatientDoctor.Application.Contracts.Persistance.ReminderService;
-using PatientDoctor.Application.Helpers.EmailRequest;
-using PatientDoctor.Infrastructure.Persistance;
-
+﻿
 namespace PatientDoctor.Infrastructure.Repositories.ReminderSchedulers;
 
 public class ReminderSchedulerJob

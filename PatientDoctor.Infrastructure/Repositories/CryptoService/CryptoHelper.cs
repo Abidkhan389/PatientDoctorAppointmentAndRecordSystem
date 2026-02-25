@@ -1,14 +1,5 @@
-﻿using Microsoft.AspNetCore.Cryptography.KeyDerivation;
-using PatientDoctor.Application.Contracts.Security;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace PatientDoctor.Infrastructure.Repositories.CryptoService
-{
+﻿
+namespace PatientDoctor.Infrastructure.Repositories.CryptoService;
     public class CryptoHelper: ICryptoService
     {
         public const int MinSaltSizeInBytes = 32 / 8;
@@ -80,4 +71,4 @@ namespace PatientDoctor.Infrastructure.Repositories.CryptoService
             return RabinFingerPrint.ComputeFingerPrint(data).ToString();
         }
     }
-}
+

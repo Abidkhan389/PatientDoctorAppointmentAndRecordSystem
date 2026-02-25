@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
+﻿
 namespace PatientDoctor.Application.Features.DoctorHoliday.Quries.GetDoctorHolidayById;
 public   class VM_GetByIdDoctorHoliday
 {

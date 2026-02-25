@@ -1,19 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
-using PatientDoctor.Application.Contracts.Persistance.Dashboard;
-using PatientDoctor.Application.Features.Dashboard.Quries;
-using PatientDoctor.Application.Helpers;
-using PatientDoctor.domain.Entities;
-using PatientDoctor.Infrastructure.Persistance;
-using PatientDoctor.Infrastructure.Repositories.GeneralServices;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace PatientDoctor.Infrastructure.Repositories.Dashboard
-{
+﻿
+namespace PatientDoctor.Infrastructure.Repositories.Dashboard;
     public class DashboardRepository : IDashboardRepository
     {
         private readonly DocterPatiendDbContext _context;
@@ -372,4 +358,4 @@ namespace PatientDoctor.Infrastructure.Repositories.Dashboard
             return monthlyData.ToList();
         }
     }
-}
+

@@ -1,8 +1,5 @@
-﻿using FluentValidation;
-
-
-namespace PatientDoctor.Application.Features.Patient.Commands.AddEditPatient
-{
+﻿
+namespace PatientDoctor.Application.Features.Patient.Commands.AddEditPatient;
     public class AddEditPatiendValidation : AbstractValidator<AddEditPatientCommand>
     {
         public AddEditPatiendValidation()
@@ -42,4 +39,4 @@ namespace PatientDoctor.Application.Features.Patient.Commands.AddEditPatient
 
         }
     }
-}
+

@@ -1,6 +1,4 @@
-﻿using MediatR;
-using PatientDoctor.Application.Helpers;
-
+﻿
 namespace PatientDoctor.Application.Features.Doctor_Availability.Commands;
 public class AddEditDoctorAvailabilityCommands : IRequest<IResponse>
 {

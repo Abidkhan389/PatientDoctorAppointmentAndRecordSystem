@@ -1,6 +1,4 @@
-﻿
-
-namespace PatientDoctor.API.Controllers;
+﻿namespace PatientDoctor.API.Controllers;
 [Authorize(Roles = "SuperAdmin")]
 [Route("api/[controller]")]
 [ApiController]

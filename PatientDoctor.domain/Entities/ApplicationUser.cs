@@ -1,13 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
-using PatientDoctor.domain.Entities.Public;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace PatientDoctor.domain.Entities
-{
+﻿
+namespace PatientDoctor.domain.Entities;
     public class ApplicationUser: IdentityUser
     {
         public string? PasswordSalt { get; set; }
@@ -30,4 +22,4 @@ namespace PatientDoctor.domain.Entities
         public virtual ICollection<DoctorAssistant> AssignedDoctor { get; set; } // // If Assistant
         public virtual Userdetail UserDetails { get; set; }
     }
-}
+

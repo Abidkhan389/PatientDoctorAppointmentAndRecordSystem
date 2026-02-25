@@ -1,16 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using PatientDoctor.Application.Contracts.Persistance.IPatientCheckUpHistroy;
-using PatientDoctor.Application.Features.PatientCheckUpHistroy.Commands.ActiveInActive;
-using PatientDoctor.Application.Features.PatientCheckUpHistroy.Quries.GetAll;
-using PatientDoctor.Application.Features.PatientCheckUpHistroy.Quries.GetById;
-using PatientDoctor.Application.Features.PatientCheckUpHistroy.Quries.GetByIdForHistoryShow_OfPateint;
-using PatientDoctor.Application.Helpers;
-using PatientDoctor.domain.Entities;
-using PatientDoctor.Infrastructure.Persistance;
-using PatientDoctor.Infrastructure.Repositories.GeneralServices;
-
+﻿
 namespace PatientDoctor.Infrastructure.Repositories.PatientCheckUpHistroy;
 public class PatientCheckUpHistroyRepository(DocterPatiendDbContext _context, UserManager<ApplicationUser> _userManager,
     ICountResponse _countResp, IConfiguration _configuration, IResponse _response) : IPatientCheckUpHistroyRepository

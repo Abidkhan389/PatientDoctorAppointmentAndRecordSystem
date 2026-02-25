@@ -1,16 +1,4 @@
-﻿using PatientDoctor.Application.Features.Identity.Commands.ActiveInActive;
-using PatientDoctor.Application.Features.Identity.Commands.LoginUser;
-using PatientDoctor.Application.Features.Identity.Commands.RegisterUser;
-using PatientDoctor.Application.Features.Identity.Quries;
-using PatientDoctor.Application.Features.Identity.Quries.GetDoctorFee.GetDoctorFeeById;
-using PatientDoctor.Application.Helpers;
-using PatientDoctor.Application.Helpers.General.Dtos.Auth;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
+﻿
 namespace PatientDoctor.Application.Contracts.Persistance.IIdentityRepository
 {
     public interface IIdentityRepository

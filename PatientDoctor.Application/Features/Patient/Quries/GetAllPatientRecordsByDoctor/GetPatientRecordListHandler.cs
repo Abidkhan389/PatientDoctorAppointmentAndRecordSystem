@@ -1,9 +1,5 @@
-﻿using MediatR;
-using PatientDoctor.Application.Contracts.Persistance.Patient;
-using PatientDoctor.Application.Helpers;
-
-namespace PatientDoctor.Application.Features.Patient.Quries.GetAllPatientRecordsByDoctor
-{
+﻿
+namespace PatientDoctor.Application.Features.Patient.Quries.GetAllPatientRecordsByDoctor;
     public class GetPatientRecordListHandler : IRequestHandler<GetPatientRecordListWithDoctor, IResponse>
     {
         private readonly IPatientRepository _patientRepository;
@@ -16,4 +12,4 @@ namespace PatientDoctor.Application.Features.Patient.Quries.GetAllPatientRecords
             return await _patientRepository.GetPatientsRecordWithDoctorProc(request);
         }
     }
-}
+

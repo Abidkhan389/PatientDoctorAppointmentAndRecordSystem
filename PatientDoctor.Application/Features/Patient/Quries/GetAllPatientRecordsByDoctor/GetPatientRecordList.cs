@@ -1,9 +1,5 @@
-﻿using MediatR;
-using PatientDoctor.Application.Helpers.General;
-using PatientDoctor.Application.Helpers;
-
-namespace PatientDoctor.Application.Features.Patient.Quries.GetAllPatientRecordsByDoctor
-{
+﻿
+namespace PatientDoctor.Application.Features.Patient.Quries.GetAllPatientRecordsByDoctor;
     public class GetPatientRecordList : TableParam, IRequest<IResponse>
     {
         public string? DoctorName { get; set; }
@@ -12,4 +8,4 @@ namespace PatientDoctor.Application.Features.Patient.Quries.GetAllPatientRecords
         public DateTime? PatientCheckUpDateFrom {  get; set; }
         public DateTime? PatientCheckUpDateTo { get; set; }
     }
-}
+

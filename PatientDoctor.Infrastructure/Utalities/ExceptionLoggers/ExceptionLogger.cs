@@ -1,9 +1,4 @@
 ﻿
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.DependencyInjection;
-using PatientDoctor.Application.Contracts.Persistance.IException;
-using PatientDoctor.Application.Helpers.General.Exceptions.Models;
-
 namespace PatientDoctor.Infrastructure.Utalities.ExceptionLoggers;
 public class ExceptionLogger : IExceptionLogger
 {

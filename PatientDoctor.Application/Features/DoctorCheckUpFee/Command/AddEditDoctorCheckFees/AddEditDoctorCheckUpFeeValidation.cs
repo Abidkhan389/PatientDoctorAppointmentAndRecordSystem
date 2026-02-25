@@ -1,6 +1,4 @@
-﻿using System;
-using FluentValidation;
-
+﻿
 namespace PatientDoctor.Application.Features.DoctorCheckUpFee.Command.AddEditDoctorCheckFees
 {
 	public class AddEditDoctorCheckUpFeeValidation : AbstractValidator<AddEditDoctorCheckUpFeeCommands>

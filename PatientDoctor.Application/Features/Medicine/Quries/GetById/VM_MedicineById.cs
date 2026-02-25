@@ -1,11 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace PatientDoctor.Application.Features.Medicine.Quries.GetById
-{
+﻿
+namespace PatientDoctor.Application.Features.Medicine.Quries.GetById;
     public class VM_MedicineById
     {
         public string MedicineName { get; set; }
@@ -26,4 +20,4 @@ namespace PatientDoctor.Application.Features.Medicine.Quries.GetById
         public string Potency { get; set; }
 
     }
-}
+

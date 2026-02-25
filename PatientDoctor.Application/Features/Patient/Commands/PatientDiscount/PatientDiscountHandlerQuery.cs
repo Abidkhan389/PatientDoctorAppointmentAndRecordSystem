@@ -1,8 +1,4 @@
-﻿using MediatR;
-using PatientDoctor.Application.Contracts.Persistance.Patient;
-using PatientDoctor.Application.Helpers;
-
-
+﻿
 namespace PatientDoctor.Application.Features.Patient.Commands.PatientDiscount;
     public class PatientDiscountHandlerQuery : IRequestHandler<PatientDiscount, IResponse>
     {

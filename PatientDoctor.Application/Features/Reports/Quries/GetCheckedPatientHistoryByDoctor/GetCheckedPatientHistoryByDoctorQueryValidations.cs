@@ -1,5 +1,4 @@
-﻿using FluentValidation;
-
+﻿
 namespace PatientDoctor.Application.Features.Reports.Quries.GetCheckedPatientHistoryByDoctor;
 public class GetCheckedPatientHistoryByDoctorQueryValidations : AbstractValidator<GetCheckedPatientHistoryByDoctorQuery>
 {

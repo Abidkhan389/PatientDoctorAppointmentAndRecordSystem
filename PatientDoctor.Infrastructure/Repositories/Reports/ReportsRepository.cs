@@ -1,12 +1,4 @@
 ﻿
-using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
-using PatientDoctor.Application.Contracts.Persistance.IReports;
-using PatientDoctor.Application.Features.Reports.Quries.GetCheckedPatientHistoryByDoctor;
-using PatientDoctor.Application.Helpers;
-using PatientDoctor.domain.Entities;
-using PatientDoctor.Infrastructure.Persistance;
-
 namespace PatientDoctor.Infrastructure.Repositories.Reports;
 public class ReportsRepository(DocterPatiendDbContext _context, IResponse _response,
                                         UserManager<ApplicationUser> _userManager) : IReports

@@ -1,11 +1,5 @@
 ﻿
-using Newtonsoft.Json;
-using PatientDoctor.Application.Features.Doctor_Availability.Commands;
-using PatientDoctor.domain.Entities.Public;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-namespace PatientDoctor.domain.Entities
-{
+namespace PatientDoctor.domain.Entities;
     [Table("DoctorAvailability", Schema = "Admin")]
     public class DoctorAvailabilities : LogFields
     {
@@ -38,6 +32,6 @@ namespace PatientDoctor.domain.Entities
             
         }
     }
-}
+
 
 

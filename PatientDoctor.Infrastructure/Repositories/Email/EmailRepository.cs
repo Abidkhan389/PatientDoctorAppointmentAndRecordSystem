@@ -1,15 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
-using PatientDoctor.Application.Contracts.Persistance.IEmail;
-using PatientDoctor.Application.Features.Email;
-using PatientDoctor.Application.Helpers;
-using PatientDoctor.Application.Helpers.EmailRequest;
-using PatientDoctor.domain.Entities;
-using PatientDoctor.Infrastructure.Persistance;
-using System.Net;
-using System.Net.Mail;
-
+﻿
 namespace PatientDoctor.Infrastructure.Repositories.Email;
 public class EmailRepository : IEmailRepository
 {

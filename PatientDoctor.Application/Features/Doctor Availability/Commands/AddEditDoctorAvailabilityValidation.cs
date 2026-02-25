@@ -1,5 +1,4 @@
-﻿using FluentValidation;
-
+﻿
 namespace PatientDoctor.Application.Features.Doctor_Availability.Commands;
 public class AddEditDoctorAvailabilityValidation : AbstractValidator<AddEditDoctorAvailabilityCommands>
 {

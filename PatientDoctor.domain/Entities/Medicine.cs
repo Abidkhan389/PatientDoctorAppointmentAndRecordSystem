@@ -1,10 +1,5 @@
-﻿using PatientDoctor.Application.Features.Medicine.Commands.AddEditMedicine;
-using PatientDoctor.domain.Entities.Public;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-
-namespace PatientDoctor.domain.Entities
-{
+﻿
+namespace PatientDoctor.domain.Entities;
     [Table("Medicine", Schema = "Admin")]
     public class Medicine : LogFields
     {
@@ -39,4 +34,4 @@ namespace PatientDoctor.domain.Entities
         public ICollection<DoctorMedicines> DoctorMedicines { get; set; } = new List<DoctorMedicines>();
 
     }
-}
+

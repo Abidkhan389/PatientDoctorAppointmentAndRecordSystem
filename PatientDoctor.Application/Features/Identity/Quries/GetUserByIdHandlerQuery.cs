@@ -1,8 +1,4 @@
-﻿using MediatR;
-using PatientDoctor.Application.Contracts.Persistance.IIdentityRepository;
-using PatientDoctor.Application.Helpers;
-using PatientDoctor.Application.Helpers.General.Exceptions;
-
+﻿
 namespace PatientDoctor.Application.Features.Identity.Quries
 {
     public class GetUserByIdHandlerQuery : IRequestHandler<GetUserById, IResponse>

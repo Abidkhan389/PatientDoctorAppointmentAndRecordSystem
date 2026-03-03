@@ -12,7 +12,7 @@ public class GetCheckedPatientHistoryByDoctorHandler : IRequestHandler<GetChecke
     {
         var reports=await  _reports.GetCheckedPatientHistoryByDoctor(request);
         if (reports.Data == null)
-            throw new UnauthorizedException($"User is not Authorized For Reports.");
+            throw new UnauthorizedExceptionDto($"User is not Authorized For Reports.");
         return reports;
     }
 }

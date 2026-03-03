@@ -1,6 +1,6 @@
+using BuildingBlocks.Exceptions.Handler;
 using Hangfire;
 using Microsoft.OpenApi.Models;
-using PatientDoctor.API.Middleware;
 using PatientDoctor.Application;
 using PatientDoctor.Infrastructure;
 using PatientDoctor.Infrastructure.Repositories.ReminderSchedulers;

@@ -1,6 +1,4 @@
-﻿using PatientDoctor.Application.Contracts.Persistance.IException;
-using PatientDoctor.Application.Helpers.General.Exceptions;
-
+﻿
 namespace PatientDoctor.API.Middleware;
 public class GlobalExceptionMiddleware
 {

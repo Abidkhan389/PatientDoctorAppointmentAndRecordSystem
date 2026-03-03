@@ -1,12 +1,11 @@
+using BuildingBlocks.Exceptions.Handler;
 using Hangfire;
 using Microsoft.OpenApi.Models;
-using PatientDoctor.API.Middleware;
 using PatientDoctor.Application;
 using PatientDoctor.Infrastructure;
 using PatientDoctor.Infrastructure.Repositories.ReminderSchedulers;
 using PatientDoctor.Infrastructure.Web.Extensions;
 using System.Text.Json.Serialization;
-using Carter;
 
 var builder = WebApplication.CreateBuilder(args);
 

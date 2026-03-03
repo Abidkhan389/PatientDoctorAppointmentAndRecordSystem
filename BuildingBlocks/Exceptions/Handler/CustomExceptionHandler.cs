@@ -1,11 +1,14 @@
-﻿using FluentValidation;
+﻿using BuildingBlocks.Exceptions.Handler.ExceptionLogger;
+using BuildingBlocks.Exceptions.Exceptionmodels;
 using Microsoft.AspNetCore.Diagnostics;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using PatientDoctor.Application.Contracts.Persistance.IException;
-using PatientDoctor.Application.Helpers.General.Exceptions;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using System.ComponentModel.DataAnnotations;
 
-namespace PatientDoctor.API.Middleware;
-
+namespace BuildingBlocks.Exceptions.Handler;
 public sealed class CustomExceptionHandler : IExceptionHandler
 {
     private readonly ILogger<CustomExceptionHandler> _logger;
@@ -80,11 +83,14 @@ public sealed class CustomExceptionHandler : IExceptionHandler
                 StatusCodes.Status400BadRequest,
                 "Validation Error",
                 "One or more validation errors occurred.",
-                ex.Errors.Select(e => new
+                new[]
                 {
-                    e.PropertyName,
-                    e.ErrorMessage
-                })
+                    new
+                    {
+                        PropertyName = ex.ValidationAttribute?.GetType().Name ?? "Unknown",
+                        ErrorMessage = ex.Message
+                    }
+                }
             ),
 
             BadRequestException ex => (
@@ -117,3 +123,4 @@ public sealed class CustomExceptionHandler : IExceptionHandler
         };
     }
 }
+

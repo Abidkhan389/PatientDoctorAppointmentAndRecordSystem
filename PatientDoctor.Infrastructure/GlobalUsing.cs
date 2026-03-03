@@ -130,3 +130,5 @@ global using PatientDoctor.Application.Features.PatientCheckUpHistroy.Quries.Get
 global using PatientDoctor.Application.Features.PatientCheckUpHistroy.Quries.GetByIdForHistoryShow_OfPateint;
 global using PatientDoctor.Application.Features.Reports.Quries.GetCheckedPatientHistoryByDoctor;
 global using PatientDoctor.Application.Helpers.AppointmentSms;
+global using BuildingBlocks.Common.Response.Response;
+global using BuildingBlocks.Exceptions.Handler.ExceptionLogger;

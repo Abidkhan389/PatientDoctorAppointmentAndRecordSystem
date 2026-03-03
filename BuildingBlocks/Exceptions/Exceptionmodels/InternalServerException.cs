@@ -1,5 +1,4 @@
-﻿
-namespace PatientDoctor.Application.Helpers.General.Exceptions;
+﻿namespace BuildingBlocks.Exceptions.Exceptionmodels;
 public class InternalServerException : Exception
 {
     public InternalServerException(string message) : base(message)
@@ -13,3 +12,4 @@ public class InternalServerException : Exception
 
     public string? Details { get; }
 }
+

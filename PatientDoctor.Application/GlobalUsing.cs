@@ -2,7 +2,6 @@
 global using PatientDoctor.Application.Features.Administrator.Commands.Register;
 global using PatientDoctor.Application.Features.Administrator.Commands.UserProfile;
 global using PatientDoctor.Application.Features.Administrator.Quries;
-global using PatientDoctor.Application.Helpers;
 global using PatientDoctor.Application.Features.Dashboard.Quries;
 global using PatientDoctor.Application.Features.Doctor_Availability.ActiveInActive;
 global using PatientDoctor.Application.Features.Doctor_Availability.Commands;
@@ -73,3 +72,6 @@ global using PatientDoctor.Application.Contracts.Persistance.IReports;
 global using System.Globalization;
 global using Microsoft.Extensions.DependencyInjection;
 global using System.Reflection;
+global using BuildingBlocks.Common.Response.Response;
+global using BuildingBlocks.Behaviors;
+global using BuildingBlocks.Exceptions.Exceptionmodels;

@@ -1,5 +1,5 @@
 ﻿
-namespace PatientDoctor.Application.Helpers.General.Exceptions;
+namespace BuildingBlocks.Exceptions.Exceptionmodels;
 public class BadRequestException : Exception
 {
     public BadRequestException(string message) : base(message)

@@ -13,7 +13,7 @@ public class GoogleLoginCommandHandler : IRequestHandler<GoogleLoginCommand, IRe
     {
         var payload = await _googleTokenValidator.ValidateAsync(command.IdToken);
         if (payload == null) {
-            throw new UnauthorizedException($"Google Login With {command.IdToken} Invalid");
+            throw new UnauthorizedExceptionDto($"Google Login With {command.IdToken} Invalid");
         }
         // 2. Extract Google data
         var email = payload.Email;

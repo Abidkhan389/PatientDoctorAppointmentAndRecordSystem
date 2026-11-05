@@ -1,19 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
-using PatientDoctor.Application.Contracts.Persistance.Dashboard;
-using PatientDoctor.Application.Features.Dashboard.Quries;
-using PatientDoctor.Application.Helpers;
-using PatientDoctor.domain.Entities;
-using PatientDoctor.Infrastructure.Persistance;
-using PatientDoctor.Infrastructure.Repositories.GeneralServices;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace PatientDoctor.Infrastructure.Repositories.Dashboard
-{
+﻿
+namespace PatientDoctor.Infrastructure.Repositories.Dashboard;
     public class DashboardRepository : IDashboardRepository
     {
         private readonly DocterPatiendDbContext _context;
@@ -79,21 +65,30 @@ namespace PatientDoctor.Infrastructure.Repositories.Dashboard
         public async Task<IResponse> GetPatientCurrentWeekAndMonth(WelComeCurrentWeekAndMonth model)
         {
             VM_CurrentWeekAndMonthCount vM_CurrentWeekAndMonth = new VM_CurrentWeekAndMonthCount();
-            var today = DateTime.Now.Date.AddDays(1);
+            var today = DateTime.Now.Date;
             var monthFirstDay = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
             var currentWeekStart = today.AddDays(-(int)today.DayOfWeek + (int)DayOfWeek.Monday);
+
             if (model.logInUserRole == "Doctor")
             {
-                var CurrentMonthparient = _context.Prescriptions.Where(x => x.DoctorId == model.logInUserId && (x.CreatedOn >= monthFirstDay && x.CreatedOn <= DateTime.Now.Date));
-                var CurrentWeekparient = CurrentMonthparient.Where(x => x.DoctorId == model.logInUserId && (x.CreatedOn >= currentWeekStart && x.CreatedOn <= DateTime.Now.Date.AddDays(1)));
+                var CurrentMonthparient = _context.Prescriptions.Where(x =>
+                    x.DoctorId == model.logInUserId &&
+                    x.CreatedOn >= monthFirstDay && x.CreatedOn < today.AddDays(1));
+
+                var CurrentWeekparient = CurrentMonthparient.Where(x =>
+                    x.CreatedOn >= currentWeekStart && x.CreatedOn < today.AddDays(1));
 
                 vM_CurrentWeekAndMonth.CurrentMonthPatientCount = CurrentMonthparient.Count();
                 vM_CurrentWeekAndMonth.CurrentWeekPatientCount = CurrentWeekparient.Count();
             }
             else if (model.logInUserRole.Contains("Admin") || model.logInUserRole.Contains("SuperAdmin"))
             {
-                var CurrentMonthparient = _context.Prescriptions.Where(x =>x.CreatedOn >= monthFirstDay && x.CreatedOn <= DateTime.Now.Date);
-                var CurrentWeekparient = CurrentMonthparient.Where(x =>x.CreatedOn >= currentWeekStart && x.CreatedOn <= DateTime.Now.Date.AddDays(1));
+                var CurrentMonthparient = _context.Prescriptions.Where(x =>
+                    x.CreatedOn >= monthFirstDay && x.CreatedOn < today.AddDays(1));
+
+                var CurrentWeekparient = CurrentMonthparient.Where(x =>
+                    x.CreatedOn >= currentWeekStart && x.CreatedOn < today.AddDays(1));
+
                 vM_CurrentWeekAndMonth.CurrentMonthPatientCount = CurrentMonthparient.Count();
                 vM_CurrentWeekAndMonth.CurrentWeekPatientCount = CurrentWeekparient.Count();
             }
@@ -363,4 +358,4 @@ namespace PatientDoctor.Infrastructure.Repositories.Dashboard
             return monthlyData.ToList();
         }
     }
-}
+

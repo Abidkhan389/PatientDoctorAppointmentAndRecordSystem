@@ -1,8 +1,4 @@
-﻿using MediatR;
-using PatientDoctor.Application.Contracts.Persistance.IMedicine;
-using PatientDoctor.Application.Contracts.Persistance.IMedicineType;
-using PatientDoctor.Application.Helpers;
-
+﻿ 
 namespace PatientDoctor.Application.Features.Medicine.Quries.GetAllByProc
 {
     public class GetMedicineListQueryHandler : IRequestHandler<GetMedicineList, IResponse>

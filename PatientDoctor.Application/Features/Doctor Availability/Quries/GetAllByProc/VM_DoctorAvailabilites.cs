@@ -1,8 +1,4 @@
 ﻿
-
-using PatientDoctor.Application.Features.Doctor_Availability.Commands;
-using PatientDoctor.Application.Helpers.General;
-
 namespace PatientDoctor.Application.Features.Doctor_Availability.Quries.GetAllByProc;
 public class VM_DoctorAvailabilites : ListingLogFields
 {

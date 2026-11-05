@@ -1,6 +1,5 @@
 ﻿
-namespace PatientDoctor.Application.Features.Patient.Quries
-{
+namespace PatientDoctor.Application.Features.Patient.Quries;
     public class GetPatientList 
     {
         public string? FirstName { get; set; }
@@ -14,4 +13,4 @@ namespace PatientDoctor.Application.Features.Patient.Quries
         public string? City { get; set; }
         public DateTime? appoitmentDate { get; set; }   
     }
-}
+

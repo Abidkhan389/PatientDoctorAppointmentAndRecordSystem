@@ -1,7 +1,4 @@
-﻿using Hangfire;
-using PatientDoctor.Application.Contracts.Persistance.ReminderService;
-using PatientDoctor.Infrastructure.Persistance;
-
+﻿
 namespace PatientDoctor.Infrastructure.Repositories.ReminderSchedulers;
 
 public class ReminderScheduler

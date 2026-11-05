@@ -1,5 +1,4 @@
-﻿using PatientDoctor.Application.Helpers.General;
-
+﻿
 namespace PatientDoctor.Application.Features.DoctorCheckUpFee.Quries.GetAllByProc
 {
 	public class VM_DoctorCheckUpFeeDetails : ListingLogFields

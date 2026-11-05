@@ -1,6 +1,5 @@
-﻿using FluentValidation;
-namespace PatientDoctor.Application.Features.Medicinetype.Commands.AddEditMedicineType
-{
+﻿
+namespace PatientDoctor.Application.Features.Medicinetype.Commands.AddEditMedicineType;
     public class AddEditMedicineTypeValidation : AbstractValidator<AddEditMedicineTypeCommand>
     {
         public AddEditMedicineTypeValidation()
@@ -13,4 +12,4 @@ namespace PatientDoctor.Application.Features.Medicinetype.Commands.AddEditMedici
         }
 
     }
-}
+

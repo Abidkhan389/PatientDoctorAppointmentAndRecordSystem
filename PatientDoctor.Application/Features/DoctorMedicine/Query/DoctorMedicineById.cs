@@ -1,6 +1,4 @@
-﻿using MediatR;
-using PatientDoctor.Application.Helpers;
-
+﻿
 namespace PatientDoctor.Application.Features.DoctorMedicine.Query;
 public class DoctorMedicineById : IRequest<IResponse>
 {

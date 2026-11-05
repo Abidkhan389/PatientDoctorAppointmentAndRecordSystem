@@ -1,14 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq;
-using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace PatientDoctor.domain.Entities
-{
+﻿
+namespace PatientDoctor.domain.Entities;
     [Table("Appointment", Schema = "Admin")]
     public class Appointment
     {
@@ -27,4 +18,4 @@ namespace PatientDoctor.domain.Entities
         public bool IsNotified { get; set; }
     }
 
-}
+

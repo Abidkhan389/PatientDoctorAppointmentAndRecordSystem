@@ -1,26 +1,4 @@
-﻿using AutoMapper;
-using Microsoft.AspNetCore.Identity;
-using PatientDoctor.Application.Contracts.Persistance.IIdentityRepository;
-using PatientDoctor.Application.Contracts.Security;
-using PatientDoctor.Application.Helpers;
-using PatientDoctor.domain.Entities;
-using System.Text;
-using PatientDoctor.Infrastructure.Persistance;
-using PatientDoctor.Application.Features.Identity.Commands.LoginUser;
-using PatientDoctor.Application.Features.Identity.Commands.RegisterUser;
-using PatientDoctor.Application.Features.Identity.Commands.ActiveInActive;
-using Microsoft.IdentityModel.Tokens;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using Microsoft.Extensions.Configuration;
-using PatientDoctor.Application.Features.Identity.Quries;
-using Microsoft.EntityFrameworkCore;
-using PatientDoctor.Infrastructure.Repositories.GeneralServices;
-using System.Data;
-using PatientDoctor.Application.Features.Identity.Quries.GetDoctorFee.GetDoctorFeeById;
-using PatientDoctor.Application.Contracts.Persistance.IEmail;
-using PatientDoctor.Application.Helpers.EmailRequest;
-
+﻿
 namespace PatientDoctor.Infrastructure.Repositories.Identity;
     public class IdentityRepository : IIdentityRepository
     {
@@ -138,8 +116,12 @@ namespace PatientDoctor.Infrastructure.Repositories.Identity;
         {
             var user = await (from main in _userManager.Users
                               join userdetail in _context.Userdetail on main.Id equals userdetail.UserId
-                              join userRoles in _context.UserRoles on main.Id equals userRoles.UserId
-                              join roles in _context.Roles on userRoles.RoleId equals roles.Id // ✅ Join with Roles Table
+                              join userRoles in _context.UserRoles on main.Id equals userRoles.UserId into userRolesGroup
+                              from userRoles in userRolesGroup.DefaultIfEmpty() // Left join - users without a role row must still be editable
+                              join roles in _context.Roles on userRoles.RoleId equals roles.Id into rolesGroup
+                              from roles in rolesGroup.DefaultIfEmpty()
+                              join da in _context.DoctorAssistants on main.Id equals da.AssistantId into daGroup
+                              from da in daGroup.DefaultIfEmpty() // Left join to include users without doctor-assistant mapping
                               where (main.Status == 1 && main.Id == model.id)
                               select new VM_User
                               {
@@ -153,7 +135,9 @@ namespace PatientDoctor.Infrastructure.Repositories.Identity;
                                   Cnic = userdetail.Cnic,
                                   RoleId = roles.Id, // ✅ RoleId from Roles table
                                   RoleName = roles.Name, // ✅ Fetch Role Name
-                                  Fee = userdetail.Fee ?? 0 // ✅ Fetch Role Name
+                                  Fee = userdetail.Fee ?? 0 ,
+                                  DoctorId = da.DoctorId, // ✅ Include DoctorId if user is an assistant
+                                  TwoFactorEnabled = main.TwoFactorEnabled
                               }).FirstOrDefaultAsync();
 
 
@@ -183,59 +167,183 @@ namespace PatientDoctor.Infrastructure.Repositories.Identity;
         }
         public async Task<IResponse> LoginUserAsync(LoginUserCommand model)
         {
-           
             var user = await _userManager.FindByEmailAsync(model.Email);
 
-            if (user == null)
-            {
-               // _logger.LogWarning($"User not found for email: {model.Email}");
-               // return Unauthorized(new { message = "Invalid email or password" });
-            }
-
-            if (user != null && this._crypto.CheckKey(user.PasswordHash, user.PasswordSalt, model.Password))
-            {
-                var userRoles = await _userManager.GetRolesAsync(user);
-                var authClaims = new List<Claim>
-                {
-                    new Claim(ClaimTypes.Name, user.UserName),
-                    new Claim(ClaimTypes.Email, user.Email),
-                    new Claim(ClaimTypes.NameIdentifier, user.Id), // Use ClaimTypes.NameIdentifier for user Id
-                    new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                };
-
-                authClaims.AddRange(userRoles.Select(role => new Claim(ClaimTypes.Role, role)));
-
-                var authSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JWT:Secret"]));
-                var token = new JwtSecurityToken(
-                    issuer: _configuration["JWT:ValidIssuer"],
-                    audience: _configuration["JWT:ValidAudience"],
-                    expires: DateTime.UtcNow.AddHours(5),
-                    claims: authClaims,
-                    signingCredentials: new SigningCredentials(authSigningKey, SecurityAlgorithms.HmacSha256)
-                );
-                var userdetailsObj = await _context.Userdetail.Where(x => x.UserId == user.Id).FirstOrDefaultAsync();
-                
-                var authenticatedUser = new 
-                {
-                    Token = new JwtSecurityTokenHandler().WriteToken(token),
-                    User = user,
-                    FirstName = userdetailsObj.FirstName,
-                    LastName=userdetailsObj.LastName,
-                    Roles = userRoles,
-                };
-               
-
-                _response.Data = authenticatedUser;
-                _response.Message = Constants.Login;
-                _response.Success = Constants.ResponseSuccess;
-            }
-            else
+            // Fix: Ensure PasswordHash and PasswordSalt are not null before calling CheckKey
+            if (user == null
+                || string.IsNullOrEmpty(user.PasswordHash)
+                || string.IsNullOrEmpty(user.PasswordSalt)
+                || !this._crypto.CheckKey(user.PasswordHash, user.PasswordSalt, model.Password))
             {
                 _response.Message = Constants.IncorrectUsernamePassword;
                 _response.Success = Constants.ResponseFailure;
+                return _response;
             }
 
+            List<string> newRecoveryCodes = null;
+            string trustedDeviceToken = null;
+
+            if (await _userManager.GetTwoFactorEnabledAsync(user)
+                && !await IsTrustedDeviceTokenAsync(model.TrustedDeviceToken, user))
+            {
+                // Recovery codes only ever get generated once the authenticator has been
+                // scanned and confirmed with a valid code - so their presence is the
+                // authoritative "setup already completed" signal (robust to the user
+                // re-submitting the password step before finishing setup).
+                var isTwoFactorConfirmed = await _userManager.CountRecoveryCodesAsync(user) > 0;
+
+                if (!string.IsNullOrWhiteSpace(model.TwoFactorRecoveryCode))
+                {
+                    var redeemResult = await _userManager.RedeemTwoFactorRecoveryCodeAsync(user, model.TwoFactorRecoveryCode);
+                    if (!redeemResult.Succeeded)
+                    {
+                        _response.Message = Constants.InvalidTwoFactorCode;
+                        _response.Success = Constants.ResponseFailure;
+                        return _response;
+                    }
+
+                    if (model.RememberDevice)
+                        trustedDeviceToken = await GenerateTrustedDeviceTokenAsync(user);
+                }
+                else if (!string.IsNullOrWhiteSpace(model.TwoFactorCode))
+                {
+                    var isValidCode = await _userManager.VerifyTwoFactorTokenAsync(
+                        user, TokenOptions.DefaultAuthenticatorProvider, model.TwoFactorCode);
+
+                    if (!isValidCode)
+                    {
+                        _response.Message = Constants.InvalidTwoFactorCode;
+                        _response.Success = Constants.ResponseFailure;
+                        return _response;
+                    }
+
+                    if (!isTwoFactorConfirmed)
+                    {
+                        // First successful verification after setup - confirm it and hand
+                        // the one-time recovery codes back to the user.
+                        var codes = await _userManager.GenerateNewTwoFactorRecoveryCodesAsync(user, 8);
+                        newRecoveryCodes = codes?.ToList();
+                    }
+
+                    if (model.RememberDevice)
+                        trustedDeviceToken = await GenerateTrustedDeviceTokenAsync(user);
+                }
+                else
+                {
+                    // No code submitted yet - tell the frontend which step to show next.
+                    if (!isTwoFactorConfirmed && string.IsNullOrEmpty(await _userManager.GetAuthenticatorKeyAsync(user)))
+                    {
+                        await _userManager.ResetAuthenticatorKeyAsync(user);
+                    }
+
+                    var secret = !isTwoFactorConfirmed ? await _userManager.GetAuthenticatorKeyAsync(user) : null;
+                    var issuer = "Eye Care Clinic";
+                    var otpAuthUri = secret == null ? null
+                        : $"otpauth://totp/{Uri.EscapeDataString(issuer)}:{Uri.EscapeDataString(user.Email)}" +
+                          $"?secret={secret}&issuer={Uri.EscapeDataString(issuer)}&digits=6";
+
+                    _response.Data = new
+                    {
+                        RequiresTwoFactor = true,
+                        SetupRequired = !isTwoFactorConfirmed,
+                        Secret = secret,
+                        OtpAuthUri = otpAuthUri
+                    };
+                    _response.Message = Constants.TwoFactorRequired;
+                    _response.Success = Constants.ResponseSuccess;
+                    return _response;
+                }
+            }
+
+            // ✅ Generate JWT + refresh token
+            var tokens = await GenerateTokensAsync(user.Id);
+
+            var userdetailsObj = await _context.Userdetail
+                .Where(x => x.UserId == user.Id)
+                .FirstOrDefaultAsync();
+            var authenticatedUser = new
+            {
+                Token = tokens.Token,
+                RefreshToken = tokens.RefreshToken,
+                ProfilePicture = user.ProfilePicture,
+                Id= user.Id,
+                Email= user.Email,
+                //User = user,
+                FirstName = userdetailsObj.FirstName,
+                LastName = userdetailsObj.LastName,
+                Roles = await _userManager.GetRolesAsync(user),
+                RecoveryCodes = newRecoveryCodes,
+                TrustedDeviceToken = trustedDeviceToken
+            };
+
+            _response.Data = authenticatedUser;
+            _response.Message = Constants.Login;
+            _response.Success = Constants.ResponseSuccess;
+
             return _response;
+        }
+
+        // "Remember this Device" support - a short, self-contained signed token (not an
+        // access token: different audience, so it is rejected by [Authorize] endpoints)
+        // that proves this browser already completed 2FA for this user recently.
+        //
+        // The user's Identity SecurityStamp is embedded in the token and re-checked on
+        // every use. Toggling TwoFactorEnabled (see AddEditUser) rotates the stamp, which
+        // instantly invalidates every previously-issued trusted-device token for that user
+        // - e.g. if an admin turns 2FA off then back on after a lost phone, old "remembered"
+        // browsers are forced through 2FA again instead of silently staying trusted.
+        private const string TrustedDeviceAudience = "EyeCareTrustedDevice";
+        private const string SecurityStampClaimType = "sstamp";
+
+        private async Task<string> GenerateTrustedDeviceTokenAsync(ApplicationUser user)
+        {
+            var securityStamp = await _userManager.GetSecurityStampAsync(user);
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JWT:Secret"]));
+            var jwt = new JwtSecurityToken(
+                issuer: _configuration["JWT:ValidIssuer"],
+                audience: TrustedDeviceAudience,
+                claims: new[]
+                {
+                    new Claim(ClaimTypes.NameIdentifier, user.Id),
+                    new Claim(SecurityStampClaimType, securityStamp ?? string.Empty)
+                },
+                expires: DateTime.UtcNow.AddDays(7),
+                signingCredentials: new SigningCredentials(key, SecurityAlgorithms.HmacSha256));
+
+            return new JwtSecurityTokenHandler().WriteToken(jwt);
+        }
+
+        private async Task<bool> IsTrustedDeviceTokenAsync(string token, ApplicationUser user)
+        {
+            if (string.IsNullOrWhiteSpace(token))
+                return false;
+
+            try
+            {
+                var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JWT:Secret"]));
+                var parameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidIssuer = _configuration["JWT:ValidIssuer"],
+                    ValidateAudience = true,
+                    ValidAudience = TrustedDeviceAudience,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = key,
+                    ClockSkew = TimeSpan.Zero
+                };
+
+                var principal = new JwtSecurityTokenHandler().ValidateToken(token, parameters, out _);
+                var userId = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                var stamp = principal.FindFirst(SecurityStampClaimType)?.Value;
+                var currentStamp = await _userManager.GetSecurityStampAsync(user);
+
+                return userId == user.Id && !string.IsNullOrEmpty(stamp) && stamp == currentStamp;
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         public async Task<IResponse> AddEditUser(AddEditUserWithCreatedOrUpdatedById model)
@@ -268,7 +376,8 @@ namespace PatientDoctor.Infrastructure.Repositories.Identity;
                     var salt = _crypto.CreateSalt();
                     user.PasswordSalt = salt;
                     user.PasswordHash = _crypto.CreateKey(salt, model.addEditUsermodel.Password);
-                   
+                    user.TwoFactorEnabled = model.addEditUsermodel.TwoFactorEnabled ?? false;
+
                     var exitrole = await _roleManager.FindByIdAsync(model.addEditUsermodel.RoleId);
                     if(exitrole == null)
                     {
@@ -296,7 +405,12 @@ namespace PatientDoctor.Infrastructure.Repositories.Identity;
                         _response.Message = "Role assignment failed.";
                         return _response;
                     }
-                    await _context.SaveChangesAsync();
+                // After role assignment success
+                var mappingResponse = await HandleDoctorAssistantMappingAsync(
+                                     user.Id,exitrole.Name,model.addEditUsermodel.DoctorId);
+                if (mappingResponse != null)
+                    return mappingResponse;
+                await _context.SaveChangesAsync();
 
                     await transaction.CommitAsync();
                     _response.Success = Constants.ResponseSuccess;
@@ -326,6 +440,17 @@ namespace PatientDoctor.Infrastructure.Repositories.Identity;
                     existUser.PhoneNumber= model.addEditUsermodel.MobileNumber;
                     existUser.Email = model.addEditUsermodel.Email;
                     existUser.UserName = model.addEditUsermodel.Email;
+                    var twoFactorChanged = model.addEditUsermodel.TwoFactorEnabled.HasValue
+                        && model.addEditUsermodel.TwoFactorEnabled.Value != existUser.TwoFactorEnabled;
+                    if (model.addEditUsermodel.TwoFactorEnabled.HasValue)
+                        existUser.TwoFactorEnabled = model.addEditUsermodel.TwoFactorEnabled.Value;
+                    if (twoFactorChanged)
+                    {
+                        // Rotating the SecurityStamp instantly invalidates every previously
+                        // issued "remember this device" token for this user, so a lost-phone
+                        // off/on cycle can't be bypassed by an old trusted browser.
+                        await _userManager.UpdateSecurityStampAsync(existUser);
+                    }
                     var existinguserdetails = await _context.Userdetail.Where(x => x.UserId == existUser.Id).FirstOrDefaultAsync();
                     if (existinguserdetails == null)
                     {
@@ -377,8 +502,13 @@ namespace PatientDoctor.Infrastructure.Repositories.Identity;
                         return _response;
                     }
                     await _userManager.UpdateAsync(existUser);
-                          _context.Userdetail.Update(existinguserdetails);
-                    await _context.SaveChangesAsync();
+                         _context.Userdetail.Update(existinguserdetails);
+                // Check if user was previously assistant
+                var mappingResponse = await HandleDoctorAssistantMappingAsync(
+                                existUser.Id,exitrole.Name,model.addEditUsermodel.DoctorId);
+                if (mappingResponse != null)
+                    return mappingResponse;
+                await _context.SaveChangesAsync();
                     await transaction.CommitAsync();
                     _response.Success = Constants.ResponseSuccess;
                     _response.Message = Constants.DataUpdate;
@@ -392,28 +522,36 @@ namespace PatientDoctor.Infrastructure.Repositories.Identity;
             }
         }
 
-        public async Task<IResponse> GetAllRoles()
+    public async Task<IResponse> GetAllRoles()
+    {
+        List<GetAllRoles> getAllRoles = new List<GetAllRoles>();
+        var roles = _roleManager.Roles;
+
+        if (roles == null || !roles.Any()) // Check if roles is null or empty
         {
-            List<GetAllRoles> getAllRoles = new List<GetAllRoles>();
-            var roles = _roleManager.Roles;
-            if (roles == null)
+            _response.Success = Constants.ResponseFailure;
+            _response.Message = Constants.NotFound.Replace("{data}", "roles");
+            return _response;
+        }
+
+        foreach (var role in roles)
+        {
+            if (!string.IsNullOrEmpty(role.Name)) // Ensure role.Name is not null or empty before assignment
             {
-                _response.Success = Constants.ResponseFailure;
-                _response.Message = Constants.NotFound.Replace("{data}", "{roles}");
-            }
-            foreach(var role in roles)
-            {
-                GetAllRoles obj = new GetAllRoles();
-                obj.Name = role.Name;
-                obj.Id = role.Id;   
+                GetAllRoles obj = new GetAllRoles
+                {
+                    Name = role.Name,
+                    Id = role.Id
+                };
                 getAllRoles.Add(obj);
             }
-            _response.Data = getAllRoles;
-            _response.Success = Constants.ResponseSuccess;
-            _response.Message = Constants.GetData;
-            return _response;
-
         }
+
+        _response.Data = getAllRoles;
+        _response.Success = Constants.ResponseSuccess;
+        _response.Message = Constants.GetData;
+        return _response;
+    }
 
         public async Task<IResponse> GetAllDoctors()
         {
@@ -424,7 +562,7 @@ namespace PatientDoctor.Infrastructure.Repositories.Identity;
                            select new
                            {
                                u.Id,
-                               u.UserName,
+                               UserName = ud.FirstName + " " + ud.LastName + "(" + u.Email + ")",
                                ud.Fee
                            }).ToListAsync();
         _response.Data=users;
@@ -457,6 +595,284 @@ namespace PatientDoctor.Infrastructure.Repositories.Identity;
             _response.Data = doctorFee;
         }
         return _response;
+    }
+
+    public async Task<UserRefreshTokenDto?> GetRefreshTokenAsync(string refreshToken)
+    {
+        // Sirf valid candidates lao (DB level filtering)
+        var candidates = await _context.UserRefreshTokens
+            .Where(x =>
+                !x.IsUsed &&
+                !x.IsRevoked &&
+                x.Expires > DateTime.UtcNow)
+            .ToListAsync();
+
+        // Hash verify (memory level)
+        var entity = candidates.FirstOrDefault(x =>
+            BCrypt.Net.BCrypt.Verify(refreshToken, x.TokenHash));
+
+        if (entity == null)
+            return null;
+
+        //  DTO return
+        return new UserRefreshTokenDto
+        {
+            UserId = entity.UserId,
+            Expires = entity.Expires,
+            IsUsed = entity.IsUsed,
+            IsRevoked = entity.IsRevoked
+        };
+    }
+
+    public async Task RevokeAllTokensAsync(string userId)
+    {
+        var tokens = await _context.UserRefreshTokens
+            .Where(x => x.UserId == userId)
+            .ToListAsync();
+
+        foreach (var token in tokens)
+        {
+            token.IsRevoked = true;
+        }
+
+        await _context.SaveChangesAsync();
+    }
+    public async Task<AuthTokenResultDto> GenerateTokensAsync(string userId)
+    {
+        var user = await _userManager.FindByIdAsync(userId);
+        var roles = await _userManager.GetRolesAsync(user);
+
+        var claims = new List<Claim>
+        {
+            new Claim(ClaimTypes.NameIdentifier, user.Id),
+            new Claim(ClaimTypes.Email, user.Email),
+            new Claim(ClaimTypes.Name, user.UserName),
+            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+        };
+
+        claims.AddRange(roles.Select(r => new Claim(ClaimTypes.Role, r)));
+
+        var key = new SymmetricSecurityKey(
+            Encoding.UTF8.GetBytes(_configuration["JWT:Secret"])
+        );
+
+        var jwt = new JwtSecurityToken(
+            issuer: _configuration["JWT:ValidIssuer"],
+            audience: _configuration["JWT:ValidAudience"],
+            expires: DateTime.UtcNow.AddHours(18),
+            claims: claims,
+            signingCredentials:
+                new SigningCredentials(key, SecurityAlgorithms.HmacSha256)
+        );
+
+        var refreshToken =
+            Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
+        var tokenHash = BCrypt.Net.BCrypt.HashPassword(refreshToken);
+
+        _context.UserRefreshTokens.Add(new UserRefreshToken
+        {
+            UserId = user.Id,
+            TokenHash = tokenHash,
+            Expires = DateTime.UtcNow.AddDays(7)
+        });
+
+        await _context.SaveChangesAsync();
+
+        return new AuthTokenResultDto
+        {
+            Token = new JwtSecurityTokenHandler().WriteToken(jwt),
+            RefreshToken = refreshToken
+        };
+    }
+    public async Task MarkTokenAsUsedAsync(string refreshToken)
+    {
+        var tokens = await _context.UserRefreshTokens
+            .Where(x => !x.IsUsed && !x.IsRevoked)
+            .ToListAsync();
+
+        var entity = tokens.FirstOrDefault(x =>
+            BCrypt.Net.BCrypt.Verify(refreshToken, x.TokenHash));
+
+        if (entity != null)
+        {
+            entity.IsUsed = true;
+            await _context.SaveChangesAsync();
+        }
+    }
+    public async Task<string?> GetUserIdByRefreshTokenAsync(string refreshToken)
+    {
+        var tokens = await _context.UserRefreshTokens.ToListAsync();
+
+        var token = tokens.FirstOrDefault(x =>
+            BCrypt.Net.BCrypt.Verify(refreshToken, x.TokenHash));
+
+        return token?.UserId;
+    }
+
+    public async Task<IResponse> GoogleLoginAsync(string email, string name, string providerKey, CancellationToken cancellationToken)
+    {
+
+        if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(providerKey))
+            return CreateErrorResponse("Invalid Google login data.");
+
+        await using var transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
+        try
+        {
+            var parts = name.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            var firstName = parts.FirstOrDefault();
+            var lastName = parts.Length > 1 ? string.Join(" ", parts.Skip(1)) : "";
+
+            var userLogin = await _context.UserLogin
+                .Include(x => x.User)
+                .FirstOrDefaultAsync(x => x.Provider == AuthProvider.Google && x.ProviderKey == providerKey, cancellationToken);
+
+            ApplicationUser user;
+
+            if (userLogin == null)
+            {
+                // Try to reuse an existing user with the same email
+                user = await _userManager.FindByEmailAsync(email);
+
+                if (user == null)
+                {
+                    user = new ApplicationUser
+                    {
+                        Email = email,
+                        UserName = email,
+                        RoleName = "Receptionist",
+                        Status = 1,
+                        // Optionally set additional properties, e.g. ProfilePicture from 'name' if available
+                    };
+
+                    var role = await _roleManager.FindByNameAsync(user.RoleName);
+                    if (role == null)
+                    {
+                        _response.Success = Constants.ResponseFailure;
+                        _response.Message = Constants.NotFound.Replace("{data}", "role");
+                        return _response;
+                    }
+
+                    var createResult = await _userManager.CreateAsync(user);
+                    if (!createResult.Succeeded)
+                    {
+                        var errors = string.Join("; ", createResult.Errors.Select(e => e.Description));
+                        return CreateErrorResponse($"User creation failed: {errors}");
+                    }
+
+                    var addRoleResult = await _userManager.AddToRoleAsync(user, role.Name);
+                    if (!addRoleResult.Succeeded)
+                    {
+                        var errors = string.Join("; ", addRoleResult.Errors.Select(e => e.Description));
+                        return CreateErrorResponse($"Role assignment failed: {errors}");
+                    }
+
+                    await _context.SaveChangesAsync(cancellationToken);
+                }
+
+                // Create the external login mapping
+                var login = new UserLogin
+                {
+                    Provider = AuthProvider.Google,
+                    ProviderKey = providerKey,
+                    UserId = user.Id
+                };
+                var userdetails = new Userdetail
+                {
+                    UserId = user.Id,
+                    FirstName = firstName,
+                    LastName = lastName,
+                    City = "",
+                    Cnic = "",
+                    Fee = null
+                };
+                await _context.Userdetail.AddAsync(userdetails, cancellationToken);
+                await _context.UserLogin.AddAsync(login, cancellationToken);
+                await _context.SaveChangesAsync(cancellationToken);
+            }
+            else
+            {
+                user = userLogin.User ?? throw new InvalidOperationException("Mapped user not found for the login record.");
+            }
+
+            var tokens = await GenerateTokensAsync(user.Id);
+            var roles = await _userManager.GetRolesAsync(user);
+
+            var authenticatedUser = new
+            {
+                Token = tokens.Token,
+                RefreshToken = tokens.RefreshToken,
+                ProfilePicture = user.ProfilePicture,
+                Id = user.Id,
+                Email = user.Email,
+                FirstName = firstName,
+                LastName = lastName,
+                Roles = roles
+            };
+
+            await transaction.CommitAsync(cancellationToken);
+
+            _response.Data = authenticatedUser;
+            _response.Message = Constants.Login;
+            _response.Success = Constants.ResponseSuccess;
+            return _response;
+        }
+        catch (Exception ex)
+        {
+            try
+            {
+                await transaction.RollbackAsync(cancellationToken);
+            }
+            catch
+            {
+                // swallow rollback exceptions - we'll return the original error below
+            }
+
+            return CreateErrorResponse(ex.Message);
+        }
+    }
+
+    private async Task<IResponse?> HandleDoctorAssistantMappingAsync(
+    string userId,
+    string roleName,
+    string? doctorId)
+    {
+        var existingMapping = await _context.DoctorAssistants
+            .FirstOrDefaultAsync(x => x.AssistantId == userId);
+
+        if (roleName == Roles.DoctorAssistant)
+        {
+            if (string.IsNullOrEmpty(doctorId))
+                return CreateErrorResponse("Doctor must be selected.");
+
+            var doctorExist = await _userManager.FindByIdAsync(doctorId);
+            if (doctorExist == null)
+                return CreateErrorResponse("Selected doctor does not exist.");
+
+            if (existingMapping == null)
+            {
+                var mapping = new DoctorAssistant
+                {
+                    AssistantId = userId,
+                    DoctorId = doctorId
+                };
+
+                await _context.DoctorAssistants.AddAsync(mapping);
+            }
+            else
+            {
+                existingMapping.DoctorId = doctorId;
+                _context.DoctorAssistants.Update(existingMapping);
+            }
+        }
+        else
+        {
+            if (existingMapping != null)
+            {
+                _context.DoctorAssistants.Remove(existingMapping);
+            }
+        }
+
+        return null; // Means everything ok
     }
 }
 

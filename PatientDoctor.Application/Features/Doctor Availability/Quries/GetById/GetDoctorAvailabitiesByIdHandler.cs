@@ -1,7 +1,4 @@
-﻿using MediatR;
-using PatientDoctor.Application.Contracts.Persistance.IDoctorAvailability;
-using PatientDoctor.Application.Helpers;
-
+﻿
 namespace PatientDoctor.Application.Features.Doctor_Availability.Quries.GetById;
     public class GetDoctorAvailabitiesByIdHandler : IRequestHandler<GetByIdDoctorAvailabiliteis, IResponse>
     {

@@ -1,11 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace PatientDoctor.Application.Helpers
-{
+﻿
+namespace PatientDoctor.Application.Helpers;
     public static partial class Constants
     {
         public const string EmailAddressInUse = "validation.login.EmailAddressInUse";
@@ -26,6 +20,8 @@ namespace PatientDoctor.Application.Helpers
         public const string DataUpdate = "Your data has been updated successfully";
         public const string DataDelete = "You data deleted Successfully";
         public const string IncorrectUsernamePassword = "Username or Password is incorrect";
+        public const string TwoFactorRequired = "Two-factor authentication is required";
+        public const string InvalidTwoFactorCode = "The authentication code is invalid or has expired";
         public const string ModelStateStateIsInvalid = "Model state is invalid";
         public const string UniqueUserDetails = "Username/Email/MobileNumber already exist";
         public const string UniqueEmail = "This email is taken. Try another.";
@@ -48,6 +44,8 @@ namespace PatientDoctor.Application.Helpers
         public const string RegisterFailed = "User Register Failed";
         public const string ErrorWhileGettingData = "Error while getting data ";
         public const string DiscountGreaterThanFee = "Discount is greater than doctor Fee";
+        public const string PatientAppointmentSuccessful = "Your appointment with Dr. {0} for patient {1} on {2} at {3} has been successfully scheduled.";
+
 
         public static partial class ActionMethods
         {
@@ -72,4 +70,4 @@ namespace PatientDoctor.Application.Helpers
             public const string Approval = "Approval";
         }
     }
-}
+

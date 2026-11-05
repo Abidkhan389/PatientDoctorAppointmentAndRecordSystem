@@ -1,42 +1,19 @@
-﻿using Microsoft.AspNetCore.Identity;
-using PatientDoctor.Application.Contracts.Persistance.Patient;
-using PatientDoctor.Application.Contracts.Security;
-using PatientDoctor.Application.Helpers;
-using PatientDoctor.domain.Entities;
-using Microsoft.Extensions.Configuration;
-using PatientDoctor.Infrastructure.Persistance;
-using PatientDoctor.Application.Features.Patient.Quries;
-using Microsoft.EntityFrameworkCore;
-using PatientDoctor.Infrastructure.Repositories.GeneralServices;
-using PatientDoctor.Application.Features.Patient.Commands.ActiveInActive;
-using PatientDoctor.Application.Features.Patient.Commands.AddEditPatient;
-using PatientDoctor.Application.Features.Patient.Commands.AddPatientDescription;
-using PatientDoctor.Application.Features.Patient.Quries.GetAllPatientRecordsByDoctor;
-using PatientDoctor.Application.Features.Patient.Quries.GetPatientDetailForPdf;
-using PatientDoctor.Application.Features.Patient.Quries.GetDoctorSlots;
-using PatientDoctor.Application.Features.Doctor_Availability.Commands;
-using System.Globalization;
-using Newtonsoft.Json;
-using PatientDoctor.Application.Contracts.Persistance.IPatientCheckUpHistroy;
-using PatientDoctor.Application.Contracts.Persistance.ISmsRepository;
-using PatientDoctor.Application.Helpers.AppointmentSms;
-using PatientDoctor.Application.Features.Patient.Commands.PatientDiscount;
-
-namespace PatientDoctor.Infrastructure.Repositories.Patient
-{
+﻿
+namespace PatientDoctor.Infrastructure.Repositories.Patient;
     public class PatientRepository : IPatientRepository
     {
         private readonly DocterPatiendDbContext _context;
         private readonly IPatientAppointmentSmsRepository _patientAppointmentSmsRepository;
         private readonly IResponse _response;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly IEmailRepository _mailRepository;
         private readonly ICountResponse _countResp;
         private readonly IConfiguration _configuration;
         private readonly ICryptoService _crypto;
         private readonly IPatientCheckUpHistroyRepository _patientCheckUpHistroy;
 
         public PatientRepository(DocterPatiendDbContext context, IPatientAppointmentSmsRepository patientAppointmentSmsRepository,
-            IResponse response, UserManager<ApplicationUser> userManager, 
+            IResponse response, UserManager<ApplicationUser> userManager,IEmailRepository mailRepository,
             RoleManager<IdentityRole> roleManager, ICountResponse countResp,
             IConfiguration configurations, ICryptoService crypto, IPatientCheckUpHistroyRepository patientCheckUpHistroy)
         {
@@ -44,6 +21,7 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
             _patientAppointmentSmsRepository = patientAppointmentSmsRepository;
             this._response = response;
             this._userManager = userManager;
+            _mailRepository = mailRepository;
             this._countResp = countResp;
             this._configuration = configurations;
             this._crypto = crypto;
@@ -217,18 +195,53 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
 
                     await _context.SaveChangesAsync();
                     await transaction.CommitAsync();
-                    var patientAppointmentSmsRequest = new PatientAppointmentSmsRequest
+
+                    //-------------- for patient sms on patient appointment-------------
+
+                    //var patientAppointmentSmsRequest = new PatientAppointmentSmsRequest
+                    //{
+                    //    PatientMobileNumber = model.AddEditPatientObj.PhoneNumber,
+                    //    DoctorName = await _context.Userdetail
+                    //                .Where(x => x.UserId == model.AddEditPatientObj.DoctorId)
+                    //                .Select(y => y.FirstName + " " + y.LastName)
+                    //                .FirstOrDefaultAsync(),
+                    //    AppointmentDate = model.AddEditPatientObj.AppoitmentDate,
+                    //    TimeSlot = model.AddEditPatientObj.TimeSlot,
+                    //};
+
+                    // --------------- Email To Doctor For Paitient Appointment---------
+
+                    var doctorDataForEmail = await (from main in _context.Users
+                                             join userDetails in _context.Userdetail on main.Id equals userDetails.UserId
+                                             where main.Id == model.AddEditPatientObj.DoctorId
+                                             select new
+                                             {
+                                                 main.Email,
+                                                 userDetails.FirstName,
+                                                 userDetails.LastName
+                                             }).FirstOrDefaultAsync();
+                    var emailToDoctorForPatientAppointment = new EmailRequest
                     {
-                        PatientMobileNumber = model.AddEditPatientObj.PhoneNumber,
-                        DoctorName = await _context.Userdetail
-                                    .Where(x => x.UserId == model.AddEditPatientObj.DoctorId)
-                                    .Select(y => y.FirstName + " " + y.LastName)
-                                    .FirstOrDefaultAsync(),
-                        AppointmentDate= model.AddEditPatientObj.AppoitmentDate,
-                        TimeSlot = model.AddEditPatientObj.TimeSlot,
+                        FromEmail = _configuration["EmailSettings:FromEmail"],
+                        Subject = "New Patient Appointment",
+                        BodyContent = $"Dear {doctorDataForEmail.FirstName} {doctorDataForEmail.LastName},<br><br>" +
+                                     $"A new appointment has been scheduled with {model.AddEditPatientObj.FirstName} {model.AddEditPatientObj.LastName} " +
+                                     $"on {model.AddEditPatientObj.AppoitmentDate:dd MMM yyyy} at {model.AddEditPatientObj.TimeSlot}.<br>" +
+                                     $"Patient Phone Number: {model.AddEditPatientObj.PhoneNumber}.<br><br>" +
+                                     "Please check your dashboard for more details.<br><br>" +
+                                     "Regards,<br>" +
+                                     "Your Medical Portal",
+                        ToEmail = doctorDataForEmail.Email//doctorDataForEmail.Email
+
                     };
-                    _patientAppointmentSmsRepository.SendSmsAsync(patientAppointmentSmsRequest);
-                    return CreateSuccessResponse(Constants.DataSaved);
+                    await _mailRepository.SendEmailAsync(emailToDoctorForPatientAppointment);
+                    var patientFullName = $"{model.AddEditPatientObj.FirstName} {model.AddEditPatientObj.LastName}";
+                    var appointmentDate = model.AddEditPatientObj.AppoitmentDate.ToString("dd MMM yyyy");
+                    var appointmentTime = model.AddEditPatientObj.TimeSlot;
+                    //_patientAppointmentSmsRepository.SendSmsAsync(patientAppointmentSmsRequest);
+                    var successMessage = string.Format(Constants.PatientAppointmentSuccessful, $"{doctorDataForEmail.FirstName} {doctorDataForEmail.LastName}", patientFullName, appointmentDate, appointmentTime);
+
+                    return CreateSuccessResponse(successMessage);
                 }
                 else
                 {
@@ -293,19 +306,54 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
 
                     await _context.SaveChangesAsync();
                     await transaction.CommitAsync();
-                    var patientAppointmentSmsRequest = new PatientAppointmentSmsRequest
-                    {
-                        PatientMobileNumber = model.AddEditPatientObj.PhoneNumber,
-                        DoctorName = await _context.Userdetail
-                                   .Where(x => x.UserId == model.AddEditPatientObj.DoctorId)
-                                   .Select(y => y.FirstName + " " + y.LastName)
-                                   .FirstOrDefaultAsync(),
-                        AppointmentDate = model.AddEditPatientObj.AppoitmentDate,
-                        TimeSlot = model.AddEditPatientObj.TimeSlot,
-                    };
-                    _patientAppointmentSmsRepository.SendSmsAsync(patientAppointmentSmsRequest);
-                    return CreateSuccessResponse(Constants.DataUpdate);
 
+                    //-------------- for patient sms on patient appointment-------------
+
+                    //var patientAppointmentSmsRequest = new PatientAppointmentSmsRequest
+                    //{
+                    //    PatientMobileNumber = model.AddEditPatientObj.PhoneNumber,
+                    //    DoctorName = await _context.Userdetail
+                    //               .Where(x => x.UserId == model.AddEditPatientObj.DoctorId)
+                    //               .Select(y => y.FirstName + " " + y.LastName)
+                    //               .FirstOrDefaultAsync(),
+                    //    AppointmentDate = model.AddEditPatientObj.AppoitmentDate,
+                    //    TimeSlot = model.AddEditPatientObj.TimeSlot,
+                    //};
+                    //_patientAppointmentSmsRepository.SendSmsAsync(patientAppointmentSmsRequest);
+
+                    // --------------- Email To Doctor For Paitient Appointment---------
+
+                    var doctorDataForEmail = await (from main in _context.Users
+                                                    join userDetails in _context.Userdetail on main.Id equals userDetails.UserId
+                                                    where main.Id == model.AddEditPatientObj.DoctorId
+                                                    select new
+                                                    {
+                                                        main.Email,
+                                                        userDetails.FirstName,
+                                                        userDetails.LastName
+                                                    }).FirstOrDefaultAsync();
+                    var emailToDoctorForPatientAppointment = new EmailRequest
+                    {
+                        FromEmail = _configuration["EmailSettings:FromEmail"],
+                        Subject = "New Patient Appointment",
+                        BodyContent = $"Dear {doctorDataForEmail.FirstName} {doctorDataForEmail.LastName},<br><br>" +
+                 $"A new appointment has been scheduled with {model.AddEditPatientObj.FirstName} {model.AddEditPatientObj.LastName} " +
+                 $"on {model.AddEditPatientObj.AppoitmentDate:dd MMM yyyy} at {model.AddEditPatientObj.TimeSlot}.<br>" +
+                 $"Patient Phone Number: {model.AddEditPatientObj.PhoneNumber}.<br><br>" +
+                 "Please check your dashboard for more details.<br><br>" +
+                 "Regards,<br>" +
+                 "Your Medical Portal",
+                        ToEmail = doctorDataForEmail.Email
+
+                    };
+                    await _mailRepository.SendEmailAsync(emailToDoctorForPatientAppointment);
+                    var patientFullName = $"{model.AddEditPatientObj.FirstName} {model.AddEditPatientObj.LastName}";
+                    var appointmentDate = model.AddEditPatientObj.AppoitmentDate.ToString("dd MMM yyyy");
+                    var appointmentTime = model.AddEditPatientObj.TimeSlot;
+                    //_patientAppointmentSmsRepository.SendSmsAsync(patientAppointmentSmsRequest);
+                    var successMessage = string.Format(Constants.PatientAppointmentSuccessful, $"{doctorDataForEmail.FirstName} {doctorDataForEmail.LastName}", patientFullName, appointmentDate, appointmentTime);
+
+                    return CreateSuccessResponse(successMessage);
                 }
             }
             catch (Exception ex)
@@ -321,6 +369,15 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
             var roleName = userInfo?.RoleName;
             DateTime filterDate = model.getPatientListObj.appoitmentDate?.Date ?? DateTime.Today;
             model.Sort = model.Sort == null || model.Sort == "" ? "FirstName" : model.Sort;
+            // DoctorAssistant ka assigned doctorId fetch karo
+            string? assisantDoctorId = null;
+            if(roleName ==Roles.DoctorAssistant)
+            {
+                assisantDoctorId = await _context.DoctorAssistants
+                                   .Where(x => x.AssistantId == model.UserId)
+                                   .Select(x => x.DoctorId)
+                                   .FirstOrDefaultAsync();
+            }
             var data = (from patient in _context.Patient
                         join main in _context.Users on patient.DoctoerId equals main.Id
                         join p_details in _context.PatientDetails on patient.PatientId equals p_details.PatientId
@@ -332,7 +389,12 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
                              && (string.IsNullOrEmpty(model.getPatientListObj.Cnic) || patient.Cnic.ToLower().Contains(model.getPatientListObj.Cnic))
                              && (string.IsNullOrEmpty(model.getPatientListObj.MobileNumber) || p_details.PhoneNumber.ToLower().Contains(model.getPatientListObj.MobileNumber.ToLower()))
                               && App.AppointmentDate.Date == filterDate.Date
-                              && (roleName == "SuperAdmin" || roleName == "Receptionist" || patient.DoctoerId == model.UserId)
+                              && (
+                            roleName == Roles.SuperAdmin
+                            || roleName == Roles.Receptionist
+                            || (roleName == Roles.DoctorAssistant && patient.DoctoerId == assisantDoctorId)
+                            || patient.DoctoerId == model.UserId // Doctor sees own patients
+                           )
                               )
                         select new VM_Patient
                         {
@@ -425,6 +487,70 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
 
         }
 
+        public async Task<IResponse> UpdatePatientAppointmentStatus(UpdatePatientAppointmentStatusCommand model, CancellationToken cancellationToken)
+        {
+            using var transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
+
+            try
+            {
+                // Fetch all related data in parallel (or sequentially if needed)
+                
+                var patient = await _context.Patient
+                    .FirstOrDefaultAsync(p => p.PatientId == model.PatientId, cancellationToken);
+
+                var patientDetails = await _context.PatientDetails
+                    .FirstOrDefaultAsync(pd => pd.PatientId == model.PatientId, cancellationToken);
+
+                var appointmentDetail = await _context.Appointment
+                    .FirstOrDefaultAsync(a => a.PatientId == model.PatientId, cancellationToken);
+
+                if (patient == null || patientDetails == null || appointmentDetail == null)
+                {
+                    return new Response
+                    {
+                        Success = Constants.ResponseFailure,
+                        Message = "Patient or related data not found."
+                    };
+                }
+
+                // Ensure TrackingNumber exists
+                if (string.IsNullOrWhiteSpace(patient.TrackingNumber))
+                {
+                    var trackPatientNumberResult = await _patientCheckUpHistroy.FetchPatientTrackingNumberByPatientId(patient.PatientId);
+                    if (trackPatientNumberResult.Success && trackPatientNumberResult.Data is string trackingNumber)
+                    {
+                        patient.TrackingNumber = trackingNumber;
+                    }
+                }
+
+                // Update patient details
+                appointmentDetail.CheckUpStatus = true;
+                patientDetails.CreatedOn = DateTime.UtcNow;
+                patientDetails.CreatedBy = model.UserId;
+                var prescription = new Prescription { DoctorId = model.DoctorId, PatientId = model.PatientId,Status=1 };
+                _context.Patient.Update(patient);
+                _context.PatientDetails.Update(patientDetails);
+                _context.Appointment.Update(appointmentDetail);
+                _context.Prescriptions.Add(prescription);
+
+                await _context.SaveChangesAsync(cancellationToken);
+                await transaction.CommitAsync(cancellationToken);
+
+                _response.Success = Constants.ResponseSuccess;
+                _response.Message = Constants.DataSaved;
+                _response.Data = Constants.ResponseSuccess;
+
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync(cancellationToken);
+                // Log exception here if you have a logging service
+                _response.Success = Constants.ResponseFailure;
+                _response.Message = ex.Message;
+                _response.Data = Constants.ResponseFailure;
+            }
+            return _response;
+        }
         public async Task<IResponse> AddEditPatientDescription(AddPatientDescriptionCommand model)
         {
             using var transaction = _context.Database.BeginTransaction();
@@ -865,5 +991,6 @@ namespace PatientDoctor.Infrastructure.Repositories.Patient
             return _response;
         }
 
+       
     }
-}
+

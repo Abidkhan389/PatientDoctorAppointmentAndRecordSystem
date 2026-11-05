@@ -1,8 +1,4 @@
-﻿using MediatR;
-using PatientDoctor.Application.Helpers.General;
-using PatientDoctor.Application.Helpers;
-using PatientDoctor.Application.Features.Medicinetype.Commands.AddEditMedicineType;
-
+﻿ 
 namespace PatientDoctor.Application.Features.Medicine.Commands.AddEditMedicine
 {
     public class AddEditMedicineWithUserId : TableParam, IRequest<IResponse>

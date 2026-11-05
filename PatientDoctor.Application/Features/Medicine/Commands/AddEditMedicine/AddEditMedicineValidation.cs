@@ -1,5 +1,4 @@
-﻿using FluentValidation;
-
+﻿ 
 namespace PatientDoctor.Application.Features.Medicine.Commands.AddEditMedicine
 {
     public class AddEditMedicineValidation :AbstractValidator<AddEditMedicineCommand>

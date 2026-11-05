@@ -1,6 +1,4 @@
-﻿using MediatR;
-using PatientDoctor.Application.Helpers;
-
+﻿
 namespace PatientDoctor.Application.Features.DoctorCheckUpFee.Command.AddEditDoctorCheckFees
 {
 	public class AddEditDoctorCheckUpFeeCommands : IRequest<IResponse>

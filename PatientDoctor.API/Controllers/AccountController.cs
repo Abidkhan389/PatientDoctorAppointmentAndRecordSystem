@@ -1,20 +1,6 @@
-﻿using MediatR;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using PatientDoctor.Application.Contracts.Persistance.IIdentityRepository;
-using PatientDoctor.Application.Features.Identity.Commands.ActiveInActive;
-using PatientDoctor.Application.Features.Identity.Commands.LoginUser;
-using PatientDoctor.Application.Features.Identity.Commands.RegisterUser;
-using PatientDoctor.Application.Features.Identity.Quries;
-using PatientDoctor.Application.Features.Identity.Quries.GetDoctorFee.GetDoctorFeeById;
-using PatientDoctor.Application.Features.Patient.Quries;
-using PatientDoctor.Application.Helpers;
-using PatientDoctor.Infrastructure.Repositories.GeneralServices;
-using System.Security.Claims;
+﻿using BuildingBlocks.Models.Identity;
 
-namespace PatientDoctor.API.Controllers
-{
+namespace PatientDoctor.API.Controllers;
     [Authorize]
     [Route("api/[controller]")]
     [ApiController]
@@ -34,12 +20,7 @@ namespace PatientDoctor.API.Controllers
         [Route("ActiveInactive")]
         public async Task<object> ActiveInActive([FromBody] ActiveInActiveIdentity model)
         {
-            if (!ModelState.IsValid)
-            {
-                _response.Success = Constants.ResponseFailure;
-                _response.Message = Constants.ModelStateStateIsInvalid;
-                return Ok(_response);
-            }
+            
             return await _mediator.Send(model);
 
         }
@@ -47,20 +28,29 @@ namespace PatientDoctor.API.Controllers
         [Route("AddEditUser")]
         public async Task<object> AddEditUser(AddEditUserCommands model)
         {
-            if (!ModelState.IsValid)
-            {
-                _response.Success = Constants.ResponseFailure;
-                _response.Message = Constants.ModelStateStateIsInvalid;
-                return Ok(_response);
-            }
+
             var UserId = HelperStatic.GetUserIdFromClaims((ClaimsIdentity)User.Identity);
+
+            // Only a SuperAdmin may turn a user's Two-Factor Authentication on/off.
+            if (!User.IsInRole(Roles.SuperAdmin))
+            {
+                model.TwoFactorEnabled = null;
+            }
 
             return await _mediator.Send(new AddEditUserWithCreatedOrUpdatedById(model, UserId));
         }
         [AllowAnonymous]
         [HttpPost]
+        [EnableRateLimiting("auth")]
         [Route("Login")]
         public async Task<object> Login(LoginUserCommand model)
+        {
+            return await _mediator.Send(model);
+        }
+        [AllowAnonymous]
+        [HttpPost]
+        [Route("GoogleLogin")]
+        public async Task<object> GoogleLogin(GoogleLoginCommand model)
         {
             return await _mediator.Send(model);
         }
@@ -82,8 +72,7 @@ namespace PatientDoctor.API.Controllers
         [Route("GetAllRoles")]
         public async Task<object> GetAllRoles()
         {
-            return await identityRepository.GetAllRoles();
-
+            return await _mediator.Send(new GetAllRolesQuery());
         }
         [AllowAnonymous]
         [HttpGet]
@@ -99,5 +88,11 @@ namespace PatientDoctor.API.Controllers
         {
             return await _mediator.Send(new GetDoctorFee(DoctorId));
         }
+        [AllowAnonymous]
+        [HttpPost("refreshToken")]
+        public async Task<object> RefreshToken(RefreshTokenCommand command)
+        {
+            return await _mediator.Send(command);
+        }
     }
-}
+

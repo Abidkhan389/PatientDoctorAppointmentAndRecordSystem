@@ -1,14 +1,5 @@
-﻿using PatientDoctor.domain.Entities.Public;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace PatientDoctor.domain.Entities
-{
+﻿
+namespace PatientDoctor.domain.Entities;
     //Patient Table for Admin to add Patient in Admin Schema
     [Table("Patient", Schema = "Admin")]
     public class Patient
@@ -26,4 +17,4 @@ namespace PatientDoctor.domain.Entities
         public string? TrackingNumber { get; set; }
         public virtual ICollection<Prescription> Prescriptions { get; set; } = new List<Prescription>();
     }
-}
+

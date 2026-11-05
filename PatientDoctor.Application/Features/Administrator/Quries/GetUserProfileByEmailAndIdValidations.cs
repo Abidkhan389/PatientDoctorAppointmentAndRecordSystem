@@ -1,6 +1,4 @@
-﻿using FluentValidation;
-using System.Text.RegularExpressions;
-namespace PatientDoctor.Application.Features.Administrator.Quries;
+﻿namespace PatientDoctor.Application.Features.Administrator.Quries;
 public class GetUserProfileByEmailAndIdValidations : AbstractValidator<GetUserProfileByEmailAndId>
 {
     public GetUserProfileByEmailAndIdValidations()

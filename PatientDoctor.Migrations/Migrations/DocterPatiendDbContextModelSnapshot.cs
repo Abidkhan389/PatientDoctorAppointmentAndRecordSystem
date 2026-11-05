@@ -195,7 +195,6 @@ namespace PatientDoctor.Migrations.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("PasswordSalt")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("PhoneNumber")
@@ -515,6 +514,34 @@ namespace PatientDoctor.Migrations.Migrations
                     b.HasIndex("MedicineId");
 
                     b.ToTable("DoctorMedicines");
+                });
+
+            modelBuilder.Entity("PatientDoctor.domain.Entities.GlobalExceptionLog", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Path")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("StackTrace")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("StatusCode")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("GlobalExceptionLogs");
                 });
 
             modelBuilder.Entity("PatientDoctor.domain.Entities.Medicine", b =>
@@ -950,6 +977,105 @@ namespace PatientDoctor.Migrations.Migrations
                     b.ToTable("Province", "Admin");
                 });
 
+            modelBuilder.Entity("PatientDoctor.domain.Entities.Public.DoctorAssistant", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("AssistantId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("CreatedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DoctorId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("UpdatedOn")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AssistantId");
+
+                    b.HasIndex("DoctorId", "AssistantId")
+                        .IsUnique()
+                        .HasFilter("[DoctorId] IS NOT NULL AND [AssistantId] IS NOT NULL");
+
+                    b.ToTable("DoctorAssistant", "Admin");
+                });
+
+            modelBuilder.Entity("PatientDoctor.domain.Entities.UserLogin", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("LinkedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Provider")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ProviderKey")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("Provider", "ProviderKey")
+                        .IsUnique();
+
+                    b.ToTable("UserLogin");
+                });
+
+            modelBuilder.Entity("PatientDoctor.domain.Entities.UserRefreshToken", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("Expires")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsRevoked")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsUsed")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("TokenHash")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("UserRefreshTokens");
+                });
+
             modelBuilder.Entity("PatientDoctor.domain.Entities.Userdetail", b =>
                 {
                     b.Property<Guid>("UserDetailId")
@@ -992,9 +1118,12 @@ namespace PatientDoctor.Migrations.Migrations
 
                     b.Property<string>("UserId")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.HasKey("UserDetailId");
+
+                    b.HasIndex("UserId")
+                        .IsUnique();
 
                     b.ToTable("Userdetail");
                 });
@@ -1168,11 +1297,59 @@ namespace PatientDoctor.Migrations.Migrations
                     b.Navigation("Prescription");
                 });
 
+            modelBuilder.Entity("PatientDoctor.domain.Entities.Public.DoctorAssistant", b =>
+                {
+                    b.HasOne("PatientDoctor.domain.Entities.ApplicationUser", "Assistant")
+                        .WithMany("AssignedDoctor")
+                        .HasForeignKey("AssistantId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.HasOne("PatientDoctor.domain.Entities.ApplicationUser", "Doctor")
+                        .WithMany("Assistants")
+                        .HasForeignKey("DoctorId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Assistant");
+
+                    b.Navigation("Doctor");
+                });
+
+            modelBuilder.Entity("PatientDoctor.domain.Entities.UserLogin", b =>
+                {
+                    b.HasOne("PatientDoctor.domain.Entities.ApplicationUser", "User")
+                        .WithMany("Logins")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("PatientDoctor.domain.Entities.Userdetail", b =>
+                {
+                    b.HasOne("PatientDoctor.domain.Entities.ApplicationUser", "User")
+                        .WithOne("UserDetails")
+                        .HasForeignKey("PatientDoctor.domain.Entities.Userdetail", "UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("PatientDoctor.domain.Entities.ApplicationUser", b =>
                 {
+                    b.Navigation("AssignedDoctor");
+
+                    b.Navigation("Assistants");
+
                     b.Navigation("DoctorMedicines");
 
+                    b.Navigation("Logins");
+
                     b.Navigation("Prescriptions");
+
+                    b.Navigation("UserDetails")
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("PatientDoctor.domain.Entities.Medicine", b =>

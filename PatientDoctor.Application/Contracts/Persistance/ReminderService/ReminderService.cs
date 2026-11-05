@@ -1,7 +1,4 @@
-﻿using PatientDoctor.Application.Contracts.Persistance.IEmail;
-using PatientDoctor.Application.Contracts.Persistance.IReminderServices;
-using PatientDoctor.Application.Helpers.EmailRequest;
-
+﻿
 namespace PatientDoctor.Application.Contracts.Persistance.ReminderService;
 public class ReminderService : IReminderService
 {

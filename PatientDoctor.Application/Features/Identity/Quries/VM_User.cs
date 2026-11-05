@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
+﻿
 namespace PatientDoctor.Application.Features.Identity.Quries
 {
     public class VM_User
@@ -19,5 +14,7 @@ namespace PatientDoctor.Application.Features.Identity.Quries
         public string RoleId { get; set; }
         public string? RoleName { get; set; }
         public int? Fee { get; set; }
+        public string? DoctorId { get; set; }
+        public bool TwoFactorEnabled { get; set; }
     }
 }

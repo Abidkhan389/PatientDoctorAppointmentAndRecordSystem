@@ -1,18 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-using PatientDoctor.Application.Contracts.Persistance.IMedicine;
-using PatientDoctor.Application.Contracts.Security;
-using PatientDoctor.Application.Features.Medicine.Commands.ActiveInActive;
-using PatientDoctor.Application.Features.Medicine.Commands.AddEditMedicine;
-using PatientDoctor.Application.Features.Medicine.Quries.GetAllByProc;
-using PatientDoctor.Application.Features.Medicine.Quries.GetAllMedicine;
-using PatientDoctor.Application.Features.Medicine.Quries.GetAllMedicineTypes;
-using PatientDoctor.Application.Features.Medicine.Quries.GetById;
-using PatientDoctor.Application.Features.Medicine.Quries.GetDoctorMedicine;
-using PatientDoctor.Application.Features.Medicine.Quries.GetDoctorMedicinePotency;
-using PatientDoctor.Application.Helpers;
-using PatientDoctor.domain.Entities;
-using PatientDoctor.Infrastructure.Persistance;
-using PatientDoctor.Infrastructure.Repositories.GeneralServices;
+﻿using MedicineVM_DoctorMedicine = PatientDoctor.Application.Features.Medicine.Quries.GetDoctorMedicine.VM_DoctorMedicine;
 
 namespace PatientDoctor.Infrastructure.Repositories.Medicine
 {
@@ -263,7 +249,7 @@ namespace PatientDoctor.Infrastructure.Repositories.Medicine
             var doctorMedicine = await (from doctor in _context.DoctorMedicines
                                         join medicine in _context.Medicine on doctor.MedicineId equals medicine.Id
                                         where doctor.DoctorId == model.DoctorId
-                                        select new VM_DoctorMedicine
+                                        select new MedicineVM_DoctorMedicine // <-- Use the alias here
                                         {
                                             MedicineId = medicine.Id,
                                             MedicineName = medicine.MedicineName,

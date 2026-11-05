@@ -1,9 +1,4 @@
 ﻿
-using MediatR;
-using PatientDoctor.Application.Contracts.Persistance.IDoctorAvailability;
-using PatientDoctor.Application.Contracts.Persistance.IDoctorHolidayRepository;
-using PatientDoctor.Application.Helpers;
-
 namespace PatientDoctor.Application.Features.DoctorHoliday.Command.AddEditDoctorHoliday;
 public class AddEditDoctorHolidayHandler(IDoctorHolidayRepository _doctorHolidayRepository) : IRequestHandler<AddEditDoctorHolidayCommand, IResponse>
 {

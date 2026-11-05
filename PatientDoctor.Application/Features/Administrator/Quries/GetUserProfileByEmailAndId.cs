@@ -1,6 +1,4 @@
-﻿using MediatR;
-using PatientDoctor.Application.Helpers;
-
+﻿
 namespace PatientDoctor.Application.Features.Administrator.Quries;
 public   class GetUserProfileByEmailAndId :IRequest<IResponse>
 {

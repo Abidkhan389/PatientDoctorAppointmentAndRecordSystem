@@ -1,9 +1,4 @@
-﻿using Microsoft.Extensions.Configuration;
-using PatientDoctor.Application.Contracts.Persistance.ISmsRepository;
-using PatientDoctor.Application.Helpers.AppointmentSms;
-using Newtonsoft.Json;
-using System.Text;
-
+﻿
 namespace PatientDoctor.Infrastructure.Repositories.SmsRepository;
 public class PatientAppointmentSmsRepository(IHttpClientFactory _httpClient, IConfiguration _configuration) : IPatientAppointmentSmsRepository
 {

@@ -1,17 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
-using PatientDoctor.Application.Contracts.Persistance.IDoctorCheckUpFeeRepository;
-using PatientDoctor.Application.Contracts.Security;
-using PatientDoctor.Application.Features.DoctorCheckUpFee.Command.ActiveInActive;
-using PatientDoctor.Application.Features.DoctorCheckUpFee.Command.AddEditDoctorCheckFees;
-using PatientDoctor.Application.Features.DoctorCheckUpFee.Quries.GetAllByProc;
-using PatientDoctor.Application.Features.DoctorCheckUpFee.Quries.GetById;
-using PatientDoctor.Application.Features.Medicine.Quries.GetById;
-using PatientDoctor.Application.Helpers;
-using PatientDoctor.Infrastructure.Persistance;
-using PatientDoctor.Infrastructure.Repositories.GeneralServices;
-
-namespace PatientDoctor.Infrastructure.Repositories.DoctorFeeCheckUpFee
-{
+﻿
+namespace PatientDoctor.Infrastructure.Repositories.DoctorFeeCheckUpFee;
 	public class DoctorCheckUpFeeRepository : IDoctorCheckUpFeeRepository
     {
         private readonly DocterPatiendDbContext _context;
@@ -170,5 +158,5 @@ namespace PatientDoctor.Infrastructure.Repositories.DoctorFeeCheckUpFee
             return _response;
         }
     }
-}
+
 

@@ -1,12 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace PatientDoctor.Application.Helpers.General
-{
+﻿
+namespace PatientDoctor.Application.Helpers.General;
     public class ListingLogFields
     {
         public int TotalCount { get; set; }
@@ -34,4 +27,4 @@ namespace PatientDoctor.Application.Helpers.General
         }
     }
 
-}
+

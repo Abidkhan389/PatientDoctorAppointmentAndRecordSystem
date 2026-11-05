@@ -1,5 +1,4 @@
 ﻿
-using PatientDoctor.Application.Helpers.General;
 namespace PatientDoctor.Application.Features.Patient.Quries.GetDoctorSlots;
 public class VM_DoctorTimeSlotsPerDay : ListingLogFields
 {

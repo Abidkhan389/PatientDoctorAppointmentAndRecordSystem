@@ -1,5 +1,4 @@
 ﻿
-using PatientDoctor.Application.Helpers.General.Attachments;
 
 namespace PatientDoctor.Application.Contracts.Persistance.IFileRepository;
     public interface IFileUploader

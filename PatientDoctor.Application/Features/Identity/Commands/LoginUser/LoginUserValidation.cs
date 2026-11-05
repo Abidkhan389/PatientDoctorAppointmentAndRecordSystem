@@ -1,11 +1,4 @@
-﻿using FluentValidation;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace PatientDoctor.Application.Features.Identity.Commands.LoginUser
+﻿namespace PatientDoctor.Application.Features.Identity.Commands.LoginUser
 {
     public class LoginUserValidation : AbstractValidator<LoginUserCommand>
     {

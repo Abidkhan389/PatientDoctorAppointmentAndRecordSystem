@@ -1,11 +1,4 @@
-﻿using MediatR;
-using PatientDoctor.Application.Helpers;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
+﻿
 namespace PatientDoctor.Application.Features.Identity.Commands.RegisterUser
 {
     public class AddEditUserCommands : IRequest<IResponse>
@@ -19,8 +12,12 @@ namespace PatientDoctor.Application.Features.Identity.Commands.RegisterUser
         public string Cnic { get; set; }
         public string City { get; set; }
         public string RoleId { get; set; }
+        public string? DoctorId { get; set; }
         public int? Fee { get; set; }
         public string? ProfilePicture { get; set; }
+        // Null = leave as-is (edit) / default to false (create). Only honoured when the
+        // caller is a SuperAdmin - enforced in AccountController.AddEditUser.
+        public bool? TwoFactorEnabled { get; set; }
 
 
     }

@@ -1,14 +1,5 @@
-﻿using MediatR;
-using PatientDoctor.Application.Helpers;
-using PatientDoctor.Application.Helpers.General;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace PatientDoctor.Application.Features.Patient.Commands.AddEditPatient
-{
+﻿
+namespace PatientDoctor.Application.Features.Patient.Commands.AddEditPatient;
     public class AddEditPatientWithUserId:TableParam, IRequest<IResponse>
     {
         public AddEditPatientCommand AddEditPatientObj { get; }
@@ -20,4 +11,4 @@ namespace PatientDoctor.Application.Features.Patient.Commands.AddEditPatient
             this.UserId = Userid;
         }
     }
-}
+

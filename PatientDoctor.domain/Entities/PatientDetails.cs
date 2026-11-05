@@ -1,14 +1,5 @@
-﻿using PatientDoctor.domain.Entities.Public;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace PatientDoctor.domain.Entities
-{
+﻿
+namespace PatientDoctor.domain.Entities;
     [Table("PatientDetails", Schema = "Admin")]
     public class PatientDetails: LogFields
     {
@@ -23,4 +14,4 @@ namespace PatientDoctor.domain.Entities
         public int CheckUpStatus { get; set; }
 
     }
-}
+

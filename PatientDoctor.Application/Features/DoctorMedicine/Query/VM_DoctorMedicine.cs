@@ -1,7 +1,4 @@
-﻿
-
-using PatientDoctor.Application.Features.DoctorMedicine.Command;
-
+﻿ 
 namespace PatientDoctor.Application.Features.DoctorMedicine.Query;
 public class VM_DoctorMedicine
 {

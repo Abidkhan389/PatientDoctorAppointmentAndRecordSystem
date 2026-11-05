@@ -1,7 +1,4 @@
-﻿using MediatR;
-using PatientDoctor.Application.Contracts.Persistance.IDoctorCheckUpFeeRepository;
-using PatientDoctor.Application.Helpers;
-
+﻿
 namespace PatientDoctor.Application.Features.DoctorCheckUpFee.Quries.GetAllByProc
 {
 	public class GetDoctorCheckUpFeeDetailsHandler : IRequestHandler<GetDoctorCheckUpFeeDetailsList, IResponse>

@@ -1,19 +1,4 @@
-﻿using MediatR;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using PatientDoctor.Application.Features.DoctorHoliday.Command.ActiveInActive;
-using PatientDoctor.Application.Features.DoctorHoliday.Command.AddEditDoctorHoliday;
-using PatientDoctor.Application.Features.DoctorHoliday.Quries.GetAllByProc;
-using PatientDoctor.Application.Features.DoctorHoliday.Quries.GetDoctorHolidayById;
-using PatientDoctor.Application.Features.DoctorHoliday.Quries.GetDoctorHolidaysByDoctorIdForPatientAppointment;
-using PatientDoctor.Application.Features.Patient.Commands.ActiveInActive;
-using PatientDoctor.Application.Features.Patient.Commands.AddEditPatient;
-using PatientDoctor.Application.Features.Patient.Commands.AddPatientDescription;
-using PatientDoctor.Application.Features.Patient.Quries;
-using PatientDoctor.Application.Helpers;
-using PatientDoctor.Infrastructure.Repositories.GeneralServices;
-using System.Security.Claims;
-
+﻿
 namespace PatientDoctor.API.Controllers;
 
 [Authorize]

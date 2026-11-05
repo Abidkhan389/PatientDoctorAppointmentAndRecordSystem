@@ -1,13 +1,4 @@
 ﻿
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.EntityFrameworkCore;
-using PatientDoctor.Application.Contracts.Persistance.IFileRepository;
-using PatientDoctor.Application.Contracts.Persistance.IFileStorage;
-using PatientDoctor.Application.Helpers.General.Attachments;
-using PatientDoctor.domain.Entities;
-using PatientDoctor.Infrastructure.Persistance;
-using PatientDoctor.Infrastructure.Utalities;
-
 namespace PatientDoctor.Infrastructure.Repositories.FileUploaders;
 public   class FileUploaderRepository(IFileStorageRepository _fileStorageRepository, DocterPatiendDbContext _context
                                       , IWebHostEnvironment _hostingEnvironment) : IFileUploader

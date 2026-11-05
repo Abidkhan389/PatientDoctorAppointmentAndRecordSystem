@@ -1,8 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
-using System.ComponentModel.DataAnnotations;
-using PatientDoctor.domain.Entities.Public;
-using PatientDoctor.Application.Features.DoctorHoliday.Command.AddEditDoctorHoliday;
-
+﻿
 namespace PatientDoctor.domain.Entities;
 [Table("DoctorHoliday", Schema = "Admin")]
 public class DoctorHolidays : LogFields

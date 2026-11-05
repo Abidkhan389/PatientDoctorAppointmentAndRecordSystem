@@ -1,19 +1,5 @@
-﻿using MediatR;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using PatientDoctor.Application.Contracts.Persistance.IMedicineType;
-using PatientDoctor.Application.Features.Medicinetype.Commands.ActiveInActive;
-using PatientDoctor.Application.Features.Medicinetype.Commands.AddEditMedicineType;
-using PatientDoctor.Application.Features.Medicinetype.Quries;
-using PatientDoctor.Application.Features.Patient.Commands.AddEditPatient;
-using PatientDoctor.Application.Features.Patient.Quries;
-using PatientDoctor.Application.Helpers;
-using PatientDoctor.Infrastructure.Repositories.GeneralServices;
-using System.Security.Claims;
-
-namespace PatientDoctor.API.Controllers
-{
+﻿
+namespace PatientDoctor.API.Controllers;
     [Authorize]
     [Route("api/[controller]")]
     [ApiController]
@@ -49,11 +35,11 @@ namespace PatientDoctor.API.Controllers
         {
             return await _mediator.Send(model);
         }
-        [HttpPost]
+        [HttpGet]
         [Route("GetMedicineTypeById")]
-        public async Task<object> GetMedicineTypeById(GetMedicineTypeById MedicineTypeId)
+        public async Task<object> GetMedicineTypeById([FromQuery] Guid Id )
         {
-            return await _mediator.Send(MedicineTypeId);
+            return await _mediator.Send(new GetMedicineTypeById(Id));
         }
         [HttpPost]
         [Route("GetAllMeDicineType")]
@@ -62,4 +48,4 @@ namespace PatientDoctor.API.Controllers
             return await _medicinetypeRepository.GetAllMedicineTypeWithIdAndName();
         }
     }
-}
+

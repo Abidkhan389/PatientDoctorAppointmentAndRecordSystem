@@ -1,9 +1,4 @@
-﻿using PatientDoctor.Application.Features.DoctorMedicine.Command;
-using PatientDoctor.Application.Features.Medicine.Commands.AddEditMedicine;
-using PatientDoctor.domain.Entities.Public;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.Numerics;
-
+﻿
 namespace PatientDoctor.domain.Entities;
 public class DoctorMedicines : LogFields
 {

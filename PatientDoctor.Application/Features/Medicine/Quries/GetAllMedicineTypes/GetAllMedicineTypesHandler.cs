@@ -1,7 +1,4 @@
-﻿using MediatR;
-using PatientDoctor.Application.Contracts.Persistance.IMedicine;
-using PatientDoctor.Application.Helpers;
-
+﻿ 
 namespace PatientDoctor.Application.Features.Medicine.Quries.GetAllMedicineTypes;
 public class GetAllMedicineTypesHandler : IRequestHandler<GetAllMedicineTypes, IResponse>
 {

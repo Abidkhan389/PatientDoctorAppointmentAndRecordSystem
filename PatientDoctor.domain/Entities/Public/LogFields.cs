@@ -1,11 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace PatientDoctor.domain.Entities.Public
-{
+﻿
+namespace PatientDoctor.domain.Entities.Public;
     public class LogFields
     {
         public Guid? CreatedBy { get; set; }
@@ -13,4 +7,4 @@ namespace PatientDoctor.domain.Entities.Public
         public Guid? UpdatedBy { get; set; }
         public DateTime? UpdatedOn { get; set; }
     }
-}
+

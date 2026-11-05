@@ -1,9 +1,4 @@
 ﻿
-using MediatR;
-using PatientDoctor.Application.Contracts.Persistance.IPatientCheckUpHistroy;
-using PatientDoctor.Application.Features.PatientCheckUpHistroy.Commands.ActiveInActive;
-using PatientDoctor.Application.Helpers;
-
 namespace PatientDoctor.Application.Features.PatientCheckUpHistroy.Quries.Commands.ActiveInActive;
 public class ActiveInActivePatientCheckUpHistoryHndler(IPatientCheckUpHistroyRepository _patientCheckUpHistroyRepository) : IRequestHandler<ActiveInActivePatientCheckUpHistory, IResponse>
 {

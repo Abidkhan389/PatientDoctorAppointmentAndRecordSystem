@@ -1,8 +1,4 @@
 ﻿
-using MediatR;
-using PatientDoctor.Application.Contracts.Persistance.IDoctorHolidayRepository;
-using PatientDoctor.Application.Helpers;
-
 namespace PatientDoctor.Application.Features.DoctorHoliday.Command.ActiveInActive;
 public class ActiveInActiveDoctorHolidayHandler(IDoctorHolidayRepository _doctorHolidayRepository) : IRequestHandler<ActiveInActiveDoctorHoliday, IResponse>
 {

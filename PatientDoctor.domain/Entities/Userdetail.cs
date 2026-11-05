@@ -1,19 +1,11 @@
-﻿using PatientDoctor.Application.Features.Identity.Commands.RegisterUser;
-using PatientDoctor.domain.Entities.Public;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace PatientDoctor.domain.Entities
-{
+﻿
+namespace PatientDoctor.domain.Entities;
     public class Userdetail: LogFields
     {
         [Key]
         public Guid UserDetailId { get; set; }
         public string UserId { get; set; }
+        public ApplicationUser User { get; set; }  // Navigation
         public string Cnic { get; set; }
         public string FirstName { get; set; }
         public string LastName { get; set; }
@@ -47,4 +39,4 @@ namespace PatientDoctor.domain.Entities
         //    this.UserDetailId = Guid.NewGuid();
         //}
     }
-}
+

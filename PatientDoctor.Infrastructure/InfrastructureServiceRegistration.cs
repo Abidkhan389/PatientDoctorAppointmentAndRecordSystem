@@ -1,56 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using PatientDoctor.domain.Entities;
-using System.Reflection;
-using PatientDoctor.Infrastructure.Persistance;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
-using System.Text;
-using PatientDoctor.Application.Contracts.Persistance.IIdentityRepository;
-using PatientDoctor.Infrastructure.Repositories.Identity;
-using PatientDoctor.Application.Contracts.Persistance.Patient;
-using PatientDoctor.Infrastructure.Repositories.Patient;
-using PatientDoctor.Application.Helpers;
-using PatientDoctor.Application.Contracts.Security;
-using PatientDoctor.Infrastructure.Repositories.CryptoService;
-using System.Security.Cryptography;
-using PatientDoctor.Application.Contracts.Persistance.Dashboard;
-using PatientDoctor.Infrastructure.Repositories.Dashboard;
-using PatientDoctor.Application.Contracts.Persistance.ISecurity;
-using PatientDoctor.Infrastructure.Repositories.SecurityRepository;
-using PatientDoctor.Application.Contracts.Persistance.IAdministratorRepository;
-using PatientDoctor.Infrastructure.Repositories.Administrator;
-using PatientDoctor.Application.Contracts.Persistance.IMedicineType;
-using PatientDoctor.Infrastructure.Repositories.MedicineType;
-using PatientDoctor.Application.Contracts.Persistance.IMedicine;
-using PatientDoctor.Infrastructure.Repositories.Medicine;
-using PatientDoctor.Application.Contracts.Persistance.IDoctorCheckUpFeeRepository;
-using PatientDoctor.Infrastructure.Repositories.DoctorFeeCheckUpFee;
-using PatientDoctor.Application.Contracts.Persistance.IDoctorAvailability;
-using PatientDoctor.Infrastructure.Repositories.DoctorAvailability;
-using PatientDoctor.Application.Contracts.Persistance.IDoctorMedicine;
-using PatientDoctor.Infrastructure.Repositories.DoctorMedicine;
-using PatientDoctor.Infrastructure.Repositories.PatientCheckUpHistroy;
-using PatientDoctor.Application.Contracts.Persistance.IPatientCheckUpHistroy;
-using PatientDoctor.Application.Contracts.Persistance.IFileStorage;
-using PatientDoctor.Infrastructure.Repositories.FileUploaders;
-using PatientDoctor.Application.Contracts.Persistance.IFileRepository;
-using PatientDoctor.Infrastructure.Repositories.FileSystemStorage;
-using PatientDoctor.Application.Contracts.Persistance.IDoctorHolidayRepository;
-using PatientDoctor.Infrastructure.Repositories.DoctorHoliday;
-using PatientDoctor.Application.Features.Email;
-using PatientDoctor.Application.Contracts.Persistance.IEmail;
-using PatientDoctor.Infrastructure.Repositories.Email;
-using Hangfire;
-using PatientDoctor.Application.Contracts.Persistance.IReminderServices;
-using PatientDoctor.Application.Contracts.Persistance.ReminderService;
-using PatientDoctor.Infrastructure.Repositories.ReminderSchedulers;
-using PatientDoctor.Application.Contracts.Persistance.ISmsRepository;
-using PatientDoctor.Infrastructure.Repositories.SmsRepository;
-namespace PatientDoctor.Infrastructure
-{
+﻿namespace PatientDoctor.Infrastructure;
     public static class InfrastructureServiceRegistration
     {
         public static IServiceCollection AddInfrastructureServices(this IServiceCollection services, IConfiguration configuration)
@@ -91,32 +39,41 @@ namespace PatientDoctor.Infrastructure
                       .SetIsOriginAllowed((host) => true)
                       .AllowCredentials();
            }));
-            var jwtSecretKey = GenerateJwtSecretKey();
-            configuration["JWT:Secret"] = jwtSecretKey;
-            services.AddAuthentication(options =>
-             {
-                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-                 options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-                 options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
-             })
-             //Adding JWT Bearer 
-             .AddJwtBearer(options =>
-             {
-                 //options.SaveToken = false;
-                 options.SaveToken = true;
-                 options.RequireHttpsMetadata = false;
-                 options.TokenValidationParameters = new TokenValidationParameters()
+            //var jwtSecretKey = GenerateJwtSecretKey();
+            //configuration["JWT:Secret"] = jwtSecretKey;
+                services.AddAuthentication(options =>
                  {
-                     ValidateIssuer = true,
-                     ValidateAudience = true,
-                     //ValidateIssuer = false,
-                     //ValidateAudience = false, 
-                     ValidAudience = configuration["JWT:ValidAudience"],
-                     ValidIssuer = configuration["JWT:ValidIssuer"],
-                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["JWT:Secret"]))
-                 };
-             })
-             .AddCookie();
+                     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                     options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+                 })
+                 //Adding JWT Bearer 
+                 .AddJwtBearer(options =>
+                 {
+                     //options.SaveToken = false;
+                     options.SaveToken = true;
+                     options.RequireHttpsMetadata = false;
+                     options.TokenValidationParameters = new TokenValidationParameters()
+                     {
+                         ValidateIssuer = true,
+                         ValidateAudience = true,
+                         ValidateLifetime = true,            
+                         ValidateIssuerSigningKey = true,
+                         ClockSkew = TimeSpan.Zero, 
+                         ValidAudience = configuration["JWT:ValidAudience"],
+                         ValidIssuer = configuration["JWT:ValidIssuer"],
+                         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["JWT:Secret"])),
+                         // THIS IS KEY: Map role claim type
+                         RoleClaimType = "http://schemas.microsoft.com/ws/2008/06/identity/claims/role",
+                         NameClaimType = ClaimTypes.NameIdentifier
+
+                     };
+                 });
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("DoctorAssistantOrDoctor", policy =>
+                    policy.RequireRole(Roles.DoctorAssistant, Roles.Doctor));
+            });
             services.AddAutoMapper(Assembly.GetExecutingAssembly());
             services.AddScoped<IIdentityRepository, IdentityRepository>();
             services.AddScoped<IPatientRepository, PatientRepository>();
@@ -139,25 +96,22 @@ namespace PatientDoctor.Infrastructure
             services.AddScoped<IPatientAppointmentSmsRepository, PatientAppointmentSmsRepository>();
             
             services.AddScoped<IReminderService, ReminderService>();
+            services.AddScoped<IReports, ReportsRepository>();
+
             services.AddScoped<ReminderScheduler>();
             // Configure Email Settings
             services.Configure<EmailSettings>(configuration.GetSection("EmailSettings"));
 
             // Register Email Service
             services.AddScoped<IEmailRepository, EmailRepository>();
+            services.AddScoped<IExceptionLogRepository, ExceptionLogRepository>();
+            services.AddSingleton<IExceptionLogger, ExceptionLogger>();
+            services.AddScoped<IGoogleTokenValidator, GoogleLoginRepository>();
+            services.AddProblemDetails();
             services.AddAuthorization();
             services.AddHttpClient();
             return services;
         }
-        private static string GenerateJwtSecretKey()
-        {
-            var keyBytes = new byte[32]; // 256 bits
-            using (var rng = RandomNumberGenerator.Create())
-            {
-                rng.GetBytes(keyBytes);
-            }
-            return Convert.ToBase64String(keyBytes);
-        }
-
+        
     }
-}
+

@@ -1,7 +1,5 @@
-﻿using FluentValidation;
-
-namespace PatientDoctor.Application.Features.Patient.Commands.AddPatientDescription
-{
+﻿
+namespace PatientDoctor.Application.Features.Patient.Commands.AddPatientDescription;
     public class AddPatientDescriptoinValidation : AbstractValidator<AddPatientDescriptionCommand>
     {
         public AddPatientDescriptoinValidation()
@@ -119,4 +117,4 @@ namespace PatientDoctor.Application.Features.Patient.Commands.AddPatientDescript
                 .WithMessage("At least one dose time (Morning, Afternoon, Evening, Night,RepeatEveryHours,RepeatEveryTwoHours) must be selected.");
         }
     }
-}
+

@@ -1,7 +1,4 @@
 ﻿
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-
 namespace PatientDoctor.Application.Features.PatientCheckUpHistroy.Quries.GetById;
 public class VM_PatientCheckHistroyById
 {

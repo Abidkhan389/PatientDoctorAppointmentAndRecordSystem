@@ -1,6 +1,4 @@
-﻿using MediatR;
-using PatientDoctor.Application.Helpers;
-
+﻿
 namespace PatientDoctor.Application.Features.Patient.Commands.AddPatientDescription;
     public class AddPatientDescriptionCommand : IRequest<IResponse>
     {

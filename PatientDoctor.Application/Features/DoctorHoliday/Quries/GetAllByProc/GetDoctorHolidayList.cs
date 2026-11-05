@@ -1,8 +1,4 @@
 ﻿
-using MediatR;
-using PatientDoctor.Application.Helpers;
-using PatientDoctor.Application.Helpers.General;
-
 namespace PatientDoctor.Application.Features.DoctorHoliday.Quries.GetAllByProc;
 public  class GetDoctorHolidayList : TableParam, IRequest<IResponse>
 {

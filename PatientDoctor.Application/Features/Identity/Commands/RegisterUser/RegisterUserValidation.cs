@@ -1,11 +1,4 @@
-﻿using FluentValidation;
-using PatientDoctor.Application.Features.Identity.Commands.RegisterUser;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
+﻿
 namespace PatientDoctor.Application.Features.Identity.Commands.RegisterUser
 {
     public class RegisterUserValidation : AbstractValidator<AddEditUserCommands>
@@ -60,7 +53,11 @@ namespace PatientDoctor.Application.Features.Identity.Commands.RegisterUser
                 .NotNull()
                 .MaximumLength(50).WithMessage("{City} must not exceed 50 characters.")
                 .MinimumLength(3).WithMessage("{City} must be greater than 3 characters.");
-
+            // DoctorId (string) — optional, but must be valid if provided
+            RuleFor(x => x.DoctorId)
+                .Must(x => string.IsNullOrWhiteSpace(x) == false)
+                .When(x => x.DoctorId != null) // Only check if value is provided
+                .WithMessage("DoctorId cannot be empty or whitespace.");
         }
 
     }

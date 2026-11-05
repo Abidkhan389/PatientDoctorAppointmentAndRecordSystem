@@ -1,11 +1,4 @@
-﻿using MediatR;
-using PatientDoctor.Application.Helpers;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
+﻿ 
 namespace PatientDoctor.Application.Features.Identity.Commands.LoginUser
 {
     public class LoginUserCommand : IRequest<IResponse>
@@ -14,6 +7,10 @@ namespace PatientDoctor.Application.Features.Identity.Commands.LoginUser
         public string Password { get; set; }
         public string? TwoFactorCode { get; set; }
         public string? TwoFactorRecoveryCode { get; set; }
+        // "Remember this Device" - if true and 2FA passes, a signed trusted-device
+        // token is returned so this device can skip 2FA next time.
+        public bool RememberDevice { get; set; }
+        public string? TrustedDeviceToken { get; set; }
 
     }
 }

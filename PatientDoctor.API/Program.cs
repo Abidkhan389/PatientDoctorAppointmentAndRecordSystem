@@ -1,9 +1,12 @@
-using PatientDoctor.Infrastructure;
-using PatientDoctor.Application;
-using Microsoft.OpenApi.Models;
-using System.Text.Json.Serialization;
+using BuildingBlocks.Exceptions.Handler;
 using Hangfire;
+using Microsoft.OpenApi.Models;
+using PatientDoctor.Application;
+using PatientDoctor.Infrastructure;
 using PatientDoctor.Infrastructure.Repositories.ReminderSchedulers;
+using PatientDoctor.Infrastructure.Web.Extensions;
+using System.Text.Json.Serialization;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -51,10 +54,11 @@ builder.Services.AddSwaggerGen(c =>
         }
     });
 });
-
+builder.Services.AddExceptionHandler<CustomExceptionHandler>();
 builder.Services.AddInfrastructureServices(builder.Configuration);
 builder.Services.AddApplicationServices();
-
+builder.Services.AddCustomRateLimiting();
+builder.Services.AddCarter();
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 
 var app = builder.Build();
@@ -70,11 +74,16 @@ app.UseCors("CorsPolicy");
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.MapCarter();
+
 app.UseStaticFiles();
 app.MapControllers();
-
+//app.UseMiddleware<GlobalExceptionMiddleware>(); // use here custom middleware
+app.UseExceptionHandler(); //user here built-in exception handler
 app.UseHangfireDashboard();
-
+app.MapControllers()
+   .RequireRateLimiting("global"); // default for all
 // Use Hangfire Server to start processing jobs in the background
 app.UseHangfireServer();
 
@@ -93,12 +102,12 @@ using (var scope = app.Services.CreateScope())
 //    TimeZoneInfo.FindSystemTimeZoneById("Pakistan Standard Time")  // Ensure time zone is correct
 //);
 
-RecurringJob.AddOrUpdate<ReminderScheduler>(
-    "daily-reminder-scheduler",
-    scheduler => scheduler.ScheduleReminders(),  // Make sure this is calling the correct method
-    "17 12 * * *",  // Cron expression for 11:44 AM daily
-    TimeZoneInfo.FindSystemTimeZoneById("Pakistan Standard Time")
-);
+//RecurringJob.AddOrUpdate<ReminderScheduler>(
+//    "daily-reminder-scheduler",
+//    scheduler => scheduler.ScheduleReminders(),  // Make sure this is calling the correct method
+//    "17 12 * * *",  // Cron expression for 11:44 AM daily
+//    TimeZoneInfo.FindSystemTimeZoneById("Pakistan Standard Time")
+//);
 
 app.Run();
 

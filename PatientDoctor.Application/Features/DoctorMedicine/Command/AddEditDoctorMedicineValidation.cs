@@ -1,6 +1,4 @@
 ﻿
-using FluentValidation;
-
 namespace PatientDoctor.Application.Features.DoctorMedicine.Command;
 public class AddEditDoctorMedicineValidation : AbstractValidator<AddEditDoctorMedicineCommand>
 {

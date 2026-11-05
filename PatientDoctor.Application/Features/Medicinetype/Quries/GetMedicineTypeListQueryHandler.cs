@@ -1,15 +1,5 @@
-﻿using MediatR;
-using PatientDoctor.Application.Contracts.Persistance.IIdentityRepository;
-using PatientDoctor.Application.Contracts.Persistance.IMedicineType;
-using PatientDoctor.Application.Helpers;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace PatientDoctor.Application.Features.Medicinetype.Quries
-{
+﻿
+namespace PatientDoctor.Application.Features.Medicinetype.Quries;
     public class GetMedicineTypeListQueryHandler : IRequestHandler<GetMedicineTypeList, IResponse>
     {
         private readonly IMedicinetypeRepository _medicinetypeRepository;
@@ -24,4 +14,4 @@ namespace PatientDoctor.Application.Features.Medicinetype.Quries
             return medicineTypeList;
         }
     }
-}
+

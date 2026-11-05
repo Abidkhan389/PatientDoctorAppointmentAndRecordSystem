@@ -1,7 +1,5 @@
-﻿using FluentValidation;
-
-namespace PatientDoctor.Application.Features.Patient.Quries.GetPatientDetailForPdf
-{
+﻿
+namespace PatientDoctor.Application.Features.Patient.Quries.GetPatientDetailForPdf;
     public class GetPatientDetailsForPdfValidation : AbstractValidator<GetPatientDetailsForPdfRequest>
     {
         public GetPatientDetailsForPdfValidation()
@@ -16,4 +14,4 @@ namespace PatientDoctor.Application.Features.Patient.Quries.GetPatientDetailForP
                .NotEmpty().WithMessage("DoctorId must not be empty or contain whitespace");
         }
     }
-}
+

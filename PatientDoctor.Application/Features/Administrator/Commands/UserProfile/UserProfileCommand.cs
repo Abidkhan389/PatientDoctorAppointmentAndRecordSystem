@@ -1,6 +1,4 @@
-﻿using MediatR;
-using Microsoft.AspNetCore.Http;
-using PatientDoctor.Application.Helpers;
+﻿
 namespace PatientDoctor.Application.Features.Administrator.Commands.UserProfile;
 
 public class UserProfileCommand : IRequest<IResponse>

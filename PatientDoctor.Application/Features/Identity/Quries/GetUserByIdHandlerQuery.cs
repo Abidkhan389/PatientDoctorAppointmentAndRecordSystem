@@ -1,12 +1,4 @@
-﻿using MediatR;
-using PatientDoctor.Application.Contracts.Persistance.IIdentityRepository;
-using PatientDoctor.Application.Helpers;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
+﻿
 namespace PatientDoctor.Application.Features.Identity.Quries
 {
     public class GetUserByIdHandlerQuery : IRequestHandler<GetUserById, IResponse>
@@ -20,6 +12,8 @@ namespace PatientDoctor.Application.Features.Identity.Quries
         public async Task<IResponse> Handle(GetUserById request, CancellationToken cancellationToken)
         {
             var user = await _identityRepository.GetUserById(request);
+            if (user.Data == null)
+                throw new NotFoundException($"User with Id {request.id} not found.");
             return user;
         }
     }

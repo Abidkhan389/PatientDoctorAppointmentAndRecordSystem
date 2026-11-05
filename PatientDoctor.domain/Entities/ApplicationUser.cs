@@ -1,15 +1,8 @@
-﻿using Microsoft.AspNetCore.Identity;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace PatientDoctor.domain.Entities
-{
+﻿
+namespace PatientDoctor.domain.Entities;
     public class ApplicationUser: IdentityUser
     {
-        public string PasswordSalt { get; set; }
+        public string? PasswordSalt { get; set; }
         public bool IsSuperAdmin { get; set; }
         public int Status { get; set; }
         public string RoleName { get; set; }
@@ -23,5 +16,10 @@ namespace PatientDoctor.domain.Entities
         }
         public ICollection<DoctorMedicines> DoctorMedicines { get; set; } = new List<DoctorMedicines>();
         public virtual ICollection<Prescription> Prescriptions { get; set; } = new List<Prescription>();
+        // Navigation
+        public ICollection<UserLogin> Logins { get; set; } = new List<UserLogin>();
+        public virtual ICollection<DoctorAssistant> Assistants { get; set; }   // If Doctor
+        public virtual ICollection<DoctorAssistant> AssignedDoctor { get; set; } // // If Assistant
+        public virtual Userdetail UserDetails { get; set; }
     }
-}
+

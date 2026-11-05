@@ -1,11 +1,4 @@
-﻿using PatientDoctor.Application.Features.Medicine.Commands.ActiveInActive;
-using PatientDoctor.Application.Features.Medicine.Commands.AddEditMedicine;
-using PatientDoctor.Application.Features.Medicine.Quries.GetAllByProc;
-using PatientDoctor.Application.Features.Medicine.Quries.GetAllMedicine;
-using PatientDoctor.Application.Features.Medicine.Quries.GetDoctorMedicine;
-using PatientDoctor.Application.Features.Medicine.Quries.GetDoctorMedicinePotency;
-using PatientDoctor.Application.Helpers;
-
+﻿
 namespace PatientDoctor.Application.Contracts.Persistance.IMedicine
 {
     public interface IMedicineRepository

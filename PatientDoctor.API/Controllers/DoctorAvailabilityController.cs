@@ -1,17 +1,4 @@
-﻿using MediatR;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using PatientDoctor.Application.Features.Doctor_Availability.ActiveInActive;
-using PatientDoctor.Application.Features.Doctor_Availability.Commands;
-using PatientDoctor.Application.Features.Doctor_Availability.Quries.GetAllByProc;
-using PatientDoctor.Application.Features.Doctor_Availability.Quries.GetById;
-using PatientDoctor.Application.Helpers;
-using PatientDoctor.Infrastructure.Repositories.GeneralServices;
-using System.Security.Claims;
-
-namespace PatientDoctor.API.Controllers
-{
+﻿namespace PatientDoctor.API.Controllers;
     [Authorize]
     [Route("api/[controller]")]
     [ApiController]
@@ -38,11 +25,13 @@ namespace PatientDoctor.API.Controllers
             model.UserId = UserId.ToString();
             return await _mediator.Send(model);
         }
-        [HttpPost]
+        [HttpGet]
         [Route("GetByIdDoctorAvaibality")]
-        public async Task<object> GetByIdDoctorAvaibality(GetByIdDoctorAvailabiliteis model)
+        public async Task<IActionResult> GetByIdDoctorAvaibality([FromQuery] Guid Id)
         {
-            return await _mediator.Send(model);
+            var result = await _mediator.Send(new GetByIdDoctorAvailabiliteis(Id));
+            return Ok(result);
         }
+
     }
-}
+

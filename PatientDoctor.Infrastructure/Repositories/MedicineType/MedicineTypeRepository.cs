@@ -1,16 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
-using PatientDoctor.Application.Contracts.Persistance.IMedicineType;
-using PatientDoctor.Application.Contracts.Security;
-using PatientDoctor.Application.Features.Medicinetype.Commands.ActiveInActive;
-using PatientDoctor.Application.Features.Medicinetype.Commands.AddEditMedicineType;
-using PatientDoctor.Application.Features.Medicinetype.Quries;
-using PatientDoctor.Application.Features.Medicinetype.Quries.GetAllMedicineTypesWithIdandName;
-using PatientDoctor.Application.Helpers;
-using PatientDoctor.Infrastructure.Persistance;
-using PatientDoctor.Infrastructure.Repositories.GeneralServices;
-
-namespace PatientDoctor.Infrastructure.Repositories.MedicineType
-{
+﻿
+namespace PatientDoctor.Infrastructure.Repositories.MedicineType;
     public class MedicineTypeRepository : IMedicinetypeRepository
     {
         private readonly DocterPatiendDbContext _context;
@@ -251,4 +240,4 @@ namespace PatientDoctor.Infrastructure.Repositories.MedicineType
             return _response;
         }
     }
-}
+

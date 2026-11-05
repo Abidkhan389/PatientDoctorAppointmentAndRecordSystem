@@ -1,7 +1,4 @@
 ﻿
-using MediatR;
-using PatientDoctor.Application.Helpers;
-
 namespace PatientDoctor.Application.Features.DoctorHoliday.Command.AddEditDoctorHoliday;
 public   class AddEditDoctorHolidayCommand :IRequest<IResponse>
 {

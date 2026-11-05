@@ -1,12 +1,5 @@
-﻿using AutoMapper;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace PatientDoctor.Infrastructure.Mapping
-{
+﻿
+namespace PatientDoctor.Infrastructure.Mapping;
     public class MappingProfile : Profile
     {
         public MappingProfile()
@@ -15,4 +8,4 @@ namespace PatientDoctor.Infrastructure.Mapping
             //CreateMap<Userdetail, >().ReverseMap();
         }
     }
-}
+

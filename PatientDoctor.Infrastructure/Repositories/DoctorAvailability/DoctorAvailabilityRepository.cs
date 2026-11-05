@@ -1,17 +1,4 @@
-﻿using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
-using Newtonsoft.Json;
-using PatientDoctor.Application.Contracts.Persistance.IDoctorAvailability;
-using PatientDoctor.Application.Features.Doctor_Availability.ActiveInActive;
-using PatientDoctor.Application.Features.Doctor_Availability.Commands;
-using PatientDoctor.Application.Features.Doctor_Availability.Quries.GetAllByProc;
-using PatientDoctor.Application.Helpers;
-using PatientDoctor.domain.Entities;
-using PatientDoctor.Infrastructure.Persistance;
-using PatientDoctor.Infrastructure.Repositories.GeneralServices;
-using System.Globalization;
-
+﻿
 namespace PatientDoctor.Infrastructure.Repositories.DoctorAvailability;
 public class DoctorAvailabilityRepository(DocterPatiendDbContext _context, IResponse _response, ICountResponse _countResp,
                                         UserManager<ApplicationUser> _userManager) : IDoctorAvailabilityRepository
@@ -47,7 +34,8 @@ public class DoctorAvailabilityRepository(DocterPatiendDbContext _context, IResp
                         existingAvailability.TimeSlots = doctorTimeSlots;
                         existingAvailability.TimeSlotsJson = JsonConvert.SerializeObject(doctorTimeSlots);
                         existingAvailability.CreatedAt = DateTime.Now;
-
+                        existingAvailability.CreatedOn = DateTime.Now;
+                        existingAvailability.CreatedBy = model.UserId;
                         _context.DoctorAvailabilities.Update(existingAvailability);
                     }
                     else
@@ -62,7 +50,9 @@ public class DoctorAvailabilityRepository(DocterPatiendDbContext _context, IResp
                             TimeSlotsJson = JsonConvert.SerializeObject(doctorTimeSlots),
                             AppointmentDurationMinutes = model.AddEditDoctorAvailabilityObj.AppointmentDurationMinutes,
                             CreatedAt = DateTime.Now,
-                            Status = 1
+                            Status = 1,
+                            CreatedOn = DateTime.Now,
+                            CreatedBy = model.UserId
                         };
 
                         DoctorAvailabilitiesList.Add(newAvailability);

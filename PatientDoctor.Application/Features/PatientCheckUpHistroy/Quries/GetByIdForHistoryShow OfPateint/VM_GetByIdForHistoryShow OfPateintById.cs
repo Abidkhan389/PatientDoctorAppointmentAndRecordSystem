@@ -1,6 +1,4 @@
 ﻿
-using PatientDoctor.Application.Features.PatientCheckUpHistroy.Quries.GetById;
-
 namespace PatientDoctor.Application.Features.PatientCheckUpHistroy.Quries.GetByIdForHistoryShow_OfPateint;
 public class VM_GetByIdForHistoryShow_OfPateintById
     {

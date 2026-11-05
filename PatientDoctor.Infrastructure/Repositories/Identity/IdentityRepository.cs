@@ -181,8 +181,10 @@ namespace PatientDoctor.Infrastructure.Repositories.Identity;
             }
 
             List<string> newRecoveryCodes = null;
+            string trustedDeviceToken = null;
 
-            if (await _userManager.GetTwoFactorEnabledAsync(user))
+            if (await _userManager.GetTwoFactorEnabledAsync(user)
+                && !await IsTrustedDeviceTokenAsync(model.TrustedDeviceToken, user))
             {
                 // Recovery codes only ever get generated once the authenticator has been
                 // scanned and confirmed with a valid code - so their presence is the
@@ -199,6 +201,9 @@ namespace PatientDoctor.Infrastructure.Repositories.Identity;
                         _response.Success = Constants.ResponseFailure;
                         return _response;
                     }
+
+                    if (model.RememberDevice)
+                        trustedDeviceToken = await GenerateTrustedDeviceTokenAsync(user);
                 }
                 else if (!string.IsNullOrWhiteSpace(model.TwoFactorCode))
                 {
@@ -219,6 +224,9 @@ namespace PatientDoctor.Infrastructure.Repositories.Identity;
                         var codes = await _userManager.GenerateNewTwoFactorRecoveryCodesAsync(user, 8);
                         newRecoveryCodes = codes?.ToList();
                     }
+
+                    if (model.RememberDevice)
+                        trustedDeviceToken = await GenerateTrustedDeviceTokenAsync(user);
                 }
                 else
                 {
@@ -264,7 +272,8 @@ namespace PatientDoctor.Infrastructure.Repositories.Identity;
                 FirstName = userdetailsObj.FirstName,
                 LastName = userdetailsObj.LastName,
                 Roles = await _userManager.GetRolesAsync(user),
-                RecoveryCodes = newRecoveryCodes
+                RecoveryCodes = newRecoveryCodes,
+                TrustedDeviceToken = trustedDeviceToken
             };
 
             _response.Data = authenticatedUser;
@@ -272,6 +281,69 @@ namespace PatientDoctor.Infrastructure.Repositories.Identity;
             _response.Success = Constants.ResponseSuccess;
 
             return _response;
+        }
+
+        // "Remember this Device" support - a short, self-contained signed token (not an
+        // access token: different audience, so it is rejected by [Authorize] endpoints)
+        // that proves this browser already completed 2FA for this user recently.
+        //
+        // The user's Identity SecurityStamp is embedded in the token and re-checked on
+        // every use. Toggling TwoFactorEnabled (see AddEditUser) rotates the stamp, which
+        // instantly invalidates every previously-issued trusted-device token for that user
+        // - e.g. if an admin turns 2FA off then back on after a lost phone, old "remembered"
+        // browsers are forced through 2FA again instead of silently staying trusted.
+        private const string TrustedDeviceAudience = "EyeCareTrustedDevice";
+        private const string SecurityStampClaimType = "sstamp";
+
+        private async Task<string> GenerateTrustedDeviceTokenAsync(ApplicationUser user)
+        {
+            var securityStamp = await _userManager.GetSecurityStampAsync(user);
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JWT:Secret"]));
+            var jwt = new JwtSecurityToken(
+                issuer: _configuration["JWT:ValidIssuer"],
+                audience: TrustedDeviceAudience,
+                claims: new[]
+                {
+                    new Claim(ClaimTypes.NameIdentifier, user.Id),
+                    new Claim(SecurityStampClaimType, securityStamp ?? string.Empty)
+                },
+                expires: DateTime.UtcNow.AddDays(7),
+                signingCredentials: new SigningCredentials(key, SecurityAlgorithms.HmacSha256));
+
+            return new JwtSecurityTokenHandler().WriteToken(jwt);
+        }
+
+        private async Task<bool> IsTrustedDeviceTokenAsync(string token, ApplicationUser user)
+        {
+            if (string.IsNullOrWhiteSpace(token))
+                return false;
+
+            try
+            {
+                var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JWT:Secret"]));
+                var parameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidIssuer = _configuration["JWT:ValidIssuer"],
+                    ValidateAudience = true,
+                    ValidAudience = TrustedDeviceAudience,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = key,
+                    ClockSkew = TimeSpan.Zero
+                };
+
+                var principal = new JwtSecurityTokenHandler().ValidateToken(token, parameters, out _);
+                var userId = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                var stamp = principal.FindFirst(SecurityStampClaimType)?.Value;
+                var currentStamp = await _userManager.GetSecurityStampAsync(user);
+
+                return userId == user.Id && !string.IsNullOrEmpty(stamp) && stamp == currentStamp;
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         public async Task<IResponse> AddEditUser(AddEditUserWithCreatedOrUpdatedById model)
@@ -368,8 +440,17 @@ namespace PatientDoctor.Infrastructure.Repositories.Identity;
                     existUser.PhoneNumber= model.addEditUsermodel.MobileNumber;
                     existUser.Email = model.addEditUsermodel.Email;
                     existUser.UserName = model.addEditUsermodel.Email;
+                    var twoFactorChanged = model.addEditUsermodel.TwoFactorEnabled.HasValue
+                        && model.addEditUsermodel.TwoFactorEnabled.Value != existUser.TwoFactorEnabled;
                     if (model.addEditUsermodel.TwoFactorEnabled.HasValue)
                         existUser.TwoFactorEnabled = model.addEditUsermodel.TwoFactorEnabled.Value;
+                    if (twoFactorChanged)
+                    {
+                        // Rotating the SecurityStamp instantly invalidates every previously
+                        // issued "remember this device" token for this user, so a lost-phone
+                        // off/on cycle can't be bypassed by an old trusted browser.
+                        await _userManager.UpdateSecurityStampAsync(existUser);
+                    }
                     var existinguserdetails = await _context.Userdetail.Where(x => x.UserId == existUser.Id).FirstOrDefaultAsync();
                     if (existinguserdetails == null)
                     {

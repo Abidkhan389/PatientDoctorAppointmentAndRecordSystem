@@ -14,6 +14,7 @@ namespace PatientDoctor.Application.Features.Identity.Quries
         public string RoleId { get; set; }
         public string? RoleName { get; set; }
         public int? Fee { get; set; }
-        public string? DoctorId { get; set; }   
+        public string? DoctorId { get; set; }
+        public bool TwoFactorEnabled { get; set; }
     }
 }

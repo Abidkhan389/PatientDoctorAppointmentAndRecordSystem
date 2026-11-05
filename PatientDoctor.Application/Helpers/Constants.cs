@@ -20,6 +20,8 @@ namespace PatientDoctor.Application.Helpers;
         public const string DataUpdate = "Your data has been updated successfully";
         public const string DataDelete = "You data deleted Successfully";
         public const string IncorrectUsernamePassword = "Username or Password is incorrect";
+        public const string TwoFactorRequired = "Two-factor authentication is required";
+        public const string InvalidTwoFactorCode = "The authentication code is invalid or has expired";
         public const string ModelStateStateIsInvalid = "Model state is invalid";
         public const string UniqueUserDetails = "Username/Email/MobileNumber already exist";
         public const string UniqueEmail = "This email is taken. Try another.";

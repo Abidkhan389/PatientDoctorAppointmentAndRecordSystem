@@ -1,4 +1,6 @@
-﻿namespace PatientDoctor.API.Controllers;
+﻿using BuildingBlocks.Models.Identity;
+
+namespace PatientDoctor.API.Controllers;
     [Authorize]
     [Route("api/[controller]")]
     [ApiController]
@@ -26,8 +28,14 @@
         [Route("AddEditUser")]
         public async Task<object> AddEditUser(AddEditUserCommands model)
         {
-            
+
             var UserId = HelperStatic.GetUserIdFromClaims((ClaimsIdentity)User.Identity);
+
+            // Only a SuperAdmin may turn a user's Two-Factor Authentication on/off.
+            if (!User.IsInRole(Roles.SuperAdmin))
+            {
+                model.TwoFactorEnabled = null;
+            }
 
             return await _mediator.Send(new AddEditUserWithCreatedOrUpdatedById(model, UserId));
         }

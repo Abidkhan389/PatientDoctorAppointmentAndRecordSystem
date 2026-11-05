@@ -116,8 +116,10 @@ namespace PatientDoctor.Infrastructure.Repositories.Identity;
         {
             var user = await (from main in _userManager.Users
                               join userdetail in _context.Userdetail on main.Id equals userdetail.UserId
-                              join userRoles in _context.UserRoles on main.Id equals userRoles.UserId
-                              join roles in _context.Roles on userRoles.RoleId equals roles.Id // ✅ Join with Roles Table
+                              join userRoles in _context.UserRoles on main.Id equals userRoles.UserId into userRolesGroup
+                              from userRoles in userRolesGroup.DefaultIfEmpty() // Left join - users without a role row must still be editable
+                              join roles in _context.Roles on userRoles.RoleId equals roles.Id into rolesGroup
+                              from roles in rolesGroup.DefaultIfEmpty()
                               join da in _context.DoctorAssistants on main.Id equals da.AssistantId into daGroup
                               from da in daGroup.DefaultIfEmpty() // Left join to include users without doctor-assistant mapping
                               where (main.Status == 1 && main.Id == model.id)
@@ -134,7 +136,8 @@ namespace PatientDoctor.Infrastructure.Repositories.Identity;
                                   RoleId = roles.Id, // ✅ RoleId from Roles table
                                   RoleName = roles.Name, // ✅ Fetch Role Name
                                   Fee = userdetail.Fee ?? 0 ,
-                                  DoctorId = da.DoctorId // ✅ Include DoctorId if user is an assistant
+                                  DoctorId = da.DoctorId, // ✅ Include DoctorId if user is an assistant
+                                  TwoFactorEnabled = main.TwoFactorEnabled
                               }).FirstOrDefaultAsync();
 
 
@@ -167,39 +170,106 @@ namespace PatientDoctor.Infrastructure.Repositories.Identity;
             var user = await _userManager.FindByEmailAsync(model.Email);
 
             // Fix: Ensure PasswordHash and PasswordSalt are not null before calling CheckKey
-            if (user != null 
-                && !string.IsNullOrEmpty(user.PasswordHash) 
-                && !string.IsNullOrEmpty(user.PasswordSalt) 
-                && this._crypto.CheckKey(user.PasswordHash, user.PasswordSalt, model.Password))
-            {
-                // ✅ Generate JWT + refresh token
-                var tokens = await GenerateTokensAsync(user.Id);
-
-                var userdetailsObj = await _context.Userdetail
-                    .Where(x => x.UserId == user.Id)
-                    .FirstOrDefaultAsync();
-                var authenticatedUser = new 
-                {
-                    Token = tokens.Token,
-                    RefreshToken = tokens.RefreshToken,
-                    ProfilePicture = user.ProfilePicture,
-                    Id= user.Id,
-                    Email= user.Email,
-                    //User = user,
-                    FirstName = userdetailsObj.FirstName,
-                    LastName = userdetailsObj.LastName,
-                    Roles = await _userManager.GetRolesAsync(user),
-                };
-
-                _response.Data = authenticatedUser;
-                _response.Message = Constants.Login;
-                _response.Success = Constants.ResponseSuccess;
-            }
-            else
+            if (user == null
+                || string.IsNullOrEmpty(user.PasswordHash)
+                || string.IsNullOrEmpty(user.PasswordSalt)
+                || !this._crypto.CheckKey(user.PasswordHash, user.PasswordSalt, model.Password))
             {
                 _response.Message = Constants.IncorrectUsernamePassword;
                 _response.Success = Constants.ResponseFailure;
+                return _response;
             }
+
+            List<string> newRecoveryCodes = null;
+
+            if (await _userManager.GetTwoFactorEnabledAsync(user))
+            {
+                // Recovery codes only ever get generated once the authenticator has been
+                // scanned and confirmed with a valid code - so their presence is the
+                // authoritative "setup already completed" signal (robust to the user
+                // re-submitting the password step before finishing setup).
+                var isTwoFactorConfirmed = await _userManager.CountRecoveryCodesAsync(user) > 0;
+
+                if (!string.IsNullOrWhiteSpace(model.TwoFactorRecoveryCode))
+                {
+                    var redeemResult = await _userManager.RedeemTwoFactorRecoveryCodeAsync(user, model.TwoFactorRecoveryCode);
+                    if (!redeemResult.Succeeded)
+                    {
+                        _response.Message = Constants.InvalidTwoFactorCode;
+                        _response.Success = Constants.ResponseFailure;
+                        return _response;
+                    }
+                }
+                else if (!string.IsNullOrWhiteSpace(model.TwoFactorCode))
+                {
+                    var isValidCode = await _userManager.VerifyTwoFactorTokenAsync(
+                        user, TokenOptions.DefaultAuthenticatorProvider, model.TwoFactorCode);
+
+                    if (!isValidCode)
+                    {
+                        _response.Message = Constants.InvalidTwoFactorCode;
+                        _response.Success = Constants.ResponseFailure;
+                        return _response;
+                    }
+
+                    if (!isTwoFactorConfirmed)
+                    {
+                        // First successful verification after setup - confirm it and hand
+                        // the one-time recovery codes back to the user.
+                        var codes = await _userManager.GenerateNewTwoFactorRecoveryCodesAsync(user, 8);
+                        newRecoveryCodes = codes?.ToList();
+                    }
+                }
+                else
+                {
+                    // No code submitted yet - tell the frontend which step to show next.
+                    if (!isTwoFactorConfirmed && string.IsNullOrEmpty(await _userManager.GetAuthenticatorKeyAsync(user)))
+                    {
+                        await _userManager.ResetAuthenticatorKeyAsync(user);
+                    }
+
+                    var secret = !isTwoFactorConfirmed ? await _userManager.GetAuthenticatorKeyAsync(user) : null;
+                    var issuer = "Eye Care Clinic";
+                    var otpAuthUri = secret == null ? null
+                        : $"otpauth://totp/{Uri.EscapeDataString(issuer)}:{Uri.EscapeDataString(user.Email)}" +
+                          $"?secret={secret}&issuer={Uri.EscapeDataString(issuer)}&digits=6";
+
+                    _response.Data = new
+                    {
+                        RequiresTwoFactor = true,
+                        SetupRequired = !isTwoFactorConfirmed,
+                        Secret = secret,
+                        OtpAuthUri = otpAuthUri
+                    };
+                    _response.Message = Constants.TwoFactorRequired;
+                    _response.Success = Constants.ResponseSuccess;
+                    return _response;
+                }
+            }
+
+            // ✅ Generate JWT + refresh token
+            var tokens = await GenerateTokensAsync(user.Id);
+
+            var userdetailsObj = await _context.Userdetail
+                .Where(x => x.UserId == user.Id)
+                .FirstOrDefaultAsync();
+            var authenticatedUser = new
+            {
+                Token = tokens.Token,
+                RefreshToken = tokens.RefreshToken,
+                ProfilePicture = user.ProfilePicture,
+                Id= user.Id,
+                Email= user.Email,
+                //User = user,
+                FirstName = userdetailsObj.FirstName,
+                LastName = userdetailsObj.LastName,
+                Roles = await _userManager.GetRolesAsync(user),
+                RecoveryCodes = newRecoveryCodes
+            };
+
+            _response.Data = authenticatedUser;
+            _response.Message = Constants.Login;
+            _response.Success = Constants.ResponseSuccess;
 
             return _response;
         }
@@ -234,7 +304,8 @@ namespace PatientDoctor.Infrastructure.Repositories.Identity;
                     var salt = _crypto.CreateSalt();
                     user.PasswordSalt = salt;
                     user.PasswordHash = _crypto.CreateKey(salt, model.addEditUsermodel.Password);
-                   
+                    user.TwoFactorEnabled = model.addEditUsermodel.TwoFactorEnabled ?? false;
+
                     var exitrole = await _roleManager.FindByIdAsync(model.addEditUsermodel.RoleId);
                     if(exitrole == null)
                     {
@@ -297,6 +368,8 @@ namespace PatientDoctor.Infrastructure.Repositories.Identity;
                     existUser.PhoneNumber= model.addEditUsermodel.MobileNumber;
                     existUser.Email = model.addEditUsermodel.Email;
                     existUser.UserName = model.addEditUsermodel.Email;
+                    if (model.addEditUsermodel.TwoFactorEnabled.HasValue)
+                        existUser.TwoFactorEnabled = model.addEditUsermodel.TwoFactorEnabled.Value;
                     var existinguserdetails = await _context.Userdetail.Where(x => x.UserId == existUser.Id).FirstOrDefaultAsync();
                     if (existinguserdetails == null)
                     {

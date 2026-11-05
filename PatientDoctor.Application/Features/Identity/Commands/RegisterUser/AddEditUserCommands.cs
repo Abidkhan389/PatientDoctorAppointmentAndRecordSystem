@@ -15,6 +15,9 @@ namespace PatientDoctor.Application.Features.Identity.Commands.RegisterUser
         public string? DoctorId { get; set; }
         public int? Fee { get; set; }
         public string? ProfilePicture { get; set; }
+        // Null = leave as-is (edit) / default to false (create). Only honoured when the
+        // caller is a SuperAdmin - enforced in AccountController.AddEditUser.
+        public bool? TwoFactorEnabled { get; set; }
 
 
     }
